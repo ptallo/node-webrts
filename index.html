@@ -1,6 +1,6 @@
 <html>
   <head>
-    <title> Web RTS Frontend</title>
+    <title> Web RTS Front End</title>
     <link rel="stylesheet" type="text/css" href="style.css" />
   </head>
   <body>
@@ -9,17 +9,21 @@
       <li>Game Lobbies</li>
     </ul>
 
-    <form>
-      <button onclick="addRoom()"> Button </button>
-    </form>
+    <button id="add_lobby"> Button </button>
+
 
     <ul id="game_room">
-      <li id="game"> room one </li>
-      <li> room two </li>
+      <li> room one </li>
     </ul>
 
     <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
     <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
-    <script src="/main.js"></script>
+    <script>
+      var socket = io();
+      $('#add_lobby').on('click', function(){
+        socket.emit('add lobby');
+        $('#game_room').append($('<li>').text("game room"));
+      });
+    </script>
   </body>
 </html>

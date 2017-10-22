@@ -9,7 +9,7 @@ color scheme at:
 }
 
 #nav_bar {
-  padding: 0px;
+  padding: 4px 0px;
   list-style-type: none;
   background-color: #00796b;
   color: white;
@@ -19,14 +19,14 @@ color scheme at:
 #nav_bar li {
   display: inline;
   font-size: 30px;
-  padding: 0px 15px;
+  padding: 4px 15px;
 }
 
 #nav_bar li:hover{
   background-color: #48a999;
 }
 
-form {
+button {
   margin: 1% 4%;
   font: 20px;
 }
