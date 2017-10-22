@@ -4,9 +4,20 @@
     <link rel="stylesheet" type="text/css" href="style.css" />
   </head>
   <body>
-    <ul id="game_room">
-      <li> testing </li>
+    <ul id="nav_bar">
+      <li>Account</li>
+      <li>Game Lobbies</li>
     </ul>
+
+    <form>
+      <button onclick="addRoom()"> Button </button>
+    </form>
+
+    <ul id="game_room">
+      <li id="game"> room one </li>
+      <li> room two </li>
+    </ul>
+
     <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
     <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
     <script src="/main.js"></script>
