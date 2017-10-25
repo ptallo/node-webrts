@@ -11,9 +11,7 @@
 
     <button id="add_lobby"> Button </button>
 
-
     <ul id="game_room">
-      <li> room one </li>
     </ul>
 
     <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
@@ -22,6 +20,8 @@
       var socket = io();
       $('#add_lobby').on('click', function(){
         socket.emit('add lobby');
+      });
+      socket.on('add lobby', function(){
         $('#game_room').append($('<li>').text("game room"));
       });
     </script>

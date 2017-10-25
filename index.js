@@ -2,7 +2,9 @@ var express = require('express')
 var app = express();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
+var {GameRoom} = require("./GameRoom.js");
 var port = 8080;
+var game_rooms = [];
 
 app.get('/', function(req, res){
   res.sendFile(__dirname + '/index.html');
@@ -11,7 +13,9 @@ app.get('/', function(req, res){
 
 io.on('connection', function(socket){
   socket.on('add lobby', function(){
-    console.log('add game room');
+    io.emit('add lobby');
+    var game = new GameRoom();
+    game_rooms.push(game);
   });
 });
 
