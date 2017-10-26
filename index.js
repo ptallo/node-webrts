@@ -1,9 +1,13 @@
+//Imports
+'use strict';
 var express = require('express')
 var app = express();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
-var {GameRoom} = require("./GameRoom.js");
+const GameRoom = require("./GameRoom.js");
 var port = 8080;
+
+//Variables
 var game_rooms = [];
 
 app.get('/', function(req, res){
@@ -16,6 +20,7 @@ io.on('connection', function(socket){
     io.emit('add lobby');
     var game = new GameRoom();
     game_rooms.push(game);
+    console.log("Game room length: " + game_rooms.length);
   });
 });
 

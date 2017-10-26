@@ -1,3 +1,5 @@
+'use strict';
+
 class GameRoom{
   constructor(){
     this.num_players = 2;
@@ -26,3 +28,5 @@ class GameRoom{
     }
   }
 }
+
+module.exports = GameRoom;
