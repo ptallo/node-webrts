@@ -9,7 +9,8 @@
       <li>Game Lobbies</li>
     </ul>
 
-    <button id="add_lobby"> Button </button>
+    <button id="add_lobby"> Add Lobby </button>
+    <button id="refresh_lobby"> Refresh </button>
 
     <ul id="game_room">
     </ul>
@@ -22,6 +23,13 @@
         socket.emit('add lobby');
       });
       socket.on('add lobby', function(){
+        $('#game_room').append($('<li>').text("game room"));
+      });
+      $('#refresh_lobby').on('click', function(){
+        socket.emit('refresh');
+        $('#game_room').empty();
+      })
+      socket.on('refresh_list', function(json){
         $('#game_room').append($('<li>').text("game room"));
       });
     </script>

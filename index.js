@@ -22,6 +22,11 @@ io.on('connection', function(socket){
     game_rooms.push(game);
     console.log("Game room length: " + game_rooms.length);
   });
+  socket.on('refresh', function(){
+    for(var i = 0; i < game_rooms.length; i++){
+      socket.emit('refresh_list', JSON.stringify(game_rooms[i]));
+    }
+  })
 });
 
 http.listen(port, function(){
