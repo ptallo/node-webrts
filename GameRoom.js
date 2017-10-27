@@ -1,7 +1,8 @@
 'use strict';
 
 class GameRoom{
-  constructor(){
+  constructor(name){
+    this.name = name;
     this.num_players = 2;
     this.players = [];
     var date = new Date;

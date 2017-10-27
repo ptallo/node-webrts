@@ -22,15 +22,13 @@
       $('#add_lobby').on('click', function(){
         socket.emit('add lobby');
       });
-      socket.on('add lobby', function(){
-        $('#game_room').append($('<li>').text("game room"));
-      });
       $('#refresh_lobby').on('click', function(){
         socket.emit('refresh');
         $('#game_room').empty();
       })
-      socket.on('refresh_list', function(json){
-        $('#game_room').append($('<li>').text("game room"));
+      socket.on('add room', function(json){
+        var game_room = JSON.parse(json)
+        $('#game_room').append($('<li>').text(game_room.name));
       });
     </script>
   </body>

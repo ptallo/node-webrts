@@ -17,14 +17,13 @@ app.get('/', function(req, res){
 
 io.on('connection', function(socket){
   socket.on('add lobby', function(){
-    io.emit('add lobby');
-    var game = new GameRoom();
+    var game = new GameRoom("test");
     game_rooms.push(game);
-    console.log("Game room length: " + game_rooms.length);
+    socket.emit('add room', JSON.stringify(game));
   });
   socket.on('refresh', function(){
     for(var i = 0; i < game_rooms.length; i++){
-      socket.emit('refresh_list', JSON.stringify(game_rooms[i]));
+      socket.emit('add room', JSON.stringify(game_rooms[i]));
     }
   })
 });
