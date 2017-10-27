@@ -16,18 +16,23 @@ app.get('/', function(req, res){
 });
 
 io.on('connection', function(socket){
+  addGameRooms(socket);
   socket.on('add lobby', function(){
     var game = new GameRoom("test");
     game_rooms.push(game);
     socket.emit('add room', JSON.stringify(game));
   });
   socket.on('refresh', function(){
-    for(var i = 0; i < game_rooms.length; i++){
-      socket.emit('add room', JSON.stringify(game_rooms[i]));
-    }
+    addGameRooms(socket);
   })
 });
 
 http.listen(port, function(){
   console.log('listening on *: ' + port);
 });
+
+function addGameRooms(socket){
+  for(var i = 0; i < game_rooms.length; i++){
+    socket.emit('add room', JSON.stringify(game_rooms[i]));
+  }
+}
