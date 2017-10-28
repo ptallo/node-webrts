@@ -1,35 +1,38 @@
 <html>
-  <head>
-    <title> Web RTS Front End</title>
-    <link rel="stylesheet" type="text/css" href="style.css" />
-  </head>
-  <body>
-    <ul id="nav_bar">
-      <li>Account</li>
-      <li>Game Lobbies</li>
-    </ul>
+    <head>
+        <title> Web RTS Front End</title>
+        <link rel="stylesheet" type="text/css" href="style.css" />
+    </head>
+    <body>
+        <ul id="nav_bar">
+            <li>Account</li>
+            <li>Game Lobbies</li>
+        </ul>
 
-    <button id="add_lobby"> Add Lobby </button>
-    <button id="refresh_lobby"> Refresh </button>
+        <button id="add_lobby"> Add Lobby </button>
+        <button id="refresh_lobby"> Refresh </button>
 
-    <ul id="game_room">
-    </ul>
+        <ul id="game_room">
+        </ul>
 
-    <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
-    <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
-    <script>
-      var socket = io();
-      $('#add_lobby').on('click', function(){
-        socket.emit('add lobby');
-      });
-      $('#refresh_lobby').on('click', function(){
-        socket.emit('refresh');
-        $('#game_room').empty();
-      })
-      socket.on('add room', function(json){
-        var game_room = JSON.parse(json)
-        $('#game_room').append($('<li>').text(game_room.name));
-      });
-    </script>
-  </body>
+        <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
+        <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
+        <script>
+            var socket = io();
+
+            $('#add_lobby').on('click', function(){
+                socket.emit('add lobby');
+            });
+
+            $('#refresh_lobby').on('click', function(){
+                socket.emit('refresh');
+                $('#game_room').empty();
+            });
+
+            socket.on('add room', function(json){
+                let game_room = JSON.parse(json)
+                $('#game_room').append($('<li>').text(game_room.name));
+            });
+        </script>
+    </body>
 </html>
