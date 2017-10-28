@@ -1,4 +1,5 @@
 'use strict';
+var shortid = require('shortid');
 
 class GameRoom{
   constructor(name){
@@ -6,7 +7,7 @@ class GameRoom{
     this.num_players = 2;
     this.players = [];
     var date = new Date;
-    this.game_id = date.getTime();
+    this.game_id = shortid.generate();
   }
   add_player(pid){
     if (this.players.length <= 2){
