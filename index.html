@@ -19,19 +19,28 @@
         <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
         <script>
             var socket = io();
+            var game_rooms = [];
 
             $('#add_lobby').on('click', function(){
                 socket.emit('add lobby');
             });
 
             $('#refresh_lobby').on('click', function(){
-                socket.emit('refresh');
                 $('#game_room').empty();
+                game_rooms = [];
+                socket.emit('refresh');
+            });
+
+            $('#game_room').on('click', "button.join_room", function(){
+                window.location.href = "game_room.html";
+                socket.emit('join_room');
             });
 
             socket.on('add room', function(json){
-                let game_room = JSON.parse(json)
-                $('#game_room').append($('<li>').text(game_room.name));
+                let game_room = JSON.parse(json);
+                game_rooms.push(game_room);
+
+                $('#game_room').append("<li> Game Room <button class='join_room'> Join Room</button></li>");
             });
         </script>
     </body>
