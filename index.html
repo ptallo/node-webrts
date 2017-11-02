@@ -34,12 +34,16 @@
             $('#game_room').on('click', "button.join_room", function(){
                 let game_room = game_rooms[$(this).parent().index()];
                 socket.emit('join_room', JSON.stringify(game_room));
+                $('#game_room').empty();
+                game_rooms = [];
                 socket.emit('refresh');
             });
 
             $('#game_room').on('click', "button.leave_room", function(){
                 let game_room = game_rooms[$(this).parent().index()];
                 socket.emit('leave_room', JSON.stringify(game_room));
+                $('#game_room').empty();
+                game_rooms = [];
                 socket.emit('refresh');
             })
 

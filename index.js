@@ -34,31 +34,30 @@ io.on('connection', function(socket){
     socket.on('join_room', function (gameRoomJSON) {
         console.log('attempting to connect to a game room!');
         let game = JSON.parse(gameRoomJSON);
-        for(var game_room in game_rooms){
-            if (game_room.game_id == game.game_id){
-                game = game_room;
+        for(let i = 0; i < game_rooms.length; i++){
+            if (game_rooms[i].game_id == game.game_id){
+                game_rooms[i].players.push(socket.id);
+                socket.join(game_rooms[i].game_id);
+                console.log("conn: " + JSON.stringify(game_rooms[i]));
             }
         }
-        socket.join(game.game_id);
-        game.players.push(socket.id);
-        console.log("conn: " + JSON.stringify(game));
     });
     
     socket.on('leave_room', function(gameRoomJSON) {
         console.log('attempting to leave a game room!');
         let game = JSON.parse(gameRoomJSON);
-        for(let game_room in game_rooms){
-            if (game_room.game_id == game.game_id){
-                game = game_room;
+        for(let j = 0; j < game_rooms.length; j++){
+            if (game_rooms[j].game_id == game.game_id){
+                for(let i = 0; i < game_rooms[j].players.length; i++){
+                    if(game_rooms[j].players[i] == socket.id){
+                        game_rooms[j].players.splice(i,1);
+                        socket.leave(game_rooms[j].game_id);
+                        console.log("disc: " + JSON.stringify(game_rooms[j]));
+                    }
+                }
             }
         }
-        socket.leave(game.game_id);
-        for(let i = 0; i < game.players.length; i++){
-            if(game.players[i] == socket.id){
-                game.players.splice(i,1);
-            }
-        }
-        console.log("disc: " + JSON.stringify(game));
+
     });
 });
 
