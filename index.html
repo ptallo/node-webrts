@@ -15,8 +15,8 @@
         <ul id="game_room">
         </ul>
 
-        <script src="https://cdn.socket.io/socket.io-1.2.0.js"></script>
-        <script src="https://code.jquery.com/jquery-1.11.1.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.js"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
         <script>
             var socket = io();
             var game_rooms = [];
@@ -32,15 +32,21 @@
             });
 
             $('#game_room').on('click', "button.join_room", function(){
-                window.location.href = "game_room.html";
-                socket.emit('join_room');
+                let game_room = game_rooms[$(this).parent().index()];
+                socket.emit('join_room', JSON.stringify(game_room));
+                socket.emit('refresh');
             });
+
+            $('#game_room').on('click', "button.leave_room", function(){
+                let game_room = game_rooms[$(this).parent().index()];
+                socket.emit('leave_room', JSON.stringify(game_room));
+                socket.emit('refresh');
+            })
 
             socket.on('add room', function(json){
                 let game_room = JSON.parse(json);
                 game_rooms.push(game_room);
-
-                $('#game_room').append("<li> Game Room <button class='join_room'> Join Room</button></li>");
+                $('#game_room').append("<li>" + game_room.game_id + "<button class='join_room'> Join Room</button><button class='leave_room'> Leave Room</button></li>");
             });
         </script>
     </body>

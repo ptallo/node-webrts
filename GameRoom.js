@@ -7,7 +7,6 @@ class GameRoom{
     this.players = [];
     this.num_players = 2;
     this.game_id = shortid.generate();
-    this.path = "/game_room/" + this.game_id;
   }
   add_player(pid){
     if (this.players.length <= 2){
