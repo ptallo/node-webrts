@@ -1,11 +1,37 @@
 <html>
 <head>
-    <title> Game Room </title>
+    <title> Web RTS Front End </title>
     <link rel="stylesheet" type="text/css" href="style.css" />
 </head>
 <body>
 
-    <p> Hello World! </p>
+    <div id="game_info">
+        <p id="name"></p>
+        <br>
+        <p> Players </p>
+        <ul id="players">
+        </ul>
+        <button id="leave_room"> Leave Room </button>
+    </div>
 
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script>
+        var socket = io();
+        var game;
+
+        $(document).ready(function(){
+            game = JSON.parse(localStorage.getItem('game_room'));
+            $('#name').text(game.game_id);
+            for(let i = 0; i < game.players.length; i++){
+                $('#players').append("<li>" + game.players[i] + "</li>");
+            }
+        });
+
+        $('#leave_room').on('click', function(){
+            socket.emit('leave_room', JSON.stringify(game), localStorage.getItem('player_id'));
+            window.location.href = "index.html";
+        });
+    </script>
 </body>
 </html>

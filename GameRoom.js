@@ -9,7 +9,7 @@ class GameRoom{
     this.game_id = shortid.generate();
   }
   add_player(pid){
-    if (this.players.length <= 2){
+    if (this.players.length < 2){
         this.players.push(pid);
     } else {
         throw "There are too many players in this game room!";

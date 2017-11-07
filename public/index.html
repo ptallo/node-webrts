@@ -21,6 +21,10 @@
             var socket = io();
             var game_rooms = [];
 
+            $(document).ready(function () {
+                socket.emit('get_uid');
+            });
+
             $('#add_lobby').on('click', function(){
                 socket.emit('add lobby');
             });
@@ -33,24 +37,28 @@
 
             $('#game_room').on('click', "button.join_room", function(){
                 let game_room = game_rooms[$(this).parent().index()];
-                socket.emit('join_room', JSON.stringify(game_room));
+                game_room.players.push(localStorage.getItem('player_id'));
+                localStorage.setItem('game_room', JSON.stringify(game_room));
+                socket.emit('join_room', JSON.stringify(game_room), localStorage.getItem('player_id'));
+                window.location.href = "game_room.html";
+            });
+
+            $('#game_room').on('click', "button.leave_room", function(){
+                let game_room = game_rooms[$(this).parent().index()];
+                socket.emit('leave_room', JSON.stringify(game_room), localStorage.getItem('player_id'));
                 $('#game_room').empty();
                 game_rooms = [];
                 socket.emit('refresh');
             });
 
-            $('#game_room').on('click', "button.leave_room", function(){
-                let game_room = game_rooms[$(this).parent().index()];
-                socket.emit('leave_room', JSON.stringify(game_room));
-                $('#game_room').empty();
-                game_rooms = [];
-                socket.emit('refresh');
-            })
-
             socket.on('add room', function(json){
                 let game_room = JSON.parse(json);
                 game_rooms.push(game_room);
                 $('#game_room').append("<li>" + game_room.game_id + "<button class='join_room'> Join Room</button><button class='leave_room'> Leave Room</button></li>");
+            });
+
+            socket.on('get_uid', function(uid){
+                localStorage.setItem('player_id', uid);
             });
         </script>
     </body>
