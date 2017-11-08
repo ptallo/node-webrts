@@ -1,0 +1,63 @@
+<html>
+<head>
+    <title> Web RTS Front End </title>
+    <link rel="stylesheet" type="text/css" href="style.css" />
+</head>
+<body>
+
+    <div id="game_info">
+        <p id="name"></p>
+        <br>
+        <p> Players </p>
+        <ul id="players">
+        </ul>
+        <button id="leave_room"> Leave Room </button>
+        <button id="start_game"> Start Game</button>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+    <script>
+        var socket = io();
+        var game_room;
+
+        $(document).ready(function(){
+            updateGameHTML(localStorage.getItem('game_room'));
+        });
+
+        $('#leave_room').on('click', function(){
+            for(let i = 0; i < game_room.players.length; i++){
+                if(game_room.players[i] == localStorage.getItem('player_id')){
+                    game_room.players.splice(i,1);
+                }
+            }
+            socket.emit('leave_room', JSON.stringify(game_room), localStorage.getItem('player_id'));
+            window.location.href = "index.html";
+        });
+
+        $('#start_game').on('click', function(){
+            window.location.href = "game.html";
+            socket.emit("start_game", localStorage.getItem('game_room'));
+        });
+
+        socket.on("start_game", function () {
+            window.location.href = "game.html";
+        });
+
+        socket.on('update_game', function(gameJSON){
+            updateGameHTML(gameJSON);
+        });
+
+        function updateGameHTML(game) {
+            game_room = JSON.parse(game);
+            $('#name').text(game_room.game_id);
+            $('#players').empty();
+            for (let i = 0; i < game_room.players.length; i++) {
+                $('#players').append("<li>" + game_room.players[i] + "</li>");
+            }
+        }
+
+        //TODO Implement start game functionality which moves all players into a game room instance.
+    </script>
+</body>
+</html>
