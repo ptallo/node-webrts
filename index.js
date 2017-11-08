@@ -37,20 +37,21 @@ io.on('connection', function(socket){
             if (game_rooms[i].game_id == game.game_id){
                 game_rooms[i].players.push(player_id);
                 socket.join(game_rooms[i].game_id);
-                console.log('conn: ' + gameRoomJSON);
+                socket.broadcast.to(game_rooms[i].game_id).emit('update_game', JSON.stringify(game_rooms[i]));
             }
         }
     });
     
     socket.on('leave_room', function(gameRoomJSON, player_id) {
+        console.log(gameRoomJSON);
         let game = JSON.parse(gameRoomJSON);
-        for(let j = 0; j < game_rooms.length; j++){
-            if (game_rooms[j].game_id == game.game_id){
-                for(let i = 0; i < game_rooms[j].players.length; i++){
-                    if(game_rooms[j].players[i] == player_id){
-                        game_rooms[j].players.splice(i,1);
-                        socket.leave(game_rooms[j].game_id);
-                        console.log('disc: ' + gameRoomJSON);
+        for(let i = 0; i < game_rooms.length; i++){
+            if(game.game_id == game_rooms[i].game_id){
+                for(let a = 0; a < game.players.length; a++){
+                    if(game_rooms[i].players[a] == player_id){
+                        game_rooms[i].players.splice(a,1);
+                        socket.leave(game_rooms[i].game_id);
+                        socket.broadcast.to(game.game_id).emit('update_game', JSON.stringify(game_rooms[i]));
                     }
                 }
             }
@@ -60,6 +61,10 @@ io.on('connection', function(socket){
     socket.on('get_uid', function () {
        let uid = shortid.generate();
        socket.emit('get_uid', uid);
+    });
+    
+    socket.on('start_game', function(game_room){
+        socket.broadcast.to(game_room).emit('start_game');
     });
 });
 

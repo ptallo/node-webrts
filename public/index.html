@@ -22,7 +22,9 @@
             var game_rooms = [];
 
             $(document).ready(function () {
-                socket.emit('get_uid');
+                if (localStorage.get('player_id') == null) {
+                    socket.emit('get_uid');
+                }
             });
 
             $('#add_lobby').on('click', function(){
@@ -30,9 +32,7 @@
             });
 
             $('#refresh_lobby').on('click', function(){
-                $('#game_room').empty();
-                game_rooms = [];
-                socket.emit('refresh');
+                refreshList();
             });
 
             $('#game_room').on('click', "button.join_room", function(){
@@ -46,9 +46,7 @@
             $('#game_room').on('click', "button.leave_room", function(){
                 let game_room = game_rooms[$(this).parent().index()];
                 socket.emit('leave_room', JSON.stringify(game_room), localStorage.getItem('player_id'));
-                $('#game_room').empty();
-                game_rooms = [];
-                socket.emit('refresh');
+                refreshList();
             });
 
             socket.on('add room', function(json){
@@ -60,6 +58,14 @@
             socket.on('get_uid', function(uid){
                 localStorage.setItem('player_id', uid);
             });
+
+            function refreshList() {
+                $('#game_room').empty();
+                game_rooms = [];
+                socket.emit('refresh');
+            }
+
+            //TODO implement popup for create game which gets some information which will be passed into game constructor
         </script>
     </body>
 </html>
