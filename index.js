@@ -38,20 +38,20 @@ io.on('connection', function(socket){
                 game_rooms[i].players.push(player_id);
                 socket.join(game_rooms[i].game_id);
                 socket.broadcast.to(game_rooms[i].game_id).emit('update_game', JSON.stringify(game_rooms[i]));
+                console.log("conn: " + JSON.stringify(game_rooms[i]));
             }
         }
     });
     
-    socket.on('leave_room', function(gameRoomJSON, player_id) {
-        console.log(gameRoomJSON);
-        let game = JSON.parse(gameRoomJSON);
+    socket.on('leave_room', function(game_id, player_id) {
         for(let i = 0; i < game_rooms.length; i++){
-            if(game.game_id == game_rooms[i].game_id){
-                for(let a = 0; a < game.players.length; a++){
+            if(game_rooms[i].game_id = game_id){
+                for(let a = 0; a < game_rooms[i].players.length; a++){
                     if(game_rooms[i].players[a] == player_id){
                         game_rooms[i].players.splice(a,1);
                         socket.leave(game_rooms[i].game_id);
-                        socket.broadcast.to(game.game_id).emit('update_game', JSON.stringify(game_rooms[i]));
+                        socket.broadcast.to(game_rooms[i].game_id).emit('update_game', JSON.stringify(game_rooms[i]));
+                        console.log("disc: " + JSON.stringify(game_rooms[i]));
                     }
                 }
             }
