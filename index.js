@@ -41,9 +41,10 @@ io.on('connection', function(socket){
         }
     });
     
-    socket.on('join_room', function (game_id, player_id) {
+    socket.on('join_room', function (game_json, player_id) {
+        let game = JSON.parse(game_json);
         for(let i = 0; i < game_rooms.length; i++){
-            if (game_rooms[i].game_id == game_id){
+            if (game_rooms[i].game_id == game.game_id){
                 game_rooms[i].add_player(player_id);
                 socket.join(game_rooms[i].game_id);
                 socket.broadcast.to(game_rooms[i].game_id).emit('update_game', JSON.stringify(game_rooms[i]));
@@ -52,9 +53,10 @@ io.on('connection', function(socket){
         }
     });
     
-    socket.on('leave_room', function(game_id, player_id) {
+    socket.on('leave_room', function(game_json, player_id) {
+        let game = JSON.parse(game_json);
         for(let i = 0; i < game_rooms.length; i++){
-            if(game_rooms[i].game_id == game_id){
+            if(game_rooms[i].game_id == game.game_id){
                 game_rooms[i].remove_player(player_id);
                 socket.leave(game_rooms[i].game_id);
                 socket.broadcast.to(game_rooms[i].game_id).emit('update_game', JSON.stringify(game_rooms[i]));
