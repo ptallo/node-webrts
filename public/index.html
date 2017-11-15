@@ -2,6 +2,7 @@
     <head>
         <title> Web RTS Front End</title>
         <link rel="stylesheet" type="text/css" href="style.css" />
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-modal/0.9.1/jquery.modal.min.css" />
     </head>
     <body>
         <ul id="nav_bar">
@@ -9,14 +10,24 @@
             <li>Game Lobbies</li>
         </ul>
 
-        <button id="add_lobby"> Add Lobby </button>
+        <button id="add_lobby"> <a href="#open_lobby" rel="modal:open"> New Lobby </a></button>
         <button id="refresh_lobby"> Refresh </button>
 
         <ul id="game_room">
         </ul>
 
+        <div id="open_lobby" class="modal">
+            <form action="">
+                Game Name:
+                <input type="text" autocomplete="off" id="game_name"><br>
+                <button> Create Room </button>
+            </form>
+        </div>
+
+
         <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.js"></script>
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-modal/0.9.1/jquery.modal.min.js"></script>
         <script>
             var socket = io();
             var game_rooms = [];
@@ -27,32 +38,27 @@
                 }
             });
 
-            $('#add_lobby').on('click', function(){
-                socket.emit('add lobby');
-            });
-
             $('#refresh_lobby').on('click', function(){
                 refreshList();
             });
 
             $('#game_room').on('click', "button.join_room", function(){
                 let game_room = game_rooms[$(this).parent().index()];
-                game_room.players.push(localStorage.getItem('player_id'));
-                localStorage.setItem('game_room', JSON.stringify(game_room));
-                socket.emit('join_room', JSON.stringify(game_room), localStorage.getItem('player_id'));
-                window.location.href = "game_room.html";
+                joinRoom(game_room);
             });
 
-            $('#game_room').on('click', "button.leave_room", function(){
-                let game_room = game_rooms[$(this).parent().index()];
-                socket.emit('leave_room', JSON.stringify(game_room), localStorage.getItem('player_id'));
-                refreshList();
+            $('form').on('submit', function () {
+                socket.emit('add and join', $('#game_name').val());
+                $('#game_name').val("");
             });
 
-            socket.on('add room', function(json){
-                let game_room = JSON.parse(json);
-                game_rooms.push(game_room);
-                $('#game_room').append("<li>" + game_room.game_id + "<button class='join_room'> Join Room</button><button class='leave_room'> Leave Room</button></li>");
+            socket.on('add room', function(game_json){
+                addRoom(game_json);
+            });
+
+            socket.on('add and join', function(game_json){
+                addRoom(game_json);
+                joinRoom(JSON.parse(game_json));
             });
 
             socket.on('get_uid', function(uid){
@@ -65,7 +71,17 @@
                 socket.emit('refresh');
             }
 
-            //TODO implement popup for create game which gets some information which will be passed into game constructor
+            function addRoom(game_json) {
+                let game_room = JSON.parse(game_json);
+                game_rooms.push(game_room);
+                $('#game_room').append("<li>" + game_room.name + "<button class='join_room'> Join Room</button><button class='leave_room'> Leave Room</button></li>");
+            }
+
+            function joinRoom(game_room) {
+                localStorage.setItem('game_room', JSON.stringify(game_room));
+                socket.emit('join_room', JSON.stringify(game_room), localStorage.getItem('player_id'));
+                window.location.href = "game_room.html";
+            }
         </script>
     </body>
 </html>
