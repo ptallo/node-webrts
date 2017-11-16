@@ -5,6 +5,7 @@ var app = express();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
 var GameRoom = require("./GameRoom.js");
+var Player = require('./Player.js');
 var shortid = require('shortid');
 var port = 8080;
 
@@ -41,11 +42,11 @@ io.on('connection', function(socket){
         }
     });
     
-    socket.on('join_room', function (game_json, player_id) {
+    socket.on('join_room', function (game_json, player_json) {
         let game = JSON.parse(game_json);
         for(let i = 0; i < game_rooms.length; i++){
             if (game_rooms[i].game_id == game.game_id){
-                game_rooms[i].add_player(player_id);
+                game_rooms[i].addPlayer(player_json);
                 socket.join(game_rooms[i].game_id);
                 socket.broadcast.to(game_rooms[i].game_id).emit('update_game', JSON.stringify(game_rooms[i]));
                 console.log("conn: " + JSON.stringify(game_rooms[i]));
@@ -53,11 +54,11 @@ io.on('connection', function(socket){
         }
     });
     
-    socket.on('leave_room', function(game_json, player_id) {
+    socket.on('leave_room', function(game_json, player_json) {
         let game = JSON.parse(game_json);
         for(let i = 0; i < game_rooms.length; i++){
             if(game_rooms[i].game_id == game.game_id){
-                game_rooms[i].remove_player(player_id);
+                game_rooms[i].removePlayer(player_json);
                 socket.leave(game_rooms[i].game_id);
                 socket.broadcast.to(game_rooms[i].game_id).emit('update_game', JSON.stringify(game_rooms[i]));
                 console.log("disc: " + JSON.stringify(game_rooms[i]));
@@ -65,13 +66,11 @@ io.on('connection', function(socket){
         }
     });
     
-    socket.on('get_uid', function () {
-       let uid = shortid.generate();
-       socket.emit('get_uid', uid);
-    });
-    
-    socket.on('start_game', function(game_room){
-        socket.broadcast.to(game_room).emit('start_game');
+    socket.on('get_player', function () {
+        console.log('get_player');
+       let player  = new Player();
+       console.log(JSON.stringify(player));
+       socket.emit('get_player', JSON.stringify(player));
     });
     
     socket.on('get_game', function(game_id){

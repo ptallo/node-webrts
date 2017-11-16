@@ -11,6 +11,7 @@
         <p> Players </p>
         <ul id="players">
         </ul>
+        <p> Ready? <input type="checkbox" id="ready_check"></p>
         <button id="leave_room"> Leave Room </button>
         <button id="start_game"> Start Game</button>
     </div>
@@ -30,6 +31,10 @@
             window.location.href = "index.html";
         });
 
+        $('#start_game').on('click', function(){
+            socket.emit('start_game');
+        });
+
         socket.on('get_game', function(game_json){
             game = JSON.parse(game_json);
             updateGameHTML();
@@ -39,11 +44,10 @@
             $('#name').text(game.game_id);
             $('#players').empty();
             for (let i = 0; i < game.players.length; i++) {
-                $('#players').append("<li>" + game.players[i] + "</li>");
+                $('#players').append("<li>" + game.players[i].id + "</li>");
             }
         }
 
-        //TODO Implement start game functionality which moves all players into a game room instance.
     </script>
 </body>
 </html>
