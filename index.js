@@ -67,10 +67,9 @@ io.on('connection', function(socket){
     });
     
     socket.on('get_player', function () {
-        console.log('get_player');
-       let player  = new Player();
-       console.log(JSON.stringify(player));
-       socket.emit('get_player', JSON.stringify(player));
+        let player  = new Player();
+        console.log(JSON.stringify(player));
+        socket.emit('get_player', JSON.stringify(player));
     });
     
     socket.on('get_game', function(game_id){
@@ -78,6 +77,35 @@ io.on('connection', function(socket){
             if(game_rooms[i].game_id == game_id){
                 socket.emit('get_game', JSON.stringify(game_rooms[i]))
             }
+        }
+    });
+    
+    socket.on('start_game', function(game_id){
+        let game = null;
+        for(let i = 0; i < game_rooms.length; i++){
+            if(game_rooms[i].game_id == game_id){
+                game = game_rooms[i];
+            }
+        }
+        if(game != null){
+            let ready = game.checkReady();
+            if(ready){
+                socket.broadcast.to(game.game_id).emit('start_game');
+            } else {
+                socket.emit('game_not_ready');
+            }
+        } else {
+            socket.emit('game_not_ready');
+        }
+    });
+    
+    socket.on('update_player', function(game_json, player_json){
+        let player = JSON.parse(player_json);
+        let game = JSON.parse(game_json);
+        for(let i = 0; i < game_rooms.length; i++){
+           if(game_rooms[i].game_id == game.game_id){
+               game_rooms[i].updatePlayer(player);
+           }
         }
     });
 });

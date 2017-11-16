@@ -27,12 +27,25 @@
         });
 
         $('#leave_room').on('click', function(){
-            socket.emit('leave_room', JSON.stringify(game), localStorage.getItem('player_id'));
+            socket.emit('leave_room', JSON.stringify(game), localStorage.getItem('player'));
             window.location.href = "index.html";
         });
 
+        $('#ready_check').change(function(){
+            let player = JSON.parse(localStorage.getItem('player'));
+            player.isReady = this.checked;
+            for(let i = 0; i < game.players.length; i++){
+                if (game.players[i].id == player.id) {
+                    game.players[i] = player.id;
+                }
+            }
+            let player_json = JSON.stringify(player);
+            localStorage.setItem('player', player_json);
+            socket.emit('update_player', JSON.stringify(game), localStorage.getItem('player'));
+        });
+
         $('#start_game').on('click', function(){
-            socket.emit('start_game');
+            socket.emit('start_game', game.game_id);
         });
 
         socket.on('get_game', function(game_json){

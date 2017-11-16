@@ -28,13 +28,21 @@ class GameRoom{
             }
         }
     }
-    updatePlayer(player_json){
-        let player = JSON.parse(player_json);
+    updatePlayer(player){
         for(let i = 0; i < this.players.length; i++){
             if(this.players[i].id == player.id){
-                this.players[i] == player;
+                this.players.splice(i,1);
+                this.players.push(player);
             }
         }
+    }
+    checkReady(){
+        for(let i = 0; i < this.players.length; i++){
+            if(!this.players[i].isReady){
+                return false;
+            }
+        }
+        return true;
     }
 }
 
