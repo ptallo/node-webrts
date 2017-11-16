@@ -77,9 +77,9 @@
                 $('#game_room').append("<li>" + game_room.name + "<button class='join_room'> Join Room</button><button class='leave_room'> Leave Room</button></li>");
             }
 
-            function joinRoom(game_json) {
-                localStorage.setItem('game_room', JSON.stringify(game_json));
-                socket.emit('join_room', JSON.stringify(game_json), localStorage.getItem('player_id'));
+            function joinRoom(game) {
+                localStorage.setItem('game_id', game.game_id);
+                socket.emit('join_room', JSON.stringify(game), localStorage.getItem('player_id'));
                 window.location.href = "game_room.html";
             }
         </script>

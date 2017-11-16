@@ -73,6 +73,14 @@ io.on('connection', function(socket){
     socket.on('start_game', function(game_room){
         socket.broadcast.to(game_room).emit('start_game');
     });
+    
+    socket.on('get_game', function(game_id){
+        for(let i = 0; i < game_rooms.length; i++){
+            if(game_rooms[i].game_id == game_id){
+                socket.emit('get_game', JSON.stringify(game_rooms[i]))
+            }
+        }
+    });
 });
 
 http.listen(port, function(){
