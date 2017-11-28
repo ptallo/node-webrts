@@ -49,7 +49,6 @@ io.on('connection', function(socket){
                 game_rooms[i].addPlayer(player_json);
                 socket.join(game_rooms[i].game_id);
                 socket.broadcast.to(game_rooms[i].game_id).emit('update_game', JSON.stringify(game_rooms[i]));
-                console.log("conn: " + JSON.stringify(game_rooms[i]));
             }
         }
     });
@@ -61,14 +60,12 @@ io.on('connection', function(socket){
                 game_rooms[i].removePlayer(player_json);
                 socket.leave(game_rooms[i].game_id);
                 socket.broadcast.to(game_rooms[i].game_id).emit('update_game', JSON.stringify(game_rooms[i]));
-                console.log("disc: " + JSON.stringify(game_rooms[i]));
             }
         }
     });
     
     socket.on('get_player', function () {
         let player  = new Player();
-        console.log(JSON.stringify(player));
         socket.emit('get_player', JSON.stringify(player));
     });
     
@@ -80,22 +77,18 @@ io.on('connection', function(socket){
         }
     });
     
-    socket.on('start_game', function(game_id){
+    socket.on('start game', function(game_id){
         let game = null;
         for(let i = 0; i < game_rooms.length; i++){
             if(game_rooms[i].game_id == game_id){
                 game = game_rooms[i];
             }
         }
-        if(game != null){
-            let ready = game.checkReady();
-            if(ready){
-                socket.broadcast.to(game.game_id).emit('start_game');
-            } else {
-                socket.emit('game_not_ready');
-            }
+        
+        if(game != null && game.checkReady()){
+            socket.broadcast.to(game.game_id).emit('start game');
         } else {
-            socket.emit('game_not_ready');
+            socket.emit('game start failed');
         }
     });
     
