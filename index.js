@@ -48,7 +48,7 @@ io.on('connection', function(socket){
             if (game_rooms[i].game_id == game.game_id){
                 game_rooms[i].addPlayer(player_json);
                 socket.join(game_rooms[i].game_id);
-                socket.broadcast.to(game_rooms[i].game_id).emit('update_game', JSON.stringify(game_rooms[i]));
+                socket.to(game_rooms[i].game_id).emit('get_game', JSON.stringify(game_rooms[i]));
             }
         }
     });
@@ -59,7 +59,10 @@ io.on('connection', function(socket){
             if(game_rooms[i].game_id == game.game_id){
                 game_rooms[i].removePlayer(player_json);
                 socket.leave(game_rooms[i].game_id);
-                socket.broadcast.to(game_rooms[i].game_id).emit('update_game', JSON.stringify(game_rooms[i]));
+                socket.to(game_rooms[i].game_id).emit('get_game', JSON.stringify(game_rooms[i]));
+                if(game_rooms[i].players.length == 0){
+                    game_rooms.splice(i, 1);
+                }
             }
         }
     });
@@ -86,7 +89,7 @@ io.on('connection', function(socket){
         }
         
         if(game != null && game.checkReady()){
-            socket.broadcast.to(game.game_id).emit('start game');
+            socket.emit('start game');
         } else {
             socket.emit('game start failed');
         }
