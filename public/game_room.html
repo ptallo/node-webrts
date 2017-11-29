@@ -19,44 +19,29 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
     <script>
         var socket = io();
-        var game;
 
         $(document).ready(function(){
-            socket.emit('get_game', localStorage.getItem('game_id'));
+            socket.emit('get_game', sessionStorage.getItem('game'));
         });
 
         $('#leave_room').on('click', function(){
-            socket.emit('leave_room', JSON.stringify(game), localStorage.getItem('player'));
+            socket.emit('leave_room', sessionStorage.getItem('game'), sessionStorage.getItem('player'));
             window.location.href = "index.html";
         });
 
         $('#ready_check').change(function(){
-            let player = JSON.parse(localStorage.getItem('player'));
-            player.isReady = this.checked;
-            let player_json = JSON.stringify(player);
-            localStorage.setItem('player', player_json);
-            socket.emit('update_player', JSON.stringify(game), localStorage.getItem('player'));
+            //add some check to see if all players are ready
         });
 
-        $('#start_game').on('click', function(){
-            socket.emit('start game', game.game_id);
-        });
 
         socket.on('get_game', function(game_json){
-            game = JSON.parse(game_json);
+            sessionStorage.setItem('game', game_json);
             updateGameHTML();
         });
 
-        socket.on('start game', function(){
-            alert('start game');
-        });
-
-        socket.on('game start failed', function(){
-           alert('all players not ready! Please wait!');
-        });
-
         function updateGameHTML() {
-            $('#name').text(game.game_id);
+            let game = JSON.parse(sessionStorage.getItem('game'));
+            $('#name').text(game.id);
             $('#players').empty();
             for (let i = 0; i < game.players.length; i++) {
                 $('#players').append("<li>" + game.players[i].id + "</li>");
