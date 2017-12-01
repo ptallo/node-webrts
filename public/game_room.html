@@ -13,6 +13,7 @@
         <p> Ready? <input type="checkbox" id="ready_check"></p>
         <button id="leave_room"> Leave Room </button>
         <button id="start_game"> Start Game</button>
+        <button id="checkId"> Check Id </button>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.js"></script>
@@ -29,10 +30,27 @@
             window.location.href = "index.html";
         });
 
-        $('#ready_check').change(function(){
-            //add some check to see if all players are ready
+        $('#start_game').on('click', function(){
+            /* Steps to Have Players in same game:
+             * 1. establish a webrtc connection between two players
+             * 2. move both players to game.html
+             * 3. give both players a copy of the game
+             * 4. have both players send, updates to each other every game tick
+             *       so as to have identical game state
+             * */
         });
 
+        $('#checkId').on('click', function(){
+            alert(sessionStorage.getItem('player'))
+        });
+
+        $('#ready_check').change(function(){
+            let player = JSON.parse(localStorage.getItem('player'));
+            player.isReady = this.checked;
+            let player_json = JSON.stringify(player);
+            sessionStorage.setItem('player', player_json);
+            socket.emit('update_player', sessionStorage.getItem('game'), sessionStorage.getItem('player'));
+        });
 
         socket.on('get_game', function(game_json){
             sessionStorage.setItem('game', game_json);

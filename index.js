@@ -53,7 +53,6 @@ io.on('connection', function(socket){
                 console.log("Conn: " + JSON.stringify(game_rooms[i]));
             }
         }
-    
     });
     
     socket.on('leave_room', function(game_json, player_json) {
@@ -76,6 +75,20 @@ io.on('connection', function(socket){
         for(let i = 0; i < game_rooms.length; i++){
             if(game_rooms[i].id == game.id){
                 socket.emit('get_game', JSON.stringify(game_rooms[i]));
+            }
+        }
+    });
+    
+    
+    socket.on('update_player', function(game_json, player_json) {
+        let game = JSON.parse(game_json);
+        let player = JSON.parse(player_json);
+        console.log(player);
+        for(let i = 0; i < game_rooms.length; i++){
+            if(game_rooms[i].id == game.id){
+                game_rooms[i].players.splice(i,1);
+                game_rooms[i].players.push(player);
+                console.log("update: " + JSON.stringify(game_rooms[i]));
             }
         }
     });
