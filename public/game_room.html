@@ -13,50 +13,54 @@
         <p> Ready? <input type="checkbox" id="ready_check"></p>
         <button id="leave_room"> Leave Room </button>
         <button id="start_game"> Start Game</button>
+        <button id="checkId"> Check Id </button>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.js"></script>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
     <script>
         var socket = io();
-        var game;
 
         $(document).ready(function(){
-            socket.emit('get_game', localStorage.getItem('game_id'));
+            socket.emit('get_game', sessionStorage.getItem('game'));
         });
 
         $('#leave_room').on('click', function(){
-            socket.emit('leave_room', JSON.stringify(game), localStorage.getItem('player'));
+            socket.emit('leave_room', sessionStorage.getItem('game'), sessionStorage.getItem('player'));
             window.location.href = "index.html";
+        });
+
+        $('#start_game').on('click', function(){
+            /* Steps to Have Players in same game:
+             * 1. Check to see if both players are ready
+             * 2. establish a webrtc connection between two players
+             * 3. move both players to game.html
+             * 4. give both players a copy of the game
+             * 5. have both players send, updates to each other every game tick
+             *       so as to have identical game state
+             * */
+        });
+
+        $('#checkId').on('click', function(){
+            alert(sessionStorage.getItem('player'))
         });
 
         $('#ready_check').change(function(){
             let player = JSON.parse(localStorage.getItem('player'));
             player.isReady = this.checked;
             let player_json = JSON.stringify(player);
-            localStorage.setItem('player', player_json);
-            socket.emit('update_player', JSON.stringify(game), localStorage.getItem('player'));
-        });
-
-        $('#start_game').on('click', function(){
-            socket.emit('start game', game.game_id);
+            sessionStorage.setItem('player', player_json);
+            socket.emit('update_player', sessionStorage.getItem('game'), sessionStorage.getItem('player'));
         });
 
         socket.on('get_game', function(game_json){
-            game = JSON.parse(game_json);
+            sessionStorage.setItem('game', game_json);
             updateGameHTML();
         });
 
-        socket.on('start game', function(){
-            alert('start game');
-        });
-
-        socket.on('game start failed', function(){
-           alert('all players not ready! Please wait!');
-        });
-
         function updateGameHTML() {
-            $('#name').text(game.game_id);
+            let game = JSON.parse(sessionStorage.getItem('game'));
+            $('#name').text(game.id);
             $('#players').empty();
             for (let i = 0; i < game.players.length; i++) {
                 $('#players').append("<li>" + game.players[i].id + "</li>");
