@@ -39,6 +39,7 @@
              * 5. have both players send, updates to each other every game tick
              *       so as to have identical game state
              * */
+            socket.emit('check game ready', sessionStorage.getItem('game'));
         });
 
         $('#checkId').on('click', function(){
@@ -56,6 +57,14 @@
         socket.on('get_game', function(game_json){
             sessionStorage.setItem('game', game_json);
             updateGameHTML();
+        });
+
+        socket.on('start_game', function (ready) {
+            if(ready == true){
+                alert('start game');
+            } else {
+                alert('all players not ready!');
+            }
         });
 
         function updateGameHTML() {
