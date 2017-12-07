@@ -14,7 +14,6 @@
         <button id="leave_room"> Leave Room </button>
         <button id="start_game"> Start Game</button>
         <button id="checkId"> Check Id </button>
-        <button id="shout"> shout </button>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.js"></script>
@@ -48,10 +47,6 @@
             alert(sessionStorage.getItem('player'))
         });
 
-        $('#shout').on('click', function(){
-           socket.emit('shout', sessionStorage.getItem('game'));
-        });
-
         $('#ready_check').change(function(){
             let player = JSON.parse(localStorage.getItem('player'));
             player.isReady = this.checked;
@@ -71,10 +66,6 @@
             } else {
                 alert('all players not ready!');
             }
-        });
-
-        socket.on('shout', function(message){
-           alert(message);
         });
 
         function updateGameHTML() {
