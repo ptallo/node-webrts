@@ -14,6 +14,7 @@
         <button id="leave_room"> Leave Room </button>
         <button id="start_game"> Start Game</button>
         <button id="checkId"> Check Id </button>
+        <button id="shout"> shout </button>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.js"></script>
@@ -23,6 +24,7 @@
 
         $(document).ready(function(){
             socket.emit('get_game', sessionStorage.getItem('game'));
+            socket.emit('join io room', sessionStorage.getItem('game'));
         });
 
         $('#leave_room').on('click', function(){
@@ -38,12 +40,16 @@
              * 4. give both players a copy of the game
              * 5. have both players send, updates to each other every game tick
              *       so as to have identical game state
-             * */
+             */
             socket.emit('check game ready', sessionStorage.getItem('game'));
         });
 
         $('#checkId').on('click', function(){
             alert(sessionStorage.getItem('player'))
+        });
+
+        $('#shout').on('click', function(){
+           socket.emit('shout', sessionStorage.getItem('game'));
         });
 
         $('#ready_check').change(function(){
@@ -54,7 +60,7 @@
             socket.emit('update_player', sessionStorage.getItem('game'), sessionStorage.getItem('player'));
         });
 
-        socket.on('get_game', function(game_json){
+        socket.on('update game', function(game_json){
             sessionStorage.setItem('game', game_json);
             updateGameHTML();
         });
@@ -65,6 +71,10 @@
             } else {
                 alert('all players not ready!');
             }
+        });
+
+        socket.on('shout', function(message){
+           alert(message);
         });
 
         function updateGameHTML() {
