@@ -7,9 +7,8 @@
     <div id="game_info">
         <p id="name"></p>
         <br>
-        <p> Players </p>
-        <ul id="players">
-        </ul>
+        <table id="player_info">
+        </table>
         <p> Ready? <input type="checkbox" id="ready_check"></p>
         <button id="leave_room"> Leave Room </button>
         <button id="start_game"> Start Game</button>
@@ -71,9 +70,10 @@
         function updateGameHTML() {
             let game = JSON.parse(sessionStorage.getItem('game'));
             $('#name').text(game.id);
-            $('#players').empty();
+            $('#player_info tr').remove();
+            $('#player_info').append("<tr> <th> Player </th> <th> Ready Status </th> </tr>");
             for (let i = 0; i < game.players.length; i++) {
-                $('#players').append("<li>" + game.players[i].id + "</li>");
+                $('#player_info').append("<tr> <td>" + game.players[i].id + "</td> <td>" + game.players[i].isReady + "</th> </tr>");
             }
         }
     </script>

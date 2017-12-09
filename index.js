@@ -6,7 +6,6 @@ var http = require('http').Server(app);
 var io = require('socket.io')(http);
 var GameRoom = require("./server_js/GameRoom.js");
 var Player = require('./server_js/Player.js');
-var shortid = require('shortid');
 var port = 8080;
 
 //Configuration
@@ -41,11 +40,6 @@ io.on('connection', function(socket){
         for(let i = 0; i < game_rooms.length; i++){
             socket.emit('add room', JSON.stringify(game_rooms[i]));
         }
-    });
-    
-    socket.on('join io room', function(game_json){
-        let game = JSON.parse(game_json);
-        socket.join(game.id);
     });
     
     socket.on('join_room', function (game_json) {
@@ -91,7 +85,6 @@ io.on('connection', function(socket){
     socket.on('update_player', function(game_json, player_json) {
         let game = JSON.parse(game_json);
         let player = JSON.parse(player_json);
-        console.log(player);
         for(let i = 0; i < game_rooms.length; i++){
             if(game_rooms[i].id == game.id){
                 game_rooms[i].players.splice(i,1);
@@ -112,6 +105,11 @@ io.on('connection', function(socket){
                 //TODO start game here on backend
             }
         }
+    });
+    
+    socket.on('join io room', function(game_json){
+        let game = JSON.parse(game_json);
+        socket.join(game.id);
     });
 });
 
