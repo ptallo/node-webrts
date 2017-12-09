@@ -87,10 +87,12 @@ io.on('connection', function(socket){
         let player = JSON.parse(player_json);
         for(let i = 0; i < game_rooms.length; i++){
             if(game_rooms[i].id == game.id){
-                game_rooms[i].players.splice(i,1);
-                game_rooms[i].players.push(player);
-                console.log("update: " + JSON.stringify(game_rooms[i]));
-                io.to(game.id).emit('update game', JSON.stringify(game_rooms[i]));
+                for(let j = 0; j < game_rooms[i].players.length; j++) {
+                    if(game_rooms[i].players[j].id == player.id){
+                        game_rooms[i].players[j].isReady = player.isReady;
+                        io.to(game.id).emit('update game', JSON.stringify(game_rooms[i]));
+                    }
+                }
             }
         }
     });

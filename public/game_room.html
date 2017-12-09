@@ -47,7 +47,7 @@
         });
 
         $('#ready_check').change(function(){
-            let player = JSON.parse(localStorage.getItem('player'));
+            let player = JSON.parse(sessionStorage.getItem('player'));
             player.isReady = this.checked;
             let player_json = JSON.stringify(player);
             sessionStorage.setItem('player', player_json);
