@@ -1,16 +1,15 @@
 <html>
 <head>
     <title> Web RTS Front End </title>
-    <link rel="stylesheet" type="text/css" href="style.css" />
 </head>
 <body>
 
     <div id="game_info">
         <p id="name"></p>
         <br>
-        <p> Players </p>
-        <ul id="players">
-        </ul>
+        <table id="player_info">
+        </table>
+        <p> Ready? <input type="checkbox" id="ready_check"></p>
         <button id="leave_room"> Leave Room </button>
         <button id="start_game"> Start Game</button>
     </div>
@@ -19,31 +18,61 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
     <script>
         var socket = io();
-        var game;
 
         $(document).ready(function(){
-            socket.emit('get_game', localStorage.getItem('game_id'));
+            let game_json = sessionStorage.getItem('game');
+            let game = JSON.parse(game_json);
+            socket.emit('get_game', game_json);
+            socket.emit('join io room', game_json);
         });
 
         $('#leave_room').on('click', function(){
-            socket.emit('leave_room', JSON.stringify(game), localStorage.getItem('player_id'));
+            socket.emit('leave_room', sessionStorage.getItem('game'), sessionStorage.getItem('player'));
             window.location.href = "index.html";
         });
 
-        socket.on('get_game', function(game_json){
-            game = JSON.parse(game_json);
+        $('#start_game').on('click', function(){
+            /* Steps to Have Players in same game:
+             * 1. Check to see if both players are ready
+             * 2. establish a webrtc connection between two players
+             * 3. move both players to game.html
+             * 4. give both players a copy of the game
+             * 5. have both players send, updates to each other every game tick
+             *       so as to have identical game state
+             */
+            socket.emit('check game ready', sessionStorage.getItem('game'));
+        });
+
+        $('#ready_check').change(function(){
+            let player = JSON.parse(sessionStorage.getItem('player'));
+            player.isReady = this.checked;
+            let player_json = JSON.stringify(player);
+            sessionStorage.setItem('player', player_json);
+            socket.emit('update_player', sessionStorage.getItem('game'), sessionStorage.getItem('player'));
+        });
+
+        socket.on('update game', function(game_json){
+            sessionStorage.setItem('game', game_json);
             updateGameHTML();
         });
 
+        socket.on('start game', function (game) {
+            alert('start game succeeded');
+        });
+
+        socket.on('start game failed', function () {
+           alert('start game failed');
+        });
+
         function updateGameHTML() {
-            $('#name').text(game.game_id);
-            $('#players').empty();
+            let game = JSON.parse(sessionStorage.getItem('game'));
+            $('#name').text(game.id);
+            $('#player_info tr').remove();
+            $('#player_info').append("<tr> <th> Player </th> <th> Ready Status </th> </tr>");
             for (let i = 0; i < game.players.length; i++) {
-                $('#players').append("<li>" + game.players[i] + "</li>");
+                $('#player_info').append("<tr> <td>" + game.players[i].id + "</td> <td>" + game.players[i].isReady + "</th> </tr>");
             }
         }
-
-        //TODO Implement start game functionality which moves all players into a game room instance.
     </script>
 </body>
 </html>

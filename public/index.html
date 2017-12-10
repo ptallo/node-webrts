@@ -1,7 +1,6 @@
 <html>
     <head>
         <title> Web RTS Front End</title>
-        <link rel="stylesheet" type="text/css" href="style.css" />
         <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-modal/0.9.1/jquery.modal.min.css" />
     </head>
     <body>
@@ -33,9 +32,7 @@
             var game_rooms = [];
 
             $(document).ready(function () {
-                if (localStorage.get('player_id') == null) {
-                    socket.emit('get_uid');
-                }
+
             });
 
             $('#refresh_lobby').on('click', function(){
@@ -44,7 +41,8 @@
 
             $('#game_room').on('click', "button.join_room", function(){
                 let game_room = game_rooms[$(this).parent().index()];
-                joinRoom(game_room);
+                sessionStorage.setItem('game', JSON.stringify(game_room));
+                joinRoom(JSON.stringify(game_room));
             });
 
             $('form').on('submit', function () {
@@ -56,13 +54,13 @@
                 addRoom(game_json);
             });
 
-            socket.on('add and join', function(game_json){
-                addRoom(game_json);
-                joinRoom(JSON.parse(game_json));
+            socket.on('join room', function(game_json){
+                sessionStorage.setItem('game', game_json);
+                joinRoom(game_json);
             });
 
-            socket.on('get_uid', function(uid){
-                localStorage.setItem('player_id', uid);
+            socket.on('get_player', function(player_json){
+                sessionStorage.setItem('player', player_json);
             });
 
             function refreshList() {
@@ -74,12 +72,11 @@
             function addRoom(game_json) {
                 let game_room = JSON.parse(game_json);
                 game_rooms.push(game_room);
-                $('#game_room').append("<li>" + game_room.name + "<button class='join_room'> Join Room</button><button class='leave_room'> Leave Room</button></li>");
+                $('#game_room').append("<li>" + game_room.name + "<button class='join_room'> Join Room</button></li>");
             }
 
-            function joinRoom(game) {
-                localStorage.setItem('game_id', game.game_id);
-                socket.emit('join_room', JSON.stringify(game), localStorage.getItem('player_id'));
+            function joinRoom(game_json) {
+                socket.emit('join_room', game_json);
                 window.location.href = "game_room.html";
             }
         </script>
