@@ -12,7 +12,6 @@
         <p> Ready? <input type="checkbox" id="ready_check"></p>
         <button id="leave_room"> Leave Room </button>
         <button id="start_game"> Start Game</button>
-        <button id="checkId"> Check Id </button>
     </div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.js"></script>
@@ -21,8 +20,10 @@
         var socket = io();
 
         $(document).ready(function(){
-            socket.emit('get_game', sessionStorage.getItem('game'));
-            socket.emit('join io room', sessionStorage.getItem('game'));
+            let game_json = sessionStorage.getItem('game');
+            let game = JSON.parse(game_json);
+            socket.emit('get_game', game_json);
+            socket.emit('join io room', game_json);
         });
 
         $('#leave_room').on('click', function(){
@@ -42,10 +43,6 @@
             socket.emit('check game ready', sessionStorage.getItem('game'));
         });
 
-        $('#checkId').on('click', function(){
-            alert(sessionStorage.getItem('player'))
-        });
-
         $('#ready_check').change(function(){
             let player = JSON.parse(sessionStorage.getItem('player'));
             player.isReady = this.checked;
@@ -59,12 +56,12 @@
             updateGameHTML();
         });
 
-        socket.on('start_game', function (ready) {
-            if(ready == true){
-                alert('start game');
-            } else {
-                alert('all players not ready!');
-            }
+        socket.on('start game', function (game) {
+            alert('start game succeeded');
+        });
+
+        socket.on('start game failed', function () {
+           alert('start game failed');
         });
 
         function updateGameHTML() {

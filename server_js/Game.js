@@ -7,3 +7,5 @@ class Game{
         this.players = players;
     }
 }
+
+module.exports = Game;

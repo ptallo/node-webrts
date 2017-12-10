@@ -5,6 +5,7 @@ var app = express();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
 var GameRoom = require("./server_js/GameRoom.js");
+var Game = require('./server_js/Game.js');
 var Player = require('./server_js/Player.js');
 var port = 8080;
 
@@ -13,6 +14,7 @@ app.use(express.static(__dirname + '/public'));
 
 //Variables
 var game_rooms = [];
+var games = [];
 
 app.get('/', function(req, res){
     res.sendFile(__dirname + '/index.html');
@@ -98,13 +100,20 @@ io.on('connection', function(socket){
     });
     
     socket.on('check game ready', function(game_json){
-        let game = JSON.parse(game_json);
-        let game_id = game.id;
+        let game_lobby = JSON.parse(game_json);
+        let game_id = game_lobby.id;
         for(let i = 0; i < game_rooms.length; i++){
             if(game_rooms[i].id == game_id){
                 let ready = game_rooms[i].checkReady();
-                socket.emit('start_game', JSON.stringify(ready));
-                //TODO start game here on backend
+    
+                if (ready && game_rooms[i].players.length > 1){
+                    console.log('start game');
+                    let game = new Game(game_rooms[i].players);
+                    games.push(game);
+                    io.to(game_lobby.id).emit('start game', game.id);
+                } else {
+                    socket.emit('start game failed');
+                }
             }
         }
     });
