@@ -20,14 +20,13 @@
         var socket = io();
 
         $(document).ready(function(){
-            let game_json = sessionStorage.getItem('game');
-            let game = JSON.parse(game_json);
-            socket.emit('get_game', game_json);
-            socket.emit('join io room', game_json);
+            let game_room_json = sessionStorage.getItem('game_lobby');
+            socket.emit('get_game', game_room_json);
+            socket.emit('join io room', game_room_json);
         });
 
         $('#leave_room').on('click', function(){
-            socket.emit('leave_room', sessionStorage.getItem('game'), sessionStorage.getItem('player'));
+            socket.emit('leave_room', sessionStorage.getItem('game_lobby'), sessionStorage.getItem('player'));
             window.location.href = "index.html";
         });
 
@@ -40,7 +39,7 @@
              * 5. have both players send, updates to each other every game tick
              *       so as to have identical game state
              */
-            socket.emit('check game ready', sessionStorage.getItem('game'));
+            socket.emit('check game ready', sessionStorage.getItem('game_lobby'));
         });
 
         $('#ready_check').change(function(){
@@ -48,15 +47,15 @@
             player.isReady = this.checked;
             let player_json = JSON.stringify(player);
             sessionStorage.setItem('player', player_json);
-            socket.emit('update_player', sessionStorage.getItem('game'), sessionStorage.getItem('player'));
+            socket.emit('update lobby', sessionStorage.getItem('game_lobby'), sessionStorage.getItem('player'));
         });
 
         socket.on('update game', function(game_json){
-            sessionStorage.setItem('game', game_json);
+            sessionStorage.setItem('game_lobby', game_json);
             updateGameHTML();
         });
 
-        socket.on('start game', function (game) {
+        socket.on('start game', function () {
             alert('start game succeeded');
         });
 
@@ -65,7 +64,7 @@
         });
 
         function updateGameHTML() {
-            let game = JSON.parse(sessionStorage.getItem('game'));
+            let game = JSON.parse(sessionStorage.getItem('game_lobby'));
             $('#name').text(game.id);
             $('#player_info tr').remove();
             $('#player_info').append("<tr> <th> Player </th> <th> Ready Status </th> </tr>");

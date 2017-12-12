@@ -41,7 +41,7 @@
 
             $('#game_room').on('click', "button.join_room", function(){
                 let game_room = game_rooms[$(this).parent().index()];
-                sessionStorage.setItem('game', JSON.stringify(game_room));
+                sessionStorage.setItem('game_lobby', JSON.stringify(game_room));
                 joinRoom(JSON.stringify(game_room));
             });
 
@@ -50,13 +50,13 @@
                 $('#game_name').val("");
             });
 
-            socket.on('add room', function(game_json){
-                addRoom(game_json);
+            socket.on('add room', function(game_room_json){
+                addRoom(game_room_json);
             });
 
-            socket.on('join room', function(game_json){
-                sessionStorage.setItem('game', game_json);
-                joinRoom(game_json);
+            socket.on('join room', function(game_room_json){
+                sessionStorage.setItem('game_lobby', game_room_json);
+                joinRoom(game_room_json);
             });
 
             socket.on('get_player', function(player_json){
@@ -69,14 +69,14 @@
                 socket.emit('refresh');
             }
 
-            function addRoom(game_json) {
-                let game_room = JSON.parse(game_json);
+            function addRoom(game_room_json) {
+                let game_room = JSON.parse(game_room_json);
                 game_rooms.push(game_room);
                 $('#game_room').append("<li>" + game_room.name + "<button class='join_room'> Join Room</button></li>");
             }
 
-            function joinRoom(game_json) {
-                socket.emit('join_room', game_json);
+            function joinRoom(game_room_json) {
+                socket.emit('join_room', game_room_json);
                 window.location.href = "game_room.html";
             }
         </script>
