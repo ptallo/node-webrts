@@ -21,7 +21,7 @@
 
         $(document).ready(function(){
             let gameRoomJSON = sessionStorage.getItem('game_lobby');
-            socket.emit('get_game', gameRoomJSON);
+            socket.emit('get game lobby', gameRoomJSON);
             socket.emit('join io room', gameRoomJSON);
         });
 
@@ -55,9 +55,10 @@
             updateGameHTML();
         });
 
-        socket.on('start game', function () {
+        socket.on('start game', function (gameId, gameRoomId) {
             alert('start game succeeded');
-
+            socket.emit('leave io room', gameRoomId);
+            sessionStorage.setItem('game_id', gameId);
         });
 
         socket.on('start game failed', function () {

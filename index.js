@@ -74,16 +74,6 @@ io.on('connection', function(socket){
         }
     });
     
-    socket.on('get_game', function(gameRoomJSON){
-        let gameRoom = JSON.parse(gameRoomJSON);
-        for(let i = 0; i < game_rooms.length; i++){
-            if(game_rooms[i].id == gameRoom.id){
-                socket.emit('update game', JSON.stringify(game_rooms[i]));
-            }
-        }
-    });
-    
-    
     socket.on('update lobby', function(gameRoomJSON, playerJSON) {
         let gameRoom = JSON.parse(gameRoomJSON);
         let player = JSON.parse(playerJSON);
@@ -110,12 +100,29 @@ io.on('connection', function(socket){
                     console.log('start game');
                     let game = new Game(game_rooms[i].players);
                     games.push(game);
-                    io.to(gameLobby.id).emit('start game', game.id);
+                    io.to(gameLobby.id).emit('start game', game.id, game_rooms[i].id);
                 } else {
                     socket.emit('start game failed');
                 }
             }
         }
+    });
+    
+    socket.on('get game lobby', function(gameRoomJSON){
+        let gameRoom = JSON.parse(gameRoomJSON);
+        for(let i = 0; i < game_rooms.length; i++){
+            if(game_rooms[i].id == gameRoom.id){
+                socket.emit('update game', JSON.stringify(game_rooms[i]));
+            }
+        }
+    });
+    
+    socket.on('get game', function(gameId){
+       for(let i = 0; i < games.length; i ++){
+           if(games[i].id == gameId){
+               socket.emit('update game', JSON.stringify(games[i]));
+           }
+       }
     });
     
     socket.on('join io room', function(gameRoomJSON){
