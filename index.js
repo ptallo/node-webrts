@@ -25,17 +25,17 @@ io.on('connection', function(socket){
         socket.emit('add room', JSON.stringify(game_rooms[i]));
     }
 
-    socket.on('add lobby', function(game_room_name){
-        let game_room = new GameRoom(game_room_name);
-        game_rooms.push(game_room);
-        socket.emit('add room', JSON.stringify(game_room));
+    socket.on('add lobby', function(gameRoomName){
+        let gameRoom = new GameRoom(gameRoomName);
+        game_rooms.push(gameRoom);
+        socket.emit('add room', JSON.stringify(gameRoom));
     });
     
-    socket.on('add and join', function(game_room_name){
-        let game_room = new GameRoom(game_room_name);
-        game_rooms.push(game_room);
-        socket.emit('add room', JSON.stringify(game_room));
-        socket.emit('join room', JSON.stringify(game_room));
+    socket.on('add and join', function(gameRoomName){
+        let gameRoom = new GameRoom(gameRoomName);
+        game_rooms.push(gameRoom);
+        socket.emit('add room', JSON.stringify(gameRoom));
+        socket.emit('join room', JSON.stringify(gameRoom));
     });
 
     socket.on('refresh', function(){
@@ -44,27 +44,27 @@ io.on('connection', function(socket){
         }
     });
     
-    socket.on('join_room', function (game_room_json) {
-        let game_room = JSON.parse(game_room_json);
+    socket.on('join_room', function (gameRoomJSON) {
+        let gameRoom = JSON.parse(gameRoomJSON);
         for(let i = 0; i < game_rooms.length; i++){
-            if (game_rooms[i].id == game_room.id){
+            if (game_rooms[i].id == gameRoom.id){
                 let player = new Player();
                 console.log("Conn: " + JSON.stringify(game_rooms[i]));
                 game_rooms[i].addPlayer(player);
                 socket.emit('get_player', JSON.stringify(player));
-                io.to(game_room.id).emit('update game', JSON.stringify(game_rooms[i]));
+                io.to(gameRoom.id).emit('update game', JSON.stringify(game_rooms[i]));
             }
         }
     });
     
-    socket.on('leave_room', function(game_room_json, player_json) {
-        let game_room = JSON.parse(game_room_json);
-        let player = JSON.parse(player_json);
+    socket.on('leave_room', function(gameRoomJSON, playerJSON) {
+        let gameRoom = JSON.parse(gameRoomJSON);
+        let player = JSON.parse(playerJSON);
         for(let i = 0; i < game_rooms.length; i++){
-            if(game_rooms[i].id == game_room.id){
+            if(game_rooms[i].id == gameRoom.id){
                 console.log("Disc: " + JSON.stringify(game_rooms[i]));
                 game_rooms[i].removePlayer(player);
-                io.to(game_room.id).emit('update game', JSON.stringify(game_rooms[i]));
+                io.to(gameRoom.id).emit('update game', JSON.stringify(game_rooms[i]));
                 socket.leave(game_rooms[i].id);
                 if(game_rooms[i].players.length == 0){
                     console.log('removed room: ' + JSON.stringify(game_rooms[i]));
@@ -74,43 +74,43 @@ io.on('connection', function(socket){
         }
     });
     
-    socket.on('get_game', function(game_room_json){
-        let game_room = JSON.parse(game_room_json);
+    socket.on('get_game', function(gameRoomJSON){
+        let gameRoom = JSON.parse(gameRoomJSON);
         for(let i = 0; i < game_rooms.length; i++){
-            if(game_rooms[i].id == game_room.id){
+            if(game_rooms[i].id == gameRoom.id){
                 socket.emit('update game', JSON.stringify(game_rooms[i]));
             }
         }
     });
     
     
-    socket.on('update lobby', function(game_room_json, player_json) {
-        let game_room = JSON.parse(game_room_json);
-        let player = JSON.parse(player_json);
+    socket.on('update lobby', function(gameRoomJSON, playerJSON) {
+        let gameRoom = JSON.parse(gameRoomJSON);
+        let player = JSON.parse(playerJSON);
         for(let i = 0; i < game_rooms.length; i++){
-            if(game_rooms[i].id == game_room.id){
+            if(game_rooms[i].id == gameRoom.id){
                 for(let j = 0; j < game_rooms[i].players.length; j++) {
                     if(game_rooms[i].players[j].id == player.id){
                         game_rooms[i].players[j].isReady = player.isReady;
-                        io.to(game_room.id).emit('update game', JSON.stringify(game_rooms[i]));
+                        io.to(gameRoom.id).emit('update game', JSON.stringify(game_rooms[i]));
                     }
                 }
             }
         }
     });
     
-    socket.on('check game ready', function(game_json){
-        let game_lobby = JSON.parse(game_json);
-        let game_id = game_lobby.id;
+    socket.on('check game ready', function(gameJSON){
+        let gameLobby = JSON.parse(gameJSON);
+        let gameId = gameLobby.id;
         for(let i = 0; i < game_rooms.length; i++){
-            if(game_rooms[i].id == game_id){
+            if(game_rooms[i].id == gameId){
                 let ready = game_rooms[i].checkReady();
     
                 if (ready && game_rooms[i].players.length > 1){
                     console.log('start game');
                     let game = new Game(game_rooms[i].players);
                     games.push(game);
-                    io.to(game_lobby.id).emit('start game', game.id);
+                    io.to(gameLobby.id).emit('start game', game.id);
                 } else {
                     socket.emit('start game failed');
                 }
@@ -118,10 +118,15 @@ io.on('connection', function(socket){
         }
     });
     
-    socket.on('join io room', function(game_room_json){
-        let game_room = JSON.parse(game_room_json);
-        socket.join(game_room.id);
+    socket.on('join io room', function(gameRoomJSON){
+        let gameRoom = JSON.parse(gameRoomJSON);
+        socket.join(gameRoom.id);
     });
+    
+    socket.on('leave io room', function(gameRoomJSON){
+        let gameRoom = JSON.parse(gameRoomJSON);
+        socket.leave(gameRoom.id);
+    })
 });
 
 http.listen(port, function(){

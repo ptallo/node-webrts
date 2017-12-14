@@ -20,9 +20,9 @@
         var socket = io();
 
         $(document).ready(function(){
-            let game_room_json = sessionStorage.getItem('game_lobby');
-            socket.emit('get_game', game_room_json);
-            socket.emit('join io room', game_room_json);
+            let gameRoomJSON = sessionStorage.getItem('game_lobby');
+            socket.emit('get_game', gameRoomJSON);
+            socket.emit('join io room', gameRoomJSON);
         });
 
         $('#leave_room').on('click', function(){
@@ -45,18 +45,19 @@
         $('#ready_check').change(function(){
             let player = JSON.parse(sessionStorage.getItem('player'));
             player.isReady = this.checked;
-            let player_json = JSON.stringify(player);
-            sessionStorage.setItem('player', player_json);
+            let playerJSON = JSON.stringify(player);
+            sessionStorage.setItem('player', playerJSON);
             socket.emit('update lobby', sessionStorage.getItem('game_lobby'), sessionStorage.getItem('player'));
         });
 
-        socket.on('update game', function(game_json){
-            sessionStorage.setItem('game_lobby', game_json);
+        socket.on('update game', function(gameJSON){
+            sessionStorage.setItem('game_lobby', gameJSON);
             updateGameHTML();
         });
 
         socket.on('start game', function () {
             alert('start game succeeded');
+
         });
 
         socket.on('start game failed', function () {
