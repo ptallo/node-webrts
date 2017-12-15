@@ -97,10 +97,9 @@ io.on('connection', function(socket){
                 let ready = game_rooms[i].checkReady();
     
                 if (ready && game_rooms[i].players.length > 1){
-                    console.log('start game');
                     let game = new Game(game_rooms[i].players);
                     games.push(game);
-                    io.to(gameLobby.id).emit('start game', game.id, game_rooms[i].id);
+                    io.to(gameLobby.id).emit('start game', game.id, JSON.stringify(game_rooms[i]));
                 } else {
                     socket.emit('start game failed');
                 }
@@ -125,14 +124,12 @@ io.on('connection', function(socket){
        }
     });
     
-    socket.on('join io room', function(gameRoomJSON){
-        let gameRoom = JSON.parse(gameRoomJSON);
-        socket.join(gameRoom.id);
+    socket.on('join io room', function(id){
+        socket.join(id);
     });
     
-    socket.on('leave io room', function(gameRoomJSON){
-        let gameRoom = JSON.parse(gameRoomJSON);
-        socket.leave(gameRoom.id);
+    socket.on('leave io room', function(id){
+        socket.leave(id);
     })
 });
 

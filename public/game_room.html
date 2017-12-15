@@ -22,7 +22,7 @@
         $(document).ready(function(){
             let gameRoomJSON = sessionStorage.getItem('game_lobby');
             socket.emit('get game lobby', gameRoomJSON);
-            socket.emit('join io room', gameRoomJSON);
+            socket.emit('join io room', JSON.parse(gameRoomJSON).id);
         });
 
         $('#leave_room').on('click', function(){
@@ -31,14 +31,6 @@
         });
 
         $('#start_game').on('click', function(){
-            /* Steps to Have Players in same game:
-             * 1. Check to see if both players are ready
-             * 2. establish a webrtc connection between two players
-             * 3. move both players to game.html
-             * 4. give both players a copy of the game
-             * 5. have both players send, updates to each other every game tick
-             *       so as to have identical game state
-             */
             socket.emit('check game ready', sessionStorage.getItem('game_lobby'));
         });
 
@@ -55,10 +47,10 @@
             updateGameHTML();
         });
 
-        socket.on('start game', function (gameId, gameRoomId) {
-            alert('start game succeeded');
-            socket.emit('leave io room', gameRoomId);
+        socket.on('start game', function (gameId, gameRoomJSON) {
+            socket.emit('leave io room', gameRoomJSON);
             sessionStorage.setItem('game_id', gameId);
+            window.location.href = "game.html";
         });
 
         socket.on('start game failed', function () {
