@@ -49,7 +49,7 @@
                 addRoom(gameRoomJSON);
             });
 
-            socket.on('join lobby', function(gameRoomJSON){
+            socket.on('join room', function(gameRoomJSON){
                 sessionStorage.setItem('game_lobby', gameRoomJSON);
                 joinRoom(gameRoomJSON);
             });

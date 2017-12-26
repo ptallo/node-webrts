@@ -3,32 +3,21 @@
     <title> Web RTS Front End </title>
 </head>
     <body>
-        <p id="info"> testing </p>
-        <canvas id="game_canvas" width="600" height="400" style="border:1px solid #000000;"></canvas>
+        <canvas id="game_canvas" width="600" height="400" style="border:1px solid #000000;">
+            Your browser must support canvas for this game to function!
+        </canvas>
 
         <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.js"></script>
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
         <script>
             var socket = io();
-            var game = null;
+            var Game = require('./Game.js');
 
             $(document).ready(function () {
                 let game_id = sessionStorage.getItem('game_id');
                 socket.emit('join io room', game_id);
-                socket.emit('get game', game_id);
+                var Game = new Game();
             });
-
-            socket.on('update game', function(gameJSON){
-                sessionStorage.setItem('game', gameJSON);
-                game = JSON.parse(gameJSON);
-                $('#info').text(gameJSON);
-                drawGameState(game);
-            });
-
-            function drawGameState(){
-
-            }
-
         </script>
     </body>
 </html>
