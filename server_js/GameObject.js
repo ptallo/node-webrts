@@ -1,11 +1,13 @@
 'use strict';
 var shortid = require('shortid');
-var RenderComponent = require('./component/RenderComponent.js');
+var PositionComponent = require('./component/PositionComponent.js');
+var SizeComponent = require('./component/SizeComponent.js');
 
 class GameObject{
-    constructor(x, y){
+    constructor(x, y, width, height){
         this.id = shortid.generate();
-        this.renderComponent = new RenderComponent();
+        this.positionComponent = new PositionComponent(x, y);
+        this.sizeComponent = new SizeComponent(width, height);
     }
     update(){
     
