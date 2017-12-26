@@ -49,7 +49,6 @@ io.on('connection', function(socket){
         for(let i = 0; i < game_rooms.length; i++){
             if (game_rooms[i].id == gameRoom.id){
                 let player = new Player();
-                console.log("Conn: " + JSON.stringify(game_rooms[i]));
                 game_rooms[i].addPlayer(player);
                 socket.emit('get_player', JSON.stringify(player));
                 io.to(gameRoom.id).emit('update game', JSON.stringify(game_rooms[i]));
@@ -62,12 +61,10 @@ io.on('connection', function(socket){
         let player = JSON.parse(playerJSON);
         for(let i = 0; i < game_rooms.length; i++){
             if(game_rooms[i].id == gameRoom.id){
-                console.log("Disc: " + JSON.stringify(game_rooms[i]));
                 game_rooms[i].removePlayer(player);
                 io.to(gameRoom.id).emit('update game', JSON.stringify(game_rooms[i]));
                 socket.leave(game_rooms[i].id);
                 if(game_rooms[i].players.length == 0){
-                    console.log('removed room: ' + JSON.stringify(game_rooms[i]));
                     game_rooms.splice(i,1);
                 }
             }
@@ -119,7 +116,7 @@ io.on('connection', function(socket){
     socket.on('get game', function(gameId){
        for(let i = 0; i < games.length; i ++){
            if(games[i].id == gameId){
-               socket.emit('update game', JSON.stringify(games[i]));
+               socket.emit('get game', JSON.stringify(games[i]));
            }
        }
     });
