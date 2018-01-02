@@ -4,13 +4,13 @@ var express = require('express');
 var app = express();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
-var GameRoom = require("./core/GameRoom.js");
-var Game = require('./core/Game.js');
-var Player = require('./core/Player.js');
+var GameRoom = require("./public/game_logic/GameRoom.js");
+var Game = require('./public/game_logic/Game.js');
+var Player = require('./public/game_logic/Player.js');
 var port = 8080;
 
 //Configuration
-app.use(express.static(path.join(__dirname, '/public')));
+app.use(express.static(__dirname + '/public'));
 
 //Variables
 var game_rooms = [];
