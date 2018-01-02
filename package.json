@@ -4,6 +4,7 @@
   "description": "socket io app",
   "dependencies": {
     "express": "^4.15.2",
+    "shortid": "^2.2.8",
     "socket.io": "^1.7.3"
   },
   "scripts": {
