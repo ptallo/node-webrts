@@ -1,6 +1,21 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 'use strict';
 var shortid = require('shortid');
+var GameObject = require('./GameObject.js');
+
+class Game{
+    constructor(id="none"){
+        this.id = id == "none" ? shortid.generate() : id;
+        this.gameObjects = [];
+        this.gameObjects.push(new GameObject(20, 20, 40, 40));
+    }
+}
+
+module.exports = Game;
+
+},{"./GameObject.js":2,"shortid":5}],2:[function(require,module,exports){
+'use strict';
+var shortid = require('shortid');
 var PositionComponent = require('./component/PositionComponent.js');
 var SizeComponent = require('./component/SizeComponent.js');
 
@@ -16,7 +31,7 @@ class GameObject{
 }
 
 module.exports = GameObject;
-},{"./component/PositionComponent.js":2,"./component/SizeComponent.js":3,"shortid":4}],2:[function(require,module,exports){
+},{"./component/PositionComponent.js":3,"./component/SizeComponent.js":4,"shortid":5}],3:[function(require,module,exports){
 
 
 class PositionComponent{
@@ -30,7 +45,7 @@ class PositionComponent{
 }
 
 module.exports = PositionComponent;
-},{}],3:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 
 
 class SizeComponent{
@@ -44,11 +59,11 @@ class SizeComponent{
 }
 
 module.exports = SizeComponent;
-},{}],4:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 'use strict';
 module.exports = require('./lib/index');
 
-},{"./lib/index":9}],5:[function(require,module,exports){
+},{"./lib/index":10}],6:[function(require,module,exports){
 'use strict';
 
 var randomFromSeed = require('./random/random-from-seed');
@@ -148,7 +163,7 @@ module.exports = {
     shuffled: getShuffled
 };
 
-},{"./random/random-from-seed":12}],6:[function(require,module,exports){
+},{"./random/random-from-seed":13}],7:[function(require,module,exports){
 'use strict';
 
 var encode = require('./encode');
@@ -198,7 +213,7 @@ function build(clusterWorkerId) {
 
 module.exports = build;
 
-},{"./alphabet":5,"./encode":8}],7:[function(require,module,exports){
+},{"./alphabet":6,"./encode":9}],8:[function(require,module,exports){
 'use strict';
 var alphabet = require('./alphabet');
 
@@ -217,7 +232,7 @@ function decode(id) {
 
 module.exports = decode;
 
-},{"./alphabet":5}],8:[function(require,module,exports){
+},{"./alphabet":6}],9:[function(require,module,exports){
 'use strict';
 
 var randomByte = require('./random/random-byte');
@@ -238,7 +253,7 @@ function encode(lookup, number) {
 
 module.exports = encode;
 
-},{"./random/random-byte":11}],9:[function(require,module,exports){
+},{"./random/random-byte":12}],10:[function(require,module,exports){
 'use strict';
 
 var alphabet = require('./alphabet');
@@ -305,7 +320,7 @@ module.exports.characters = characters;
 module.exports.decode = decode;
 module.exports.isValid = isValid;
 
-},{"./alphabet":5,"./build":6,"./decode":7,"./encode":8,"./is-valid":10,"./util/cluster-worker-id":13}],10:[function(require,module,exports){
+},{"./alphabet":6,"./build":7,"./decode":8,"./encode":9,"./is-valid":11,"./util/cluster-worker-id":14}],11:[function(require,module,exports){
 'use strict';
 var alphabet = require('./alphabet');
 
@@ -326,7 +341,7 @@ function isShortId(id) {
 
 module.exports = isShortId;
 
-},{"./alphabet":5}],11:[function(require,module,exports){
+},{"./alphabet":6}],12:[function(require,module,exports){
 'use strict';
 
 var crypto = typeof window === 'object' && (window.crypto || window.msCrypto); // IE 11 uses window.msCrypto
@@ -342,7 +357,7 @@ function randomByte() {
 
 module.exports = randomByte;
 
-},{}],12:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 'use strict';
 
 // Found this seed-based random generator somewhere
@@ -369,29 +384,24 @@ module.exports = {
     seed: setSeed
 };
 
-},{}],13:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 'use strict';
 
 module.exports = 0;
 
-},{}],14:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 'use strict';
 // browserify main.js -o bundle.js
 var socket = io();
+var Game = require("../../game_logic/Game.js");
 var GameObject = require('../../game_logic/GameObject.js');
 var PositionComponent = require('../../game_logic/component/PositionComponent.js');
 var SizeComponent = require('../../game_logic/component/SizeComponent.js');
 
-try {
-    var test = new GameObject(20, 20, 20, 20);
-    $('p').text("game object: " + JSON.stringify(test));
-} catch (e) {
-    $('p').text(e);
-}
-
-
 $(document).ready(function () {
     let game_id = sessionStorage.getItem('game_id');
     socket.emit('join io room', game_id);
+    var game = new Game(game_id);
+    $('p').text(game_id);
 });
-},{"../../game_logic/GameObject.js":1,"../../game_logic/component/PositionComponent.js":2,"../../game_logic/component/SizeComponent.js":3}]},{},[14]);
+},{"../../game_logic/Game.js":1,"../../game_logic/GameObject.js":2,"../../game_logic/component/PositionComponent.js":3,"../../game_logic/component/SizeComponent.js":4}]},{},[15]);

@@ -104,7 +104,7 @@ io.on('connection', function(socket){
                 let ready = game_rooms[i].checkReady();
     
                 if (ready && game_rooms[i].players.length > 1){
-                    let game = new Game(game_rooms[i].players);
+                    let game = new Game();
                     games.push(game);
                     io.to(gameLobby.id).emit('start game', game.id, JSON.stringify(game_rooms[i]));
                 } else {
