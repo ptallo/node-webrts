@@ -4,9 +4,9 @@ var express = require('express');
 var app = express();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
-var GameRoom = require("./public/game_logic/GameRoom.js");
-var Game = require('./public/game_logic/Game.js');
-var Player = require('./public/game_logic/Player.js');
+var GameRoom = require("./game_logic/GameRoom.js");
+var Game = require('./game_logic/Game.js');
+var Player = require('./game_logic/Player.js');
 var port = 8080;
 
 //Configuration

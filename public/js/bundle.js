@@ -1,8 +1,54 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 'use strict';
+var shortid = require('shortid');
+var PositionComponent = require('./component/PositionComponent.js');
+var SizeComponent = require('./component/SizeComponent.js');
+
+class GameObject{
+    constructor(x, y, width, height){
+        this.id = shortid.generate();
+        this.positionComponent = new PositionComponent(x, y);
+        this.sizeComponent = new SizeComponent(width, height);
+    }
+    update(){
+    
+    }
+}
+
+module.exports = GameObject;
+},{"./component/PositionComponent.js":2,"./component/SizeComponent.js":3,"shortid":4}],2:[function(require,module,exports){
+
+
+class PositionComponent{
+    constructor(x, y){
+        this.x = x;
+        this.y = y;
+    }
+    update(){
+    
+    }
+}
+
+module.exports = PositionComponent;
+},{}],3:[function(require,module,exports){
+
+
+class SizeComponent{
+    constructor(width, height){
+        this.width = width;
+        this.height = height;
+    }
+    update(){
+    
+    }
+}
+
+module.exports = SizeComponent;
+},{}],4:[function(require,module,exports){
+'use strict';
 module.exports = require('./lib/index');
 
-},{"./lib/index":6}],2:[function(require,module,exports){
+},{"./lib/index":9}],5:[function(require,module,exports){
 'use strict';
 
 var randomFromSeed = require('./random/random-from-seed');
@@ -102,7 +148,7 @@ module.exports = {
     shuffled: getShuffled
 };
 
-},{"./random/random-from-seed":9}],3:[function(require,module,exports){
+},{"./random/random-from-seed":12}],6:[function(require,module,exports){
 'use strict';
 
 var encode = require('./encode');
@@ -152,7 +198,7 @@ function build(clusterWorkerId) {
 
 module.exports = build;
 
-},{"./alphabet":2,"./encode":5}],4:[function(require,module,exports){
+},{"./alphabet":5,"./encode":8}],7:[function(require,module,exports){
 'use strict';
 var alphabet = require('./alphabet');
 
@@ -171,7 +217,7 @@ function decode(id) {
 
 module.exports = decode;
 
-},{"./alphabet":2}],5:[function(require,module,exports){
+},{"./alphabet":5}],8:[function(require,module,exports){
 'use strict';
 
 var randomByte = require('./random/random-byte');
@@ -192,7 +238,7 @@ function encode(lookup, number) {
 
 module.exports = encode;
 
-},{"./random/random-byte":8}],6:[function(require,module,exports){
+},{"./random/random-byte":11}],9:[function(require,module,exports){
 'use strict';
 
 var alphabet = require('./alphabet');
@@ -259,7 +305,7 @@ module.exports.characters = characters;
 module.exports.decode = decode;
 module.exports.isValid = isValid;
 
-},{"./alphabet":2,"./build":3,"./decode":4,"./encode":5,"./is-valid":7,"./util/cluster-worker-id":10}],7:[function(require,module,exports){
+},{"./alphabet":5,"./build":6,"./decode":7,"./encode":8,"./is-valid":10,"./util/cluster-worker-id":13}],10:[function(require,module,exports){
 'use strict';
 var alphabet = require('./alphabet');
 
@@ -280,7 +326,7 @@ function isShortId(id) {
 
 module.exports = isShortId;
 
-},{"./alphabet":2}],8:[function(require,module,exports){
+},{"./alphabet":5}],11:[function(require,module,exports){
 'use strict';
 
 var crypto = typeof window === 'object' && (window.crypto || window.msCrypto); // IE 11 uses window.msCrypto
@@ -296,7 +342,7 @@ function randomByte() {
 
 module.exports = randomByte;
 
-},{}],9:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 'use strict';
 
 // Found this seed-based random generator somewhere
@@ -323,64 +369,18 @@ module.exports = {
     seed: setSeed
 };
 
-},{}],10:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 'use strict';
 
 module.exports = 0;
 
-},{}],11:[function(require,module,exports){
-'use strict';
-var shortid = require('shortid');
-var PositionComponent = require('./component/PositionComponent.js');
-var SizeComponent = require('./component/SizeComponent.js');
-
-class GameObject{
-    constructor(x, y, width, height){
-        this.id = shortid.generate();
-        this.positionComponent = new PositionComponent(x, y);
-        this.sizeComponent = new SizeComponent(width, height);
-    }
-    update(){
-    
-    }
-}
-
-module.exports = GameObject;
-},{"./component/PositionComponent.js":12,"./component/SizeComponent.js":13,"shortid":1}],12:[function(require,module,exports){
-
-
-class PositionComponent{
-    constructor(x, y){
-        this.x = x;
-        this.y = y;
-    }
-    update(){
-    
-    }
-}
-
-module.exports = PositionComponent;
-},{}],13:[function(require,module,exports){
-
-
-class SizeComponent{
-    constructor(width, height){
-        this.width = width;
-        this.height = height;
-    }
-    update(){
-    
-    }
-}
-
-module.exports = SizeComponent;
 },{}],14:[function(require,module,exports){
 'use strict';
 // browserify main.js -o bundle.js
 var socket = io();
-var GameObject = require('../game_logic/GameObject.js');
-var PositionComponent = require('../game_logic/component/PositionComponent.js');
-var SizeComponent = require('../game_logic/component/SizeComponent.js');
+var GameObject = require('../../game_logic/GameObject.js');
+var PositionComponent = require('../../game_logic/component/PositionComponent.js');
+var SizeComponent = require('../../game_logic/component/SizeComponent.js');
 
 try {
     var test = new GameObject(20, 20, 20, 20);
@@ -394,4 +394,4 @@ $(document).ready(function () {
     let game_id = sessionStorage.getItem('game_id');
     socket.emit('join io room', game_id);
 });
-},{"../game_logic/GameObject.js":11,"../game_logic/component/PositionComponent.js":12,"../game_logic/component/SizeComponent.js":13}]},{},[14]);
+},{"../../game_logic/GameObject.js":1,"../../game_logic/component/PositionComponent.js":2,"../../game_logic/component/SizeComponent.js":3}]},{},[14]);
