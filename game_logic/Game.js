@@ -8,6 +8,11 @@ class Game{
         this.gameObjects = [];
         this.gameObjects.push(new GameObject(20, 20, 40, 40));
     }
+    update(){
+        for(let object in this.gameObjects){
+            object.update();
+        }
+    }
 }
 
 module.exports = Game;
