@@ -1,11 +1,11 @@
 'use strict';
 // browserify main.js -o bundle.js - game logic require
 var socket = io();
-var Game = require("../../game_logic/Game.js");
-var GameObject = require('../../game_logic/GameObject.js');
-var PositionComponent = require('../../game_logic/component/PositionComponent.js');
-var SizeComponent = require('../../game_logic/component/SizeComponent.js');
-var VelocityComponent = require('../../game_logic/component/VelocityComponent.js');
+var Game = require("../../server/Game.js");
+var GameObject = require('../../server/GameObject.js');
+var PositionComponent = require('../../server/component/PositionComponent.js');
+var SizeComponent = require('../../server/component/SizeComponent.js');
+var VelocityComponent = require('../../server/component/VelocityComponent.js');
 
 //Other global variables which need to be expressed
 var canvas = document.getElementById("game_canvas");
