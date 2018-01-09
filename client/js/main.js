@@ -6,13 +6,16 @@ var GameObject = require('../../server/GameObject.js');
 var PositionComponent = require('../../server/component/PositionComponent.js');
 var SizeComponent = require('../../server/component/SizeComponent.js');
 var VelocityComponent = require('../../server/component/VelocityComponent.js');
+var Player = require('../../server/Player.js');
 
 //Other global variables which need to be expressed
 var canvas = document.getElementById("game_canvas");
 var ctx = canvas.getContext("2d");
-let game_id = sessionStorage.getItem('game_id');
+var game_id = sessionStorage.getItem('game_id');
 
 var game = new Game(game_id);
+var player = new Player();
+var mousedown = null;
 
 $(document).ready(function () {
     socket.emit('join io room', game_id);
@@ -46,20 +49,35 @@ document.addEventListener('keydown', function(e){
     }
 });
 
-canvas.addEventListener('mousedown', function(e){
+document.addEventListener('mousedown', function(e){
     let rect = canvas.getBoundingClientRect();
     let mouse = {
         x : e.pageX - rect.left,
         y : e.pageY - rect.top
     };
-    $('p').text(JSON.stringify(mouse));
+    mousedown = mouse;
+    player.selectedGameObjects.empty();
 });
 
-canvas.addEventListener('mouseup', function(e){
+document.addEventListener('mouseup', function(e){
     let rect = canvas.getBoundingClientRect();
     let mouse = {
         x : e.pageX - rect.left,
         y : e.pageY - rect.top
     };
-    $('p').text(JSON.stringify(mouse));
+    
+    let mousePair = {
+        xSmall : (mouse.x > mousedown.x) ? mousedown.x : mouse.x,
+        xLarge : (mouse.x > mousedown.x) ? mouse.x : mousedown.x,
+        ySmall : (mouse.y > mousedown.y) ? mousedown.y : mouse.y,
+        yLarge : (mouse.y > mousedown.y) ? mouse.y : mousedown.y
+    }
+    
+    for (let object in game.gameObjects){
+        if (object.x > mousePair.xSmall && object.x < mousePair.xLarge
+            && object.y > mousePair.ySmall && object.y < mousePair.yLarge){
+            player.selectedGameObjects.push(object);
+        }
+    }
+    $('p').text(JSON.stringify(player.selectedGameObjects));
 });
