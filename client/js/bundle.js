@@ -60,27 +60,30 @@ document.addEventListener('mousedown', function(e){
     player.selectedGameObjects.empty();
 });
 
-document.addEventListener('mouseup', function(e){
+document.addEventListener('mouseup', function(e) {
     let rect = canvas.getBoundingClientRect();
     let mouse = {
-        x : e.pageX - rect.left,
-        y : e.pageY - rect.top
+        x: e.pageX - rect.left,
+        y: e.pageY - rect.top
     };
-    
+
     let mousePair = {
-        xSmall : (mouse.x > mousedown.x) ? mousedown.x : mouse.x,
-        xLarge : (mouse.x > mousedown.x) ? mouse.x : mousedown.x,
-        ySmall : (mouse.y > mousedown.y) ? mousedown.y : mouse.y,
-        yLarge : (mouse.y > mousedown.y) ? mouse.y : mousedown.y
-    }
-    
-    for (let object in game.gameObjects){
-        if (object.x > mousePair.xSmall && object.x < mousePair.xLarge
-            && object.y > mousePair.ySmall && object.y < mousePair.yLarge){
-            player.selectedGameObjects.push(object);
+        xSmall: (mouse.x > mousedown.x) ? mousedown.x : mouse.x,
+        xLarge: (mouse.x > mousedown.x) ? mouse.x : mousedown.x,
+        ySmall: (mouse.y > mousedown.y) ? mousedown.y : mouse.y,
+        yLarge: (mouse.y > mousedown.y) ? mouse.y : mousedown.y
+    };
+
+    let selectedGameObjects = [];
+    for(let i = 0; i < game.gameObjects.length; i++){
+        let gameObject = game.gameObjects[i];
+        let x = gameObject.positionComponent.x;
+        let y = gameObject.positionComponent.y;
+        if(x > mousePair.xSmall && x < mousePair.xLarge && y > mousePair.ySmall && y < mousePair.yLarge){
+            selectedGameObjects.push(gameObject);
         }
     }
-    $('p').text(JSON.stringify(player.selectedGameObjects));
+    $('#test1').text(JSON.stringify(selectedGameObjects));
 });
 
 },{"../../server/Game.js":12,"../../server/GameObject.js":13,"../../server/Player.js":14,"../../server/component/PositionComponent.js":15,"../../server/component/SizeComponent.js":16,"../../server/component/VelocityComponent.js":17}],2:[function(require,module,exports){
