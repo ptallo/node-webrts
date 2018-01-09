@@ -12,16 +12,12 @@ var VelocityComponent = require('../../server/component/VelocityComponent.js');
 var canvas = document.getElementById("game_canvas");
 var ctx = canvas.getContext("2d");
 let game_id = sessionStorage.getItem('game_id');
-var game = new Game(game_id);
 
+var game = new Game(game_id);
 
 $(document).ready(function () {
     socket.emit('join io room', game_id);
-    try {
-        drawGame(game);
-    } catch (e) {
-        $('p').text(e);
-    }
+    window.requestAnimationFrame(drawGame);
 });
 
 function drawGame() {
@@ -32,10 +28,43 @@ function drawGame() {
         let y = gameObject.positionComponent.y;
         let width = gameObject.sizeComponent.width;
         let height = gameObject.sizeComponent.height;
-        $('p').text(x + ", " + y + ", " + width + ", " + height);
         ctx.fillRect(x, y, width, height);
     }
 }
+
+document.addEventListener('keydown', function(e){
+    if(e.key == "ArrowRight"){
+        $('p').text('right');
+    }
+    if(e.key == "ArrowLeft"){
+        $('p').text('left');
+    }
+    if(e.key == "ArrowUp"){
+        $('p').text('up');
+    }
+    if(e.key == "ArrowDown"){
+        $('p').text('down');
+    }
+});
+
+canvas.addEventListener('mousedown', function(e){
+    let rect = canvas.getBoundingClientRect();
+    let mouse = {
+        x : e.pageX - rect.left,
+        y : e.pageY - rect.top
+    };
+    $('p').text(JSON.stringify(mouse));
+});
+
+canvas.addEventListener('mouseup', function(e){
+    let rect = canvas.getBoundingClientRect();
+    let mouse = {
+        x : e.pageX - rect.left,
+        y : e.pageY - rect.top
+    };
+    $('p').text(JSON.stringify(mouse));
+});
+
 },{"../../server/Game.js":12,"../../server/GameObject.js":13,"../../server/component/PositionComponent.js":14,"../../server/component/SizeComponent.js":15,"../../server/component/VelocityComponent.js":16}],2:[function(require,module,exports){
 'use strict';
 module.exports = require('./lib/index');
