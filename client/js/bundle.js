@@ -1,91 +1,46 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 'use strict';
-var shortid = require('shortid');
-var GameObject = require('./GameObject.js');
+// browserify main.js -o bundle.js - game logic require
+var socket = io();
+var Game = require("../../server/Game.js");
+var GameObject = require('../../server/GameObject.js');
+var PositionComponent = require('../../server/component/PositionComponent.js');
+var SizeComponent = require('../../server/component/SizeComponent.js');
+var VelocityComponent = require('../../server/component/VelocityComponent.js');
 
-class Game{
-    constructor(id="none"){
-        this.id = id == "none" ? shortid.generate() : id;
-        this.gameObjects = [];
-        this.gameObjects.push(new GameObject(20, 20, 40, 40));
-        this.gameObjects.push(new GameObject(80, 80, 100, 20))
+//Other global variables which need to be expressed
+var canvas = document.getElementById("game_canvas");
+var ctx = canvas.getContext("2d");
+let game_id = sessionStorage.getItem('game_id');
+var game = new Game(game_id);
+
+
+$(document).ready(function () {
+    socket.emit('join io room', game_id);
+    try {
+        drawGame(game);
+    } catch (e) {
+        $('p').text(e);
     }
-    update(){
-        for(let object in this.gameObjects){
-            object.update();
-        }
-    }
-}
+});
 
-module.exports = Game;
-
-},{"./GameObject.js":2,"shortid":6}],2:[function(require,module,exports){
-'use strict';
-var shortid = require('shortid');
-var PositionComponent = require('./component/PositionComponent.js');
-var SizeComponent = require('./component/SizeComponent.js');
-var VelocityComponent = require('./component/VelocityComponent.js');
-
-class GameObject{
-    constructor(x, y, width, height){
-        this.id = shortid.generate();
-        this.sizeComponent = new SizeComponent(width, height);
-        this.positionComponent = new PositionComponent(x, y);
-        this.velocityComponent = new VelocityComponent();
-    }
-    update(){
-        if(this.velocityComponent.xVelocity != 0){
-            this.positionComponent.x += this.velocityComponent.xVelocity;
-        }
-
-        if(this.velocityComponent.yVelocity != 0){
-            this.positionComponent.y += this.velocityComponent.yVelocity;
-        }
+function drawGame() {
+    ctx.fillStyle = "#38cceb";
+    for (let i = 0; i < game.gameObjects.length; i++) {
+        let gameObject = game.gameObjects[i];
+        let x = gameObject.positionComponent.x;
+        let y = gameObject.positionComponent.y;
+        let width = gameObject.sizeComponent.width;
+        let height = gameObject.sizeComponent.height;
+        $('p').text(x + ", " + y + ", " + width + ", " + height);
+        ctx.fillRect(x, y, width, height);
     }
 }
-
-module.exports = GameObject;
-},{"./component/PositionComponent.js":3,"./component/SizeComponent.js":4,"./component/VelocityComponent.js":5,"shortid":6}],3:[function(require,module,exports){
-
-
-class PositionComponent{
-    constructor(x, y){
-        this.x = x;
-        this.y = y;
-    }
-}
-
-module.exports = PositionComponent;
-},{}],4:[function(require,module,exports){
-
-
-class SizeComponent{
-    constructor(width, height){
-        this.width = width;
-        this.height = height;
-    }
-}
-
-module.exports = SizeComponent;
-},{}],5:[function(require,module,exports){
-
-class VelocityComponent{
-    constructor(){
-        this.xVelocity = 0;
-        this.yVelocity = 0;
-    }
-    updateVelocity(x = 0, y = 0){
-        this.xVelocity = x;
-        this.yVelocity = y;
-    }
-}
-
-module.exports = VelocityComponent;
-},{}],6:[function(require,module,exports){
+},{"../../server/Game.js":12,"../../server/GameObject.js":13,"../../server/component/PositionComponent.js":14,"../../server/component/SizeComponent.js":15,"../../server/component/VelocityComponent.js":16}],2:[function(require,module,exports){
 'use strict';
 module.exports = require('./lib/index');
 
-},{"./lib/index":11}],7:[function(require,module,exports){
+},{"./lib/index":7}],3:[function(require,module,exports){
 'use strict';
 
 var randomFromSeed = require('./random/random-from-seed');
@@ -185,7 +140,7 @@ module.exports = {
     shuffled: getShuffled
 };
 
-},{"./random/random-from-seed":14}],8:[function(require,module,exports){
+},{"./random/random-from-seed":10}],4:[function(require,module,exports){
 'use strict';
 
 var encode = require('./encode');
@@ -235,7 +190,7 @@ function build(clusterWorkerId) {
 
 module.exports = build;
 
-},{"./alphabet":7,"./encode":10}],9:[function(require,module,exports){
+},{"./alphabet":3,"./encode":6}],5:[function(require,module,exports){
 'use strict';
 var alphabet = require('./alphabet');
 
@@ -254,7 +209,7 @@ function decode(id) {
 
 module.exports = decode;
 
-},{"./alphabet":7}],10:[function(require,module,exports){
+},{"./alphabet":3}],6:[function(require,module,exports){
 'use strict';
 
 var randomByte = require('./random/random-byte');
@@ -275,7 +230,7 @@ function encode(lookup, number) {
 
 module.exports = encode;
 
-},{"./random/random-byte":13}],11:[function(require,module,exports){
+},{"./random/random-byte":9}],7:[function(require,module,exports){
 'use strict';
 
 var alphabet = require('./alphabet');
@@ -342,7 +297,7 @@ module.exports.characters = characters;
 module.exports.decode = decode;
 module.exports.isValid = isValid;
 
-},{"./alphabet":7,"./build":8,"./decode":9,"./encode":10,"./is-valid":12,"./util/cluster-worker-id":15}],12:[function(require,module,exports){
+},{"./alphabet":3,"./build":4,"./decode":5,"./encode":6,"./is-valid":8,"./util/cluster-worker-id":11}],8:[function(require,module,exports){
 'use strict';
 var alphabet = require('./alphabet');
 
@@ -363,7 +318,7 @@ function isShortId(id) {
 
 module.exports = isShortId;
 
-},{"./alphabet":7}],13:[function(require,module,exports){
+},{"./alphabet":3}],9:[function(require,module,exports){
 'use strict';
 
 var crypto = typeof window === 'object' && (window.crypto || window.msCrypto); // IE 11 uses window.msCrypto
@@ -379,7 +334,7 @@ function randomByte() {
 
 module.exports = randomByte;
 
-},{}],14:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 'use strict';
 
 // Found this seed-based random generator somewhere
@@ -406,47 +361,92 @@ module.exports = {
     seed: setSeed
 };
 
-},{}],15:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 'use strict';
 
 module.exports = 0;
 
-},{}],16:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 'use strict';
-// browserify main.js -o bundle.js - game logic require
-var socket = io();
-var Game = require("../../server/Game.js");
-var GameObject = require('../../server/GameObject.js');
-var PositionComponent = require('../../server/component/PositionComponent.js');
-var SizeComponent = require('../../server/component/SizeComponent.js');
-var VelocityComponent = require('../../server/component/VelocityComponent.js');
+var shortid = require('shortid');
+var GameObject = require('./GameObject.js');
 
-//Other global variables which need to be expressed
-var canvas = document.getElementById("game_canvas");
-var ctx = canvas.getContext("2d");
-let game_id = sessionStorage.getItem('game_id');
-var game = new Game(game_id);
-
-
-$(document).ready(function () {
-    socket.emit('join io room', game_id);
-    try {
-        drawGame(game);
-    } catch (e) {
-        $('p').text(e);
+class Game{
+    constructor(id="none"){
+        this.id = id == "none" ? shortid.generate() : id;
+        this.gameObjects = [];
+        this.gameObjects.push(new GameObject(20, 20, 40, 40));
+        this.gameObjects.push(new GameObject(80, 80, 100, 20))
     }
-});
-
-function drawGame() {
-    ctx.fillStyle = "#38cceb";
-    for (let i = 0; i < game.gameObjects.length; i++) {
-        let gameObject = game.gameObjects[i];
-        let x = gameObject.positionComponent.x;
-        let y = gameObject.positionComponent.y;
-        let width = gameObject.sizeComponent.width;
-        let height = gameObject.sizeComponent.height;
-        $('p').text(x + ", " + y + ", " + width + ", " + height);
-        ctx.fillRect(x, y, width, height);
+    update(){
+        for(let object in this.gameObjects){
+            object.update();
+        }
     }
 }
-},{"../../game_logic/Game.js":1,"../../game_logic/GameObject.js":2,"../../game_logic/component/PositionComponent.js":3,"../../game_logic/component/SizeComponent.js":4,"../../game_logic/component/VelocityComponent.js":5}]},{},[16]);
+
+module.exports = Game;
+
+},{"./GameObject.js":13,"shortid":2}],13:[function(require,module,exports){
+'use strict';
+var shortid = require('shortid');
+var PositionComponent = require('./component/PositionComponent.js');
+var SizeComponent = require('./component/SizeComponent.js');
+var VelocityComponent = require('./component/VelocityComponent.js');
+
+class GameObject{
+    constructor(x, y, width, height){
+        this.id = shortid.generate();
+        this.sizeComponent = new SizeComponent(width, height);
+        this.positionComponent = new PositionComponent(x, y);
+        this.velocityComponent = new VelocityComponent();
+    }
+    update(){
+        if(this.velocityComponent.xVelocity != 0){
+            this.positionComponent.x += this.velocityComponent.xVelocity;
+        }
+
+        if(this.velocityComponent.yVelocity != 0){
+            this.positionComponent.y += this.velocityComponent.yVelocity;
+        }
+    }
+}
+
+module.exports = GameObject;
+},{"./component/PositionComponent.js":14,"./component/SizeComponent.js":15,"./component/VelocityComponent.js":16,"shortid":2}],14:[function(require,module,exports){
+
+
+class PositionComponent{
+    constructor(x, y){
+        this.x = x;
+        this.y = y;
+    }
+}
+
+module.exports = PositionComponent;
+},{}],15:[function(require,module,exports){
+
+
+class SizeComponent{
+    constructor(width, height){
+        this.width = width;
+        this.height = height;
+    }
+}
+
+module.exports = SizeComponent;
+},{}],16:[function(require,module,exports){
+
+class VelocityComponent{
+    constructor(){
+        this.xVelocity = 0;
+        this.yVelocity = 0;
+    }
+    updateVelocity(x = 0, y = 0){
+        this.xVelocity = x;
+        this.yVelocity = y;
+    }
+}
+
+module.exports = VelocityComponent;
+},{}]},{},[1]);
