@@ -15,14 +15,17 @@ var game_id = sessionStorage.getItem('game_id');
 
 var game = new Game(game_id);
 var player = new Player();
+
 var mousedown = null;
+var mousePair = null;
 
 $(document).ready(function () {
     socket.emit('join io room', game_id);
-    window.requestAnimationFrame(drawGame);
+    setInterval(drawGame, 1000/60);
 });
 
 function drawGame() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
     ctx.fillStyle = "#38cceb";
     for (let i = 0; i < game.gameObjects.length; i++) {
         let gameObject = game.gameObjects[i];
@@ -31,6 +34,11 @@ function drawGame() {
         let width = gameObject.sizeComponent.width;
         let height = gameObject.sizeComponent.height;
         ctx.fillRect(x, y, width, height);
+    }
+
+    if (mousePair != null){
+        ctx.fillStyle = "#494961";
+        ctx.strokeRect(mousePair.xSmall, mousePair.ySmall, mousePair.xLarge - mousePair.xSmall, mousePair.yLarge - mousePair.ySmall);
     }
 }
 
@@ -60,19 +68,6 @@ document.addEventListener('mousedown', function(e){
 });
 
 document.addEventListener('mouseup', function(e) {
-    let rect = canvas.getBoundingClientRect();
-    let mouse = {
-        x: e.pageX - rect.left,
-        y: e.pageY - rect.top
-    };
-
-    let mousePair = {
-        xSmall: (mouse.x > mousedown.x) ? mousedown.x : mouse.x,
-        xLarge: (mouse.x > mousedown.x) ? mouse.x : mousedown.x,
-        ySmall: (mouse.y > mousedown.y) ? mousedown.y : mouse.y,
-        yLarge: (mouse.y > mousedown.y) ? mouse.y : mousedown.y
-    };
-
     let selectedGameObjects = [];
     for(let i = 0; i < game.gameObjects.length; i++){
         let gameObject = game.gameObjects[i];
@@ -83,20 +78,23 @@ document.addEventListener('mouseup', function(e) {
         }
     }
     player.selectedGameObjects = selectedGameObjects;
+    mousedown = null;
+    mousePair = null;
 });
 
 document.addEventListener('mousemove', function(e){
-    ctx.fillStyle = "#454a4b";
     let rect = canvas.getBoundingClientRect();
     let mouse = {
         x: e.pageX - rect.left,
         y: e.pageY - rect.top
     };
 
-    let mousePair = {
-        xSmall: (mouse.x > mousedown.x) ? mousedown.x : mouse.x,
-        xLarge: (mouse.x > mousedown.x) ? mouse.x : mousedown.x,
-        ySmall: (mouse.y > mousedown.y) ? mousedown.y : mouse.y,
-        yLarge: (mouse.y > mousedown.y) ? mouse.y : mousedown.y
-    };
+    if (mousedown != null) {
+        mousePair = {
+            xSmall: (mouse.x > mousedown.x) ? mousedown.x : mouse.x,
+            xLarge: (mouse.x > mousedown.x) ? mouse.x : mousedown.x,
+            ySmall: (mouse.y > mousedown.y) ? mousedown.y : mouse.y,
+            yLarge: (mouse.y > mousedown.y) ? mouse.y : mousedown.y
+        };
+    }
 });
