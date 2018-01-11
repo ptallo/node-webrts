@@ -4,13 +4,13 @@ var express = require('express');
 var app = express();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
-var GameRoom = require("./server_js/GameRoom.js");
-var Game = require('./server_js/Game.js');
-var Player = require('./server_js/Player.js');
+var GameRoom = require("./server/GameRoom.js");
+var Game = require('./server/Game.js');
+var Player = require('./server/Player.js');
 var port = 8080;
 
 //Configuration
-app.use(express.static(__dirname + '/public'));
+app.use(express.static(__dirname + '/client'));
 
 //Variables
 var game_rooms = [];
@@ -104,7 +104,7 @@ io.on('connection', function(socket){
                 let ready = game_rooms[i].checkReady();
     
                 if (ready && game_rooms[i].players.length > 1){
-                    let game = new Game(game_rooms[i].players);
+                    let game = new Game();
                     games.push(game);
                     io.to(gameLobby.id).emit('start game', game.id, JSON.stringify(game_rooms[i]));
                 } else {

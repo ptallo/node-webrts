@@ -1,0 +1,27 @@
+<html>
+    <head>
+        <title> Web RTS Front End</title>
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jquery-modal/0.9.1/jquery.modal.min.css" />
+    </head>
+    <body>
+        <button id="add_lobby"> <a href="#open_lobby" rel="modal:open"> New Lobby </a></button>
+        <button id="refresh_lobby"> Refresh </button>
+
+        <ul id="game_room">
+        </ul>
+
+        <div id="open_lobby" class="modal">
+            <form action="">
+                Game Name:
+                <input type="text" autocomplete="off" id="game_name"><br>
+                <button> Create Room </button>
+            </form>
+        </div>
+
+
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.4/socket.io.js"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.4/jquery.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-modal/0.9.1/jquery.modal.min.js"></script>
+        <script src="./js/client_index.js"></script>
+    </body>
+</html>
