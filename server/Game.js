@@ -17,7 +17,6 @@ class Game{
     moveObjects(objects, x, y){
 
     }
-
 }
 
 module.exports = Game;

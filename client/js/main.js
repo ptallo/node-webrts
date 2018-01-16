@@ -6,6 +6,7 @@ var GameObject = require('../../server/GameObject.js');
 var PositionComponent = require('../../server/component/PositionComponent.js');
 var SizeComponent = require('../../server/component/SizeComponent.js');
 var VelocityComponent = require('../../server/component/VelocityComponent.js');
+var InputContext = require('./InputContext.js');
 
 //Other global variables which need to be expressed
 var canvas = document.getElementById("game_canvas");
@@ -13,6 +14,7 @@ var ctx = canvas.getContext("2d");
 var game_id = sessionStorage.getItem('game_id');
 
 var game = new Game(game_id);
+var inputContext = new InputContext();
 
 var mouseDownEvent = null;
 var mouseMoveEvent = null;
@@ -22,7 +24,6 @@ $('body').on('contextmenu', '#game_canvas', function(e){
     //disabling context menu while right clicking on the canvas
     return false;
 });
-
 
 $(document).ready(function () {
     socket.emit('join io room', game_id);
@@ -34,18 +35,22 @@ $(document).ready(function () {
 
 document.addEventListener('mousedown', function(e){
     $('#test1').text(e.which);
+    let rect = canvas.getBoundingClientRect();
+    let mouseDown = {
+        x : mouseDownEvent.pageX - rect.left,
+        y : mouseDownEvent.pageY - rect.top
+    };
     if(e.which == 1){
         //left click
         mouseDownEvent = e;
     } else if(e.which == 3){
         //right click
-        socket.emit('move object',
-            JSON.stringify(selectedGameObjects),
-            JSON.stringify(game),
-            JSON.stringify(e)
+        inputContext.moveObjects(
+            selectedGameObjects,
+            game,
+            mouseDown
         );
     }
-    
 });
 
 document.addEventListener('mouseup', function(e) {
