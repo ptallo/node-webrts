@@ -6,7 +6,6 @@ var GameObject = require('../../server/GameObject.js');
 var PositionComponent = require('../../server/component/PositionComponent.js');
 var SizeComponent = require('../../server/component/SizeComponent.js');
 var VelocityComponent = require('../../server/component/VelocityComponent.js');
-var Player = require('../../server/Player.js');
 
 //Other global variables which need to be expressed
 var canvas = document.getElementById("game_canvas");
@@ -14,87 +13,94 @@ var ctx = canvas.getContext("2d");
 var game_id = sessionStorage.getItem('game_id');
 
 var game = new Game(game_id);
-var player = new Player();
 
-var mousedown = null;
-var mousePair = null;
+var mouseDownEvent = null;
+var selectedGameObjects = [];
 
 $(document).ready(function () {
     socket.emit('join io room', game_id);
     setInterval(drawGame, 1000/60);
 });
 
+document.addEventListener('mousedown', function(e){
+    mouseDownEvent = e;
+});
+
+document.addEventListener('mouseup', function(e) {
+    if(mouseDownEvent != null){
+        selectUnits(mouseDownEvent, e);
+    }
+});
+
+document.addEventListener('mousemove', function(e){
+
+});
+
 function drawGame() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = "#38cceb";
+    drawGameObjects();
+}
+
+function drawGameObjects(){
     for (let i = 0; i < game.gameObjects.length; i++) {
         let gameObject = game.gameObjects[i];
+
+        let inArray = false;
+        for(let j = 0; j < selectedGameObjects.length; j++){
+            let selectedGameObject = selectedGameObjects[j];
+            if(selectedGameObject.id == gameObject.id){
+                inArray = true;
+            }
+        }
+
+        if(inArray){
+            ctx.fillStyle = '#FF0000';
+        } else{
+            ctx.fillStyle = '#43f7ff';
+        }
+
+
         let x = gameObject.positionComponent.x;
         let y = gameObject.positionComponent.y;
         let width = gameObject.sizeComponent.width;
         let height = gameObject.sizeComponent.height;
         ctx.fillRect(x, y, width, height);
     }
-
-    if (mousePair != null){
-        ctx.fillStyle = "#494961";
-        ctx.strokeRect(mousePair.xSmall, mousePair.ySmall, mousePair.xLarge - mousePair.xSmall, mousePair.yLarge - mousePair.ySmall);
-    }
 }
 
-document.addEventListener('keydown', function(e){
-    if(e.key == "ArrowRight"){
-        $('p').text('right');
-    }
-    if(e.key == "ArrowLeft"){
-        $('p').text('left');
-    }
-    if(e.key == "ArrowUp"){
-        $('p').text('up');
-    }
-    if(e.key == "ArrowDown"){
-        $('p').text('down');
-    }
-});
-
-document.addEventListener('mousedown', function(e){
+function selectUnits(mouseDownEvent, mouseUpEvent){
     let rect = canvas.getBoundingClientRect();
-    let mouse = {
-        x : e.pageX - rect.left,
-        y : e.pageY - rect.top
-    };
-    mousedown = mouse;
-    player.selectedGameObjects.empty();
-});
 
-document.addEventListener('mouseup', function(e) {
-    let selectedGameObjects = [];
+    let mouseDown = {
+        x : mouseDownEvent.pageX - rect.left,
+        y : mouseDownEvent.pageY - rect.top
+    };
+
+    let mouseUp = {
+        x : mouseUpEvent.pageX - rect.left,
+        y : mouseUpEvent.pageY - rect.top
+    };
+
+    let mouseRect = {
+        x : mouseDown.x > mouseUp.x ? mouseUp.x : mouseDown.x,
+        y : mouseDown.y > mouseUp.y ? mouseUp.y : mouseDown.y,
+        width : mouseDown.x > mouseUp.x ? mouseDown.x - mouseUp.x : mouseUp.x - mouseDown.x,
+        height : mouseDown.y > mouseUp.y ? mouseDown.y - mouseUp.y : mouseUp.y - mouseDown.y
+    };
+
+    $('#test2').text(JSON.stringify(mouseRect));
+
+    selectedGameObjects = [];
     for(let i = 0; i < game.gameObjects.length; i++){
         let gameObject = game.gameObjects[i];
         let x = gameObject.positionComponent.x;
         let y = gameObject.positionComponent.y;
-        if(x > mousePair.xSmall && x < mousePair.xLarge && y > mousePair.ySmall && y < mousePair.yLarge){
+        let width = gameObject.sizeComponent.width;
+        let height = gameObject.sizeComponent.height;
+        if( x < mouseRect.x + mouseRect.width && x + width  > mouseRect.x &&
+            y < mouseRect.y + mouseRect.height && y + height > mouseRect.y) {
             selectedGameObjects.push(gameObject);
         }
     }
-    player.selectedGameObjects = selectedGameObjects;
-    mousedown = null;
-    mousePair = null;
-});
-
-document.addEventListener('mousemove', function(e){
-    let rect = canvas.getBoundingClientRect();
-    let mouse = {
-        x: e.pageX - rect.left,
-        y: e.pageY - rect.top
-    };
-
-    if (mousedown != null) {
-        mousePair = {
-            xSmall: (mouse.x > mousedown.x) ? mousedown.x : mouse.x,
-            xLarge: (mouse.x > mousedown.x) ? mouse.x : mousedown.x,
-            ySmall: (mouse.y > mousedown.y) ? mousedown.y : mouse.y,
-            yLarge: (mouse.y > mousedown.y) ? mouse.y : mousedown.y
-        };
-    }
-});
+    $('#test1').text(JSON.stringify(selectedGameObjects));
+}

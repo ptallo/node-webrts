@@ -14,6 +14,10 @@ class Game{
             object.update();
         }
     }
+    moveObject(object, x, y){
+
+    }
+
 }
 
 module.exports = Game;

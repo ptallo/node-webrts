@@ -37,7 +37,6 @@ function drawGame() {
         ctx.fillRect(x, y, width, height);
     }
 
-    $('#test2').text(JSON.stringify(mousePair));
     if (mousePair != null){
         ctx.fillStyle = "#494961";
         ctx.strokeRect(mousePair.xSmall, mousePair.ySmall, mousePair.xLarge - mousePair.xSmall, mousePair.yLarge - mousePair.ySmall);
@@ -99,7 +98,6 @@ document.addEventListener('mousemove', function(e){
             yLarge: (mouse.y > mousedown.y) ? mouse.y : mousedown.y
         };
     }
-    $('#test1').text(JSON.stringify(mousePair));
 });
 
 },{"../../server/Game.js":12,"../../server/GameObject.js":13,"../../server/Player.js":14,"../../server/component/PositionComponent.js":15,"../../server/component/SizeComponent.js":16,"../../server/component/VelocityComponent.js":17}],2:[function(require,module,exports){
