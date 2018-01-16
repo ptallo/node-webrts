@@ -15,7 +15,9 @@ var game_id = sessionStorage.getItem('game_id');
 var game = new Game(game_id);
 
 var mouseDownEvent = null;
+var mouseMoveEvent = null;
 var selectedGameObjects = [];
+var drawMouseRect = false;
 
 $(document).ready(function () {
     socket.emit('join io room', game_id);
@@ -30,15 +32,17 @@ document.addEventListener('mouseup', function(e) {
     if(mouseDownEvent != null){
         selectUnits(mouseDownEvent, e);
     }
+    mouseDownEvent = null;
 });
 
 document.addEventListener('mousemove', function(e){
-
+    mouseMoveEvent = e;
 });
 
 function drawGame() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     drawGameObjects();
+    drawMouse(mouseDownEvent, mouseMoveEvent);
 }
 
 function drawGameObjects(){
@@ -68,7 +72,7 @@ function drawGameObjects(){
     }
 }
 
-function selectUnits(mouseDownEvent, mouseUpEvent){
+function getMouseRect(mouseDownEvent, mouseUpEvent){
     let rect = canvas.getBoundingClientRect();
 
     let mouseDown = {
@@ -88,7 +92,19 @@ function selectUnits(mouseDownEvent, mouseUpEvent){
         height : mouseDown.y > mouseUp.y ? mouseDown.y - mouseUp.y : mouseUp.y - mouseDown.y
     };
 
-    $('#test2').text(JSON.stringify(mouseRect));
+    return mouseRect;
+}
+
+function drawMouse(mouseDownEvent, mouseMoveEvent){
+    if(mouseDownEvent != null && mouseMoveEvent != null){
+        let mouseRect = getMouseRect(mouseDownEvent, mouseMoveEvent);
+        ctx.fillStyle = "#485157";
+        ctx.strokeRect(mouseRect.x, mouseRect.y, mouseRect.width, mouseRect.height);
+    }
+}
+
+function selectUnits(mouseDownEvent, mouseUpEvent){
+    let mouseRect = getMouseRect(mouseDownEvent, mouseUpEvent);
 
     selectedGameObjects = [];
     for(let i = 0; i < game.gameObjects.length; i++){
@@ -102,5 +118,4 @@ function selectUnits(mouseDownEvent, mouseUpEvent){
             selectedGameObjects.push(gameObject);
         }
     }
-    $('#test1').text(JSON.stringify(selectedGameObjects));
 }
