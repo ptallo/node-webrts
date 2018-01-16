@@ -130,6 +130,10 @@ io.on('connection', function(socket){
             }
         }
     });
+    
+    socket.on('move object', function(selectedObjectsJSON, gameJSON, eventJSON){
+    
+    });
 });
 
 http.listen(port, function(){

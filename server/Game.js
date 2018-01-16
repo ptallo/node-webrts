@@ -14,7 +14,7 @@ class Game{
             object.update();
         }
     }
-    moveObject(object, x, y){
+    moveObjects(objects, x, y){
 
     }
 

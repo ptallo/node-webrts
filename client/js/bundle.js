@@ -18,15 +18,34 @@ var game = new Game(game_id);
 var mouseDownEvent = null;
 var mouseMoveEvent = null;
 var selectedGameObjects = [];
-var drawMouseRect = false;
+
+$('body').on('contextmenu', '#game_canvas', function(e){
+    return false;
+});
+
 
 $(document).ready(function () {
     socket.emit('join io room', game_id);
-    setInterval(drawGame, 1000/60);
+    setInterval(
+        drawGame,
+        1000/60
+    );
 });
 
 document.addEventListener('mousedown', function(e){
-    mouseDownEvent = e;
+    $('#test1').text(e.which);
+    if(e.which == 1){
+        //left click
+        mouseDownEvent = e;
+    } else if(e.which == 3){
+        //right click
+        socket.emit('move object',
+            JSON.stringify(selectedGameObjects),
+            JSON.stringify(game),
+            JSON.stringify(e)
+        );
+    }
+    
 });
 
 document.addEventListener('mouseup', function(e) {
@@ -468,7 +487,7 @@ class Game{
             object.update();
         }
     }
-    moveObject(object, x, y){
+    moveObjects(objects, x, y){
 
     }
 
