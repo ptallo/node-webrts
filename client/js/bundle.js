@@ -2,8 +2,18 @@
 
 
 class InputContext {
-    moveObjects(socket, selectedGameObjects, game, mouseDown){
-    
+    moveObjects(selectedGameObjects, game, mouseDown){
+        socket.emit('move object',
+            JSON.stringify(selectedGameObjects),
+            JSON.stringify(game),
+            JSON.stringify(mouseDown)
+        );
+        
+        game.moveObjects(
+            selectedGameObjects,
+            mouseDown.x,
+            mouseDown.y
+        );
     }
 }
 
@@ -38,7 +48,6 @@ $('body').on('contextmenu', '#game_canvas', function(e){
 
 $(document).ready(function () {
     socket.emit('join io room', game_id);
-    $('#test1').text(game_id);
     setInterval(
         drawGame,
         1000/60
@@ -53,22 +62,12 @@ document.addEventListener('mousedown', function(e){
         y : mouseDownEvent.pageY - rect.top
     };
     
-    $('#test2').text(e.which);
-    
-    if(e.which == 1){
-        //left click
-    } else if(e.which == 3){
-        //right click
-        socket.emit('move objects',
-            JSON.stringify(selectedGameObjects),
-            JSON.stringify(game),
-            JSON.stringify(mouseDown)
-        );
-    
-        game.moveObjects(
-            selectedGameObjects,
-            mouseDown
-        );
+    switch (e.which){
+        case 1:
+            break;
+        case 3:
+            socket.emit('move objects');
+            break;
     }
 });
 
@@ -165,13 +164,10 @@ function selectUnits(mouseDownEvent, mouseUpEvent){
 }
 
 socket.on('update game', function(gameJSON){
-    let serverGame = JSON.stringify(gameJSON);
-    game.gameObjects.empty();
-    for(let i = 0; i < serverGame.gameObjects; i++){
-        let object = serverGame.gameObjects[i];
-        let gameObject = Object.assign(GameObject, object);
-        game.gameObjects.push(gameObject);
-    }
+    let serverGame = JSON.parse(gameJSON);
+    $('#test1').text('length: ' + serverGame.gameObjects.length);
+    $('#test2').text(JSON.stringify(serverGame.gameObjects[0]));
+    game.gameObjects = [];
 });
 
 },{"../../server/Game.js":13,"../../server/GameObject.js":14,"../../server/component/PositionComponent.js":16,"../../server/component/SizeComponent.js":17,"../../server/component/VelocityComponent.js":18,"./InputContext.js":1}],3:[function(require,module,exports){
