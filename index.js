@@ -7,7 +7,9 @@ var io = require('socket.io')(http);
 var GameRoom = require("./server/GameRoom.js");
 var Game = require('./server/Game.js');
 var Player = require('./server/Player.js');
-var port = 8080;
+
+var PORT = 8080;
+var SERVER_TICKRATE = 1000/60;
 
 //Configuration
 app.use(express.static(__dirname + '/client'));
@@ -107,6 +109,12 @@ io.on('connection', function(socket){
                     let game = new Game();
                     games.push(game);
                     io.to(gameLobby.id).emit('start game', game.id, JSON.stringify(game_rooms[i]));
+                    setInterval(function(){
+                            game.update();
+                            io.to(game.id).emit('update game', JSON.stringify(game));
+                        },
+                        SERVER_TICKRATE
+                    );
                 } else {
                     socket.emit('start game failed');
                 }
@@ -120,22 +128,15 @@ io.on('connection', function(socket){
     
     socket.on('leave io room', function(id){
         socket.leave(id);
-    })
-    
-    //the below functions pertain to running the game
-    socket.on('get game', function(gameId){
-        for(let i = 0; i < games.length; i ++){
-            if(games[i].id == gameId){
-                socket.emit('get game', JSON.stringify(games[i]));
-            }
-        }
     });
     
-    socket.on('move object', function(selectedObjectsJSON, gameJSON, eventJSON){
+    //the below functions pertain to running the game
     
+    socket.on('move objects', function (selectedGameObjectJSON, gameJSON, mouseDownJSON) {
+        console.log(selectedGameObjectJSON + ", " + gameJSON + ", " + mouseDownJSON);
     });
 });
 
-http.listen(port, function(){
-    console.log('listening on *: ' + port);
+http.listen(PORT, function(){
+    console.log('listening on *: ' + PORT);
 });

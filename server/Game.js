@@ -7,15 +7,19 @@ class Game{
         this.id = id == "none" ? shortid.generate() : id;
         this.gameObjects = [];
         this.gameObjects.push(new GameObject(20, 20, 40, 40));
-        this.gameObjects.push(new GameObject(80, 80, 100, 20))
+        this.gameObjects.push(new GameObject(80, 80, 100, 20));
     }
     update(){
-        for(let object in this.gameObjects){
-            object.update();
+        for (let i = 0; i < this.gameObjects; i++){
+            this.gameObjects[i].update();
         }
     }
-    moveObjects(objects, x, y){
-
+    moveObjects(objects, mouseCoords){
+        for(let i = 0; i < this.gameObjects.length; i++){
+            for(let j = 0; j < objects.length; i++){
+            
+            }
+        }
     }
 }
 

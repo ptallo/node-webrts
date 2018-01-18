@@ -27,6 +27,7 @@ $('body').on('contextmenu', '#game_canvas', function(e){
 
 $(document).ready(function () {
     socket.emit('join io room', game_id);
+    $('#test1').text(game_id);
     setInterval(
         drawGame,
         1000/60
@@ -34,20 +35,27 @@ $(document).ready(function () {
 });
 
 document.addEventListener('mousedown', function(e){
-    $('#test1').text(e.which);
     let rect = canvas.getBoundingClientRect();
+    mouseDownEvent = e;
     let mouseDown = {
         x : mouseDownEvent.pageX - rect.left,
         y : mouseDownEvent.pageY - rect.top
     };
+    
+    $('#test2').text(e.which);
+    
     if(e.which == 1){
         //left click
-        mouseDownEvent = e;
     } else if(e.which == 3){
         //right click
-        inputContext.moveObjects(
+        socket.emit('move objects',
+            JSON.stringify(selectedGameObjects),
+            JSON.stringify(game),
+            JSON.stringify(mouseDown)
+        );
+    
+        game.moveObjects(
             selectedGameObjects,
-            game,
             mouseDown
         );
     }
@@ -144,3 +152,13 @@ function selectUnits(mouseDownEvent, mouseUpEvent){
         }
     }
 }
+
+socket.on('update game', function(gameJSON){
+    let serverGame = JSON.stringify(gameJSON);
+    game.gameObjects.empty();
+    for(let i = 0; i < serverGame.gameObjects; i++){
+        let object = serverGame.gameObjects[i];
+        let gameObject = Object.assign(GameObject, object);
+        game.gameObjects.push(gameObject);
+    }
+});
