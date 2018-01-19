@@ -6,7 +6,6 @@ var GameObject = require('../../server/GameObject.js');
 var PositionComponent = require('../../server/component/PositionComponent.js');
 var SizeComponent = require('../../server/component/SizeComponent.js');
 var VelocityComponent = require('../../server/component/VelocityComponent.js');
-var InputContext = require('./InputContext.js');
 
 //Other global variables which need to be expressed
 var canvas = document.getElementById("game_canvas");
@@ -14,7 +13,6 @@ var ctx = canvas.getContext("2d");
 var game_id = sessionStorage.getItem('game_id');
 
 var game = new Game(game_id);
-var inputContext = new InputContext();
 
 var mouseDownEvent = null;
 var mouseMoveEvent = null;
@@ -49,7 +47,8 @@ document.addEventListener('mousedown', function(e){
                     JSON.stringify(mouseDown),
                     game_id,
                     JSON.stringify(selectedGameObjects)
-                );
+            );
+            
             game.moveObjects(
                 selectedGameObjects,
                 mouseDown
