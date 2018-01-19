@@ -1,8 +1,8 @@
 
 class VelocityComponent{
     constructor(){
-        this.xVelocity = 2;
-        this.yVelocity = 2;
+        this.xVelocity = 3;
+        this.yVelocity = 3;
     }
 }
 
