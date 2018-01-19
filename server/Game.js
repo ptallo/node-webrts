@@ -22,7 +22,6 @@ class Game{
                 }
             }
         }
-        console.log(JSON.stringify(mouseCoords) + "\n" + JSON.stringify(this.gameObjects));
     }
 }
 

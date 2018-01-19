@@ -16,12 +16,20 @@ class GameObject{
     update(){
         if(this.positionComponent.x != this.destinationComponent.x){
             let coeff = this.positionComponent.x > this.destinationComponent.x ? -1 : 1;
-            this.positionComponent.x += coeff * this.velocityComponent.xVelocity;
+            if (Math.abs(this.positionComponent.x - this.destinationComponent.x) < this.velocityComponent.xVelocity) {
+                this.positionComponent.x = this.destinationComponent.x;
+            } else {
+                this.positionComponent.x += coeff * this.velocityComponent.xVelocity;
+            }
         }
 
         if(this.positionComponent.y != this.destinationComponent.y){
             let coeff = this.positionComponent.y > this.destinationComponent.y ? -1 : 1;
-            this.positionComponent.y += coeff * this.velocityComponent.yVelocity;
+            if(Math.abs(this.positionComponent.y - this.destinationComponent.y) < this.velocityComponent.yVelocity){
+                this.positionComponent.y = this.destinationComponent.y;
+            } else {
+                this.positionComponent.y += coeff * this.velocityComponent.yVelocity;
+            }
         }
     }
 }

@@ -50,6 +50,10 @@ document.addEventListener('mousedown', function(e){
                     game_id,
                     JSON.stringify(selectedGameObjects)
                 );
+            game.moveObjects(
+                selectedGameObjects,
+                mouseDown
+            );
             break;
     }
 });
