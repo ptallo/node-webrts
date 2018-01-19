@@ -19,6 +19,8 @@ var mouseDownEvent = null;
 var mouseMoveEvent = null;
 var selectedGameObjects = [];
 
+const CLIENT_TICKRATE = 1000/60;
+
 $('body').on('contextmenu', '#game_canvas', function(e){
     //disabling context menu while right clicking on the canvas
     return false;
@@ -27,8 +29,10 @@ $('body').on('contextmenu', '#game_canvas', function(e){
 $(document).ready(function () {
     socket.emit('join io room', game_id);
     setInterval(
-        drawGame,
-        1000/60
+        function (){
+            drawGame();
+        },
+        CLIENT_TICKRATE
     );
 });
 
@@ -42,12 +46,14 @@ document.addEventListener('mousedown', function(e){
     
     switch (e.which){
         case 1:
+            selectedGameObjects = [];
             break;
         case 3:
-            socket.emit('move objects',
-                    JSON.stringify(mouseDown),
-                    game_id,
-                    JSON.stringify(selectedGameObjects)
+            socket.emit(
+                'move objects',
+                JSON.stringify(mouseDown),
+                game_id,
+                JSON.stringify(selectedGameObjects)
             );
             
             game.moveObjects(
@@ -76,18 +82,20 @@ function drawGame() {
 }
 
 function drawGameObjects(){
+    $('#test1').text(JSON.stringify(game.gameObjects));
+    $('#test2').text(JSON.stringify(selectedGameObjects));
     for (let i = 0; i < game.gameObjects.length; i++) {
         let gameObject = game.gameObjects[i];
 
         let inArray = false;
-        for(let j = 0; j < selectedGameObjects.length; j++){
+        for (let j = 0; j < selectedGameObjects.length; j++){
             let selectedGameObject = selectedGameObjects[j];
             if(selectedGameObject.id == gameObject.id){
                 inArray = true;
             }
         }
 
-        if(inArray){
+        if (inArray){
             ctx.fillStyle = '#FF0000';
         } else{
             ctx.fillStyle = '#43f7ff';
@@ -136,7 +144,6 @@ function drawMouse(mouseDownEvent, mouseMoveEvent){
 function selectUnits(mouseDownEvent, mouseUpEvent){
     let mouseRect = getMouseRect(mouseDownEvent, mouseUpEvent);
 
-    selectedGameObjects = [];
     for(let i = 0; i < game.gameObjects.length; i++){
         let gameObject = game.gameObjects[i];
         let x = gameObject.positionComponent.x;
@@ -597,8 +604,8 @@ module.exports = SizeComponent;
 
 class VelocityComponent{
     constructor(){
-        this.xVelocity = 5;
-        this.yVelocity = 5;
+        this.xVelocity = 2;
+        this.yVelocity = 2;
     }
 }
 
