@@ -8,7 +8,6 @@ var DestinationComponent = require('./component/DestinationComponent.js');
 class GameObject{
     constructor(x, y, width, height){
         this.id = shortid.generate();
-        this.updated = 0;
         this.sizeComponent = new SizeComponent(width, height);
         this.positionComponent = new PositionComponent(x, y);
         this.destinationComponent = new DestinationComponent(x, y);
