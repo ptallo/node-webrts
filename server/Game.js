@@ -16,10 +16,13 @@ class Game{
     }
     moveObjects(objects, mouseCoords){
         for(let i = 0; i < this.gameObjects.length; i++){
-            for(let j = 0; j < objects.length; i++){
-            
+            for(let j = 0; j < objects.length; j++){
+                if (this.gameObjects[i].id == objects[j].id){
+                    this.gameObjects[i].destinationComponent.updateDestination(mouseCoords.x, mouseCoords.y);
+                }
             }
         }
+        console.log(JSON.stringify(mouseCoords) + "\n" + JSON.stringify(this.gameObjects));
     }
 }
 

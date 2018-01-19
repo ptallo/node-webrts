@@ -10,7 +10,7 @@ class GameObject{
         this.id = shortid.generate();
         this.sizeComponent = new SizeComponent(width, height);
         this.positionComponent = new PositionComponent(x, y);
-        this.destinationComponent = new DestinationComponent();
+        this.destinationComponent = new DestinationComponent(x, y);
         this.velocityComponent = new VelocityComponent();
     }
     update(){

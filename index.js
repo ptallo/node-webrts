@@ -132,8 +132,14 @@ io.on('connection', function(socket){
     
     //the below functions pertain to running the game
     
-    socket.on('move objects', function () {
-        console.log('move objects');
+    socket.on('move objects', function (mouseDownJSON, gameId, selectedGameObjectsJSON) {
+        let mouseDown = JSON.parse(mouseDownJSON);
+        let selectedGameObjects = JSON.parse(selectedGameObjectsJSON);
+        for (let i = 0; i < games.length; i++){
+            if (games[i].id == gameId) {
+                games[i].moveObjects(selectedGameObjects, mouseDown);
+            }
+        }
     });
 });
 

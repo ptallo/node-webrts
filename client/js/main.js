@@ -45,7 +45,11 @@ document.addEventListener('mousedown', function(e){
         case 1:
             break;
         case 3:
-            socket.emit('move objects');
+            socket.emit('move objects',
+                    JSON.stringify(mouseDown),
+                    game_id,
+                    JSON.stringify(selectedGameObjects)
+                );
             break;
     }
 });
@@ -144,7 +148,9 @@ function selectUnits(mouseDownEvent, mouseUpEvent){
 
 socket.on('update game', function(gameJSON){
     let serverGame = JSON.parse(gameJSON);
-    $('#test1').text('length: ' + serverGame.gameObjects.length);
-    $('#test2').text(JSON.stringify(serverGame.gameObjects[0]));
     game.gameObjects = [];
+    for(let i = 0; i < serverGame.gameObjects.length; i++) {
+        let object = Object.assign(new GameObject, serverGame.gameObjects[i]);
+        game.gameObjects.push(object);
+    }
 });

@@ -66,7 +66,11 @@ document.addEventListener('mousedown', function(e){
         case 1:
             break;
         case 3:
-            socket.emit('move objects');
+            socket.emit('move objects',
+                    JSON.stringify(mouseDown),
+                    game_id,
+                    JSON.stringify(selectedGameObjects)
+                );
             break;
     }
 });
@@ -165,9 +169,11 @@ function selectUnits(mouseDownEvent, mouseUpEvent){
 
 socket.on('update game', function(gameJSON){
     let serverGame = JSON.parse(gameJSON);
-    $('#test1').text('length: ' + serverGame.gameObjects.length);
-    $('#test2').text(JSON.stringify(serverGame.gameObjects[0]));
     game.gameObjects = [];
+    for(let i = 0; i < serverGame.gameObjects.length; i++) {
+        let object = Object.assign(new GameObject, serverGame.gameObjects[i]);
+        game.gameObjects.push(object);
+    }
 });
 
 },{"../../server/Game.js":13,"../../server/GameObject.js":14,"../../server/component/PositionComponent.js":16,"../../server/component/SizeComponent.js":17,"../../server/component/VelocityComponent.js":18,"./InputContext.js":1}],3:[function(require,module,exports){
@@ -519,10 +525,13 @@ class Game{
     }
     moveObjects(objects, mouseCoords){
         for(let i = 0; i < this.gameObjects.length; i++){
-            for(let j = 0; j < objects.length; i++){
-            
+            for(let j = 0; j < objects.length; j++){
+                if (this.gameObjects[i].id == objects[j].id){
+                    this.gameObjects[i].destinationComponent.updateDestination(mouseCoords.x, mouseCoords.y);
+                }
             }
         }
+        console.log(JSON.stringify(mouseCoords) + "\n" + JSON.stringify(this.gameObjects));
     }
 }
 
@@ -541,7 +550,7 @@ class GameObject{
         this.id = shortid.generate();
         this.sizeComponent = new SizeComponent(width, height);
         this.positionComponent = new PositionComponent(x, y);
-        this.destinationComponent = new DestinationComponent();
+        this.destinationComponent = new DestinationComponent(x, y);
         this.velocityComponent = new VelocityComponent();
     }
     update(){
@@ -564,9 +573,9 @@ module.exports = GameObject;
 },{"./component/DestinationComponent.js":15,"./component/PositionComponent.js":16,"./component/SizeComponent.js":17,"./component/VelocityComponent.js":18,"shortid":3}],15:[function(require,module,exports){
 
 class DestinationComponent {
-    constructor(){
-        this.x = 0;
-        this.y = 0;
+    constructor(x, y){
+        this.x = x;
+        this.y = y;
     }
     updateDestination(x, y){
         this.x = x;
