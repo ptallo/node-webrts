@@ -5,9 +5,6 @@ class SizeComponent{
         this.width = width;
         this.height = height;
     }
-    update(){
-    
-    }
 }
 
 module.exports = SizeComponent;

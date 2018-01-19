@@ -4,13 +4,15 @@ var express = require('express');
 var app = express();
 var http = require('http').Server(app);
 var io = require('socket.io')(http);
-var GameRoom = require("./server_js/GameRoom.js");
-var Game = require('./server_js/Game.js');
-var Player = require('./server_js/Player.js');
-var port = 8080;
+var GameRoom = require("./server/GameRoom.js");
+var Game = require('./server/Game.js');
+var Player = require('./server/Player.js');
+
+var PORT = 8080;
+var SERVER_TICKRATE = 1000/60;
 
 //Configuration
-app.use(express.static(__dirname + '/public'));
+app.use(express.static(__dirname + '/client'));
 
 //Variables
 var game_rooms = [];
@@ -104,9 +106,15 @@ io.on('connection', function(socket){
                 let ready = game_rooms[i].checkReady();
     
                 if (ready && game_rooms[i].players.length > 1){
-                    let game = new Game(game_rooms[i].players);
+                    let game = new Game();
                     games.push(game);
                     io.to(gameLobby.id).emit('start game', game.id, JSON.stringify(game_rooms[i]));
+                    setInterval(function(){
+                            game.update();
+                            io.to(game.id).emit('update game', JSON.stringify(game));
+                        },
+                        SERVER_TICKRATE
+                    );
                 } else {
                     socket.emit('start game failed');
                 }
@@ -120,18 +128,21 @@ io.on('connection', function(socket){
     
     socket.on('leave io room', function(id){
         socket.leave(id);
-    })
+    });
     
     //the below functions pertain to running the game
-    socket.on('get game', function(gameId){
-        for(let i = 0; i < games.length; i ++){
-            if(games[i].id == gameId){
-                socket.emit('get game', JSON.stringify(games[i]));
+    
+    socket.on('move objects', function (mouseDownJSON, gameId, selectedGameObjectsJSON) {
+        let mouseDown = JSON.parse(mouseDownJSON);
+        let selectedGameObjects = JSON.parse(selectedGameObjectsJSON);
+        for (let i = 0; i < games.length; i++){
+            if (games[i].id == gameId) {
+                games[i].moveObjects(selectedGameObjects, mouseDown);
             }
         }
     });
 });
 
-http.listen(port, function(){
-    console.log('listening on *: ' + port);
+http.listen(PORT, function(){
+    console.log('listening on *: ' + PORT);
 });

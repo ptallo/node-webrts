@@ -1,7 +1,7 @@
 'use strict';
-var shortid = require('shortid');
+var shortid = require('shortid')
 
-class Player{
+class Player {
     constructor(){
         this.id = shortid.generate();
         this.isReady = false;
