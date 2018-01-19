@@ -9,7 +9,7 @@ var Game = require('./server/Game.js');
 var Player = require('./server/Player.js');
 
 var PORT = 8080;
-var SERVER_TICKRATE = 1000/60;
+var SERVER_TICKRATE = 1000/15;
 
 //Configuration
 app.use(express.static(__dirname + '/client'));

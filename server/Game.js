@@ -10,7 +10,7 @@ class Game{
         this.gameObjects.push(new GameObject(80, 80, 100, 20));
     }
     update(){
-        for (let i = 0; i < this.gameObjects; i++){
+        for (let i = 0; i < this.gameObjects.length; i++){
             this.gameObjects[i].update();
         }
     }
