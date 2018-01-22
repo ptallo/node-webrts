@@ -30,6 +30,7 @@ $(document).ready(function () {
     setInterval(
         function (){
             drawGame();
+            game.update(CLIENT_TICKRATE)
         },
         CLIENT_TICKRATE
     );

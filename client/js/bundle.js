@@ -31,6 +31,7 @@ $(document).ready(function () {
     setInterval(
         function (){
             drawGame();
+            game.update(CLIENT_TICKRATE)
         },
         CLIENT_TICKRATE
     );
@@ -508,9 +509,9 @@ class Game{
         this.gameObjects.push(new GameObject(20, 20, 40, 40));
         this.gameObjects.push(new GameObject(80, 80, 100, 20));
     }
-    update(){
+    update(tickRate){
         for (let i = 0; i < this.gameObjects.length; i++){
-            this.gameObjects[i].update();
+            this.gameObjects[i].update(tickRate);
         }
     }
     moveObjects(objects, mouseCoords){
@@ -542,22 +543,33 @@ class GameObject{
         this.destinationComponent = new DestinationComponent(x, y);
         this.velocityComponent = new VelocityComponent();
     }
-    update(){
+    update(tickRate){
+        let distance = Math.sqrt(Math.pow(this.destinationComponent.x - this.positionComponent.x, 2) + Math.pow(this.destinationComponent.y - this.positionComponent.y, 2));
+        let xDistance = Math.abs(this.positionComponent.x - this.destinationComponent.x);
+        let yDistance = Math.abs(this.positionComponent.y - this.destinationComponent.y);
+
+        let cos = Math.cos(xDistance / distance);
+        let sin = Math.sin(yDistance / distance);
+
+        let xMove = this.velocityComponent.speed * (1/1000 * tickRate) * Math.cos(cos);
+        let yMove = this.velocityComponent.speed * (1/1000 * tickRate) * Math.sin(sin);
+        console.log(xMove + ", " + yMove);
+
         if(this.positionComponent.x != this.destinationComponent.x){
             let coeff = this.positionComponent.x > this.destinationComponent.x ? -1 : 1;
-            if (Math.abs(this.positionComponent.x - this.destinationComponent.x) < this.velocityComponent.xVelocity) {
+            if (Math.abs(this.positionComponent.x - this.destinationComponent.x) < xMove) {
                 this.positionComponent.x = this.destinationComponent.x;
             } else {
-                this.positionComponent.x += coeff * this.velocityComponent.xVelocity;
+                this.positionComponent.x += coeff * xMove;
             }
         }
 
         if(this.positionComponent.y != this.destinationComponent.y){
             let coeff = this.positionComponent.y > this.destinationComponent.y ? -1 : 1;
-            if(Math.abs(this.positionComponent.y - this.destinationComponent.y) < this.velocityComponent.yVelocity){
+            if(Math.abs(this.positionComponent.y - this.destinationComponent.y) < yMove){
                 this.positionComponent.y = this.destinationComponent.y;
             } else {
-                this.positionComponent.y += coeff * this.velocityComponent.yVelocity;
+                this.positionComponent.y += coeff * yMove;
             }
         }
     }
@@ -604,8 +616,7 @@ module.exports = SizeComponent;
 
 class VelocityComponent{
     constructor(){
-        this.xVelocity = 2;
-        this.yVelocity = 2;
+        this.speed = 40;
     }
 }
 

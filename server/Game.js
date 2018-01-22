@@ -9,9 +9,9 @@ class Game{
         this.gameObjects.push(new GameObject(20, 20, 40, 40));
         this.gameObjects.push(new GameObject(80, 80, 100, 20));
     }
-    update(){
+    update(tickRate){
         for (let i = 0; i < this.gameObjects.length; i++){
-            this.gameObjects[i].update();
+            this.gameObjects[i].update(tickRate);
         }
     }
     moveObjects(objects, mouseCoords){
