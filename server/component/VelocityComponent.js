@@ -1,7 +1,7 @@
 
 class VelocityComponent{
     constructor(){
-        this.speed = 40;
+        this.speed = 100;
     }
 }
 

@@ -10,8 +10,19 @@ class Game{
         this.gameObjects.push(new GameObject(80, 80, 100, 20));
     }
     update(tickRate){
-        for (let i = 0; i < this.gameObjects.length; i++){
-            this.gameObjects[i].update(tickRate);
+        for (let i = 0; i < this.gameObjects.length; i++) {
+            let collided = false;
+            let iRect = this.gameObjects[i].getNewPosRect(tickRate);
+            
+            for (let j = 0; j < this.gameObjects.length; j++){
+                if (i != j){
+                    collided = this.gameObjects[j].checkCollision(iRect);
+                }
+            }
+            
+            if (!collided){
+                this.gameObjects[i].updatePosition(iRect);
+            }
         }
     }
     moveObjects(objects, mouseCoords){
