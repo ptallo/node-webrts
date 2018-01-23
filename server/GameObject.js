@@ -18,12 +18,12 @@ class GameObject{
         let xDistance = Math.abs(this.positionComponent.x - this.destinationComponent.x);
         let yDistance = Math.abs(this.positionComponent.y - this.destinationComponent.y);
     
-        let cos = Math.cos(xDistance / distance);
-        let sin = Math.sin(yDistance / distance);
+        let cos = xDistance / distance;
+        let sin = yDistance / distance;
         
         let move = {
-            x : this.velocityComponent.speed * (1/1000 * tickRate) * Math.cos(cos),
-            y : this.velocityComponent.speed * (1/1000 * tickRate) * Math.sin(sin)
+            x : this.velocityComponent.speed * (1/1000 * tickRate) * cos,
+            y : this.velocityComponent.speed * (1/1000 * tickRate) * sin
         };
         
         let newX = null;
