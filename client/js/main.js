@@ -3,9 +3,7 @@
 var socket = io();
 var Game = require("../../server/Game.js");
 var GameObject = require('../../server/GameObject.js');
-var PositionComponent = require('../../server/component/PositionComponent.js');
-var SizeComponent = require('../../server/component/SizeComponent.js');
-var VelocityComponent = require('../../server/component/VelocityComponent.js');
+var PhysicsComponent = require('../../server/component/PhysicsComponent.js');
 
 //Other global variables which need to be expressed
 var canvas = document.getElementById("game_canvas");
@@ -30,7 +28,8 @@ $(document).ready(function () {
     setInterval(
         function (){
             drawGame();
-            game.update(CLIENT_TICKRATE)
+            game.update(CLIENT_TICKRATE);
+            $('#test1').text('updating');
         },
         CLIENT_TICKRATE
     );
@@ -82,8 +81,6 @@ function drawGame() {
 }
 
 function drawGameObjects(){
-    $('#test1').text(JSON.stringify(game.gameObjects));
-    $('#test2').text(JSON.stringify(selectedGameObjects));
     for (let i = 0; i < game.gameObjects.length; i++) {
         let gameObject = game.gameObjects[i];
 
@@ -102,10 +99,10 @@ function drawGameObjects(){
         }
 
 
-        let x = gameObject.positionComponent.x;
-        let y = gameObject.positionComponent.y;
-        let width = gameObject.sizeComponent.width;
-        let height = gameObject.sizeComponent.height;
+        let x = gameObject.physicsComponent.x;
+        let y = gameObject.physicsComponent.y;
+        let width = gameObject.physicsComponent.width;
+        let height = gameObject.physicsComponent.height;
         ctx.fillRect(x, y, width, height);
     }
 }
@@ -134,7 +131,7 @@ function getMouseRect(mouseDownEvent, mouseUpEvent){
 }
 
 function drawMouse(mouseDownEvent, mouseMoveEvent){
-    if(mouseDownEvent != null && mouseMoveEvent != null){
+    if(mouseDownEvent != null && mouseMoveEvent != null && mouseMoveEvent.which == 1){
         let mouseRect = getMouseRect(mouseDownEvent, mouseMoveEvent);
         ctx.fillStyle = "#485157";
         ctx.strokeRect(mouseRect.x, mouseRect.y, mouseRect.width, mouseRect.height);
@@ -146,10 +143,10 @@ function selectUnits(mouseDownEvent, mouseUpEvent){
 
     for(let i = 0; i < game.gameObjects.length; i++){
         let gameObject = game.gameObjects[i];
-        let x = gameObject.positionComponent.x;
-        let y = gameObject.positionComponent.y;
-        let width = gameObject.sizeComponent.width;
-        let height = gameObject.sizeComponent.height;
+        let x = gameObject.physicsComponent.x;
+        let y = gameObject.physicsComponent.y;
+        let width = gameObject.physicsComponent.width;
+        let height = gameObject.physicsComponent.height;
         if( x < mouseRect.x + mouseRect.width && x + width  > mouseRect.x &&
             y < mouseRect.y + mouseRect.height && y + height > mouseRect.y) {
             selectedGameObjects.push(gameObject);

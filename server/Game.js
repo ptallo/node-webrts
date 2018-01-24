@@ -11,25 +11,14 @@ class Game{
     }
     update(tickRate){
         for (let i = 0; i < this.gameObjects.length; i++) {
-            let collided = false;
-            let iRect = this.gameObjects[i].getNewPosRect(tickRate);
-            
-            for (let j = 0; j < this.gameObjects.length; j++){
-                if (i != j){
-                    collided = this.gameObjects[j].checkCollision(iRect);
-                }
-            }
-            
-            if (!collided){
-                this.gameObjects[i].updatePosition(iRect);
-            }
+            this.gameObjects[i].update(tickRate, this.gameObjects);
         }
     }
     moveObjects(objects, mouseCoords){
         for(let i = 0; i < this.gameObjects.length; i++){
             for(let j = 0; j < objects.length; j++){
                 if (this.gameObjects[i].id == objects[j].id){
-                    this.gameObjects[i].destinationComponent.updateDestination(mouseCoords.x, mouseCoords.y);
+                    this.gameObjects[i].updateDestination(mouseCoords.x, mouseCoords.y);
                 }
             }
         }
