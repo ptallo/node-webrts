@@ -16,7 +16,6 @@ var mouseDownEvent = null;
 var mouseMoveEvent = null;
 var selectedGameObjects = [];
 
-const CLIENT_TICKRATE = 1000/60;
 
 $('body').on('contextmenu', '#game_canvas', function(e){
     //disabling context menu while right clicking on the canvas
@@ -28,9 +27,9 @@ $(document).ready(function () {
     setInterval(
         function (){
             drawGame();
-            game.update(CLIENT_TICKRATE);
+            game.update();
         },
-        CLIENT_TICKRATE
+        0
     );
 });
 

@@ -17,7 +17,6 @@ var mouseDownEvent = null;
 var mouseMoveEvent = null;
 var selectedGameObjects = [];
 
-const CLIENT_TICKRATE = 1000/60;
 
 $('body').on('contextmenu', '#game_canvas', function(e){
     //disabling context menu while right clicking on the canvas
@@ -29,9 +28,9 @@ $(document).ready(function () {
     setInterval(
         function (){
             drawGame();
-            game.update(CLIENT_TICKRATE);
+            game.update();
         },
-        CLIENT_TICKRATE
+        0
     );
 });
 
@@ -506,9 +505,9 @@ class Game{
         this.gameObjects.push(new GameObject(20, 20, 40, 40));
         this.gameObjects.push(new GameObject(80, 80, 100, 20));
     }
-    update(tickRate){
+    update(){
         for (let i = 0; i < this.gameObjects.length; i++) {
-            this.gameObjects[i].update(tickRate, this.gameObjects);
+            this.gameObjects[i].update(this.gameObjects);
         }
     }
     moveObjects(objects, mouseCoords){
@@ -534,9 +533,8 @@ class GameObject{
         this.id = shortid.generate();
         this.physicsComponent = new PhysicsComponent(this.id, x, y, width, height, 200);
     }
-    update(tickRate, objects){
-        console.log(this.physicsComponent instanceof PhysicsComponent);
-        this.physicsComponent.update(tickRate, objects);
+    update(objects){
+        this.physicsComponent.update(objects);
     }
     updateDestination(x, y){
         this.physicsComponent.updateDestination(x, y);
@@ -557,29 +555,38 @@ class PhysicsComponent {
         this.destX = x;
         this.destY = y;
         this.speed = speed;
+        this.timeStamp = null;
     }
-    update(tickRate, objects){
-        let newRect = this.getNewRect(tickRate);
+    update(objects){
+        let newRect = this.getNewRect();
         let collision = this.checkCollision(objects, newRect);
         if (!collision) {
             this.updatePhysics(newRect);
         }
     }
+    calculateDeltaTime(){
+        let lastTimeStamp = this.timeStamp;
+        this.timeStamp = Date.now()
+        var dt = this.timeStamp - lastTimeStamp;
+        return dt;
+    }
     updateDestination(x, y){
         this.destX = x;
         this.destY = y;
     }
-    getNewRect(tickRate){
+    getNewRect(){
         let distance = Math.sqrt(Math.pow(this.destX - this.x, 2) + Math.pow(this.destY - this.y, 2));
         let xDistance = Math.abs(this.x - this.destX);
         let yDistance = Math.abs(this.y - this.destY);
     
         let cos = xDistance / distance;
         let sin = yDistance / distance;
-    
+
+        let dt = this.calculateDeltaTime();
+
         let move = {
-            x : this.speed * (1/1000 * tickRate) * cos,
-            y : this.speed * (1/1000 * tickRate) * sin
+            x : this.speed * cos * (1/1000 * dt),
+            y : this.speed * sin * (1/1000 * dt)
         };
     
         let newX = null;
@@ -609,8 +616,8 @@ class PhysicsComponent {
         let newPosRect = {
             width : this.width,
             height : this.height,
-            x : Math.floor(newX),
-            y : Math.floor(newY)
+            x : newX,
+            y : newY
         }
         
         return newPosRect;

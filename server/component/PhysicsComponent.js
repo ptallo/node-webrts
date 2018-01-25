@@ -10,29 +10,38 @@ class PhysicsComponent {
         this.destX = x;
         this.destY = y;
         this.speed = speed;
+        this.timeStamp = null;
     }
-    update(tickRate, objects){
-        let newRect = this.getNewRect(tickRate);
+    update(objects){
+        let newRect = this.getNewRect();
         let collision = this.checkCollision(objects, newRect);
         if (!collision) {
             this.updatePhysics(newRect);
         }
     }
+    calculateDeltaTime(){
+        let lastTimeStamp = this.timeStamp;
+        this.timeStamp = Date.now()
+        var dt = this.timeStamp - lastTimeStamp;
+        return dt;
+    }
     updateDestination(x, y){
         this.destX = x;
         this.destY = y;
     }
-    getNewRect(tickRate){
+    getNewRect(){
         let distance = Math.sqrt(Math.pow(this.destX - this.x, 2) + Math.pow(this.destY - this.y, 2));
         let xDistance = Math.abs(this.x - this.destX);
         let yDistance = Math.abs(this.y - this.destY);
     
         let cos = xDistance / distance;
         let sin = yDistance / distance;
-    
+
+        let dt = this.calculateDeltaTime();
+
         let move = {
-            x : this.speed * (1/1000 * tickRate) * cos,
-            y : this.speed * (1/1000 * tickRate) * sin
+            x : this.speed * cos * (1/1000 * dt),
+            y : this.speed * sin * (1/1000 * dt)
         };
     
         let newX = null;
@@ -62,8 +71,8 @@ class PhysicsComponent {
         let newPosRect = {
             width : this.width,
             height : this.height,
-            x : Math.floor(newX),
-            y : Math.floor(newY)
+            x : newX,
+            y : newY
         }
         
         return newPosRect;
