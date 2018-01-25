@@ -30,7 +30,6 @@ $(document).ready(function () {
         function (){
             drawGame();
             game.update(CLIENT_TICKRATE);
-            $('#test1').text('updating');
         },
         CLIENT_TICKRATE
     );
@@ -160,6 +159,7 @@ socket.on('update game', function(gameJSON){
     game.gameObjects = [];
     for(let i = 0; i < serverGame.gameObjects.length; i++) {
         let object = Object.assign(new GameObject, serverGame.gameObjects[i]);
+        object.physicsComponent = Object.assign(new PhysicsComponent, object.physicsComponent);
         game.gameObjects.push(object);
     }
 });
@@ -532,9 +532,10 @@ var PhysicsComponent = require('./component/PhysicsComponent.js');
 class GameObject{
     constructor(x, y, width, height){
         this.id = shortid.generate();
-        this.physicsComponent = new PhysicsComponent(this.id, x, y, width, height, 100);
+        this.physicsComponent = new PhysicsComponent(this.id, x, y, width, height, 200);
     }
     update(tickRate, objects){
+        console.log(this.physicsComponent instanceof PhysicsComponent);
         this.physicsComponent.update(tickRate, objects);
     }
     updateDestination(x, y){
@@ -608,8 +609,8 @@ class PhysicsComponent {
         let newPosRect = {
             width : this.width,
             height : this.height,
-            x : newX,
-            y : newY
+            x : Math.floor(newX),
+            y : Math.floor(newY)
         }
         
         return newPosRect;

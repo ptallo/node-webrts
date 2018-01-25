@@ -62,8 +62,8 @@ class PhysicsComponent {
         let newPosRect = {
             width : this.width,
             height : this.height,
-            x : newX,
-            y : newY
+            x : Math.floor(newX),
+            y : Math.floor(newY)
         }
         
         return newPosRect;

@@ -29,7 +29,6 @@ $(document).ready(function () {
         function (){
             drawGame();
             game.update(CLIENT_TICKRATE);
-            $('#test1').text('updating');
         },
         CLIENT_TICKRATE
     );
@@ -159,6 +158,7 @@ socket.on('update game', function(gameJSON){
     game.gameObjects = [];
     for(let i = 0; i < serverGame.gameObjects.length; i++) {
         let object = Object.assign(new GameObject, serverGame.gameObjects[i]);
+        object.physicsComponent = Object.assign(new PhysicsComponent, object.physicsComponent);
         game.gameObjects.push(object);
     }
 });
