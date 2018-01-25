@@ -7,8 +7,8 @@ class GameObject{
         this.id = shortid.generate();
         this.physicsComponent = new PhysicsComponent(this.id, x, y, width, height, 200);
     }
-    update(objects){
-        this.physicsComponent.update(objects);
+    update(gameObjects){
+        this.physicsComponent.update(gameObjects);
     }
     updateDestination(x, y){
         this.physicsComponent.updateDestination(x, y);

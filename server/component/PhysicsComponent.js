@@ -12,9 +12,9 @@ class PhysicsComponent {
         this.speed = speed;
         this.timeStamp = null;
     }
-    update(objects){
+    update(gameObjects){
         let newRect = this.getNewRect();
-        let collision = this.checkCollision(objects, newRect);
+        let collision = this.checkCollision(gameObjects, newRect);
         if (!collision) {
             this.updatePhysics(newRect);
         }
@@ -77,14 +77,14 @@ class PhysicsComponent {
         
         return newPosRect;
     }
-    checkCollision(objects, newRect){
-        for (let i = 0; i < objects.length; i++){
-            let object = objects[i];
-            if (this.id != object.id) {
-                if (newRect.x < object.physicsComponent.x + object.physicsComponent.width &&
-                    newRect.x + newRect.width > object.physicsComponent.x &&
-                    newRect.y < object.physicsComponent.y + object.physicsComponent.height &&
-                    newRect.y + newRect.height  > object.physicsComponent.y) {
+    checkCollision(gameObjects, newRect){
+        for (let i = 0; i < gameObjects.length; i++){
+            let gameObject = gameObjects[i];
+            if (this.id != gameObject.id) {
+                if (newRect.x < gameObject.physicsComponent.x + gameObject.physicsComponent.width &&
+                    newRect.x + newRect.width > gameObject.physicsComponent.x &&
+                    newRect.y < gameObject.physicsComponent.y + gameObject.physicsComponent.height &&
+                    newRect.y + newRect.height  > gameObject.physicsComponent.y) {
                     // collision detected!
                     return true;
                 }
