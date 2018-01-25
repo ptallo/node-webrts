@@ -9,7 +9,7 @@ var Game = require('./server/Game.js');
 var Player = require('./server/Player.js');
 
 var PORT = 8080;
-var SERVER_TICKRATE = 1000/60;
+var SERVER_TICKRATE = 1000/15;
 
 //Configuration
 app.use(express.static(__dirname + '/client'));
@@ -110,7 +110,7 @@ io.on('connection', function(socket){
                     games.push(game);
                     io.to(gameLobby.id).emit('start game', game.id, JSON.stringify(game_rooms[i]));
                     setInterval(function(){
-                            game.update();
+                            game.update(SERVER_TICKRATE);
                             io.to(game.id).emit('update game', JSON.stringify(game));
                         },
                         SERVER_TICKRATE

@@ -10,15 +10,15 @@ class Game{
         this.gameObjects.push(new GameObject(80, 80, 100, 20));
     }
     update(){
-        for (let i = 0; i < this.gameObjects.length; i++){
-            this.gameObjects[i].update();
+        for (let i = 0; i < this.gameObjects.length; i++) {
+            this.gameObjects[i].update(this.gameObjects);
         }
     }
     moveObjects(objects, mouseCoords){
         for(let i = 0; i < this.gameObjects.length; i++){
             for(let j = 0; j < objects.length; j++){
                 if (this.gameObjects[i].id == objects[j].id){
-                    this.gameObjects[i].destinationComponent.updateDestination(mouseCoords.x, mouseCoords.y);
+                    this.gameObjects[i].updateDestination(mouseCoords.x, mouseCoords.y);
                 }
             }
         }

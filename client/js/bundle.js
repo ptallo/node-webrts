@@ -4,9 +4,7 @@
 var socket = io();
 var Game = require("../../server/Game.js");
 var GameObject = require('../../server/GameObject.js');
-var PositionComponent = require('../../server/component/PositionComponent.js');
-var SizeComponent = require('../../server/component/SizeComponent.js');
-var VelocityComponent = require('../../server/component/VelocityComponent.js');
+var PhysicsComponent = require('../../server/component/PhysicsComponent.js');
 
 //Other global variables which need to be expressed
 var canvas = document.getElementById("game_canvas");
@@ -19,6 +17,7 @@ var mouseDownEvent = null;
 var mouseMoveEvent = null;
 var selectedGameObjects = [];
 
+
 $('body').on('contextmenu', '#game_canvas', function(e){
     //disabling context menu while right clicking on the canvas
     return false;
@@ -27,8 +26,11 @@ $('body').on('contextmenu', '#game_canvas', function(e){
 $(document).ready(function () {
     socket.emit('join io room', game_id);
     setInterval(
-        drawGame,
-        1000/60
+        function (){
+            drawGame();
+            game.update();
+        },
+        0
     );
 });
 
@@ -42,12 +44,14 @@ document.addEventListener('mousedown', function(e){
     
     switch (e.which){
         case 1:
+            selectedGameObjects = [];
             break;
         case 3:
-            socket.emit('move objects',
-                    JSON.stringify(mouseDown),
-                    game_id,
-                    JSON.stringify(selectedGameObjects)
+            socket.emit(
+                'move objects',
+                JSON.stringify(mouseDown),
+                game_id,
+                JSON.stringify(selectedGameObjects)
             );
             
             game.moveObjects(
@@ -80,24 +84,24 @@ function drawGameObjects(){
         let gameObject = game.gameObjects[i];
 
         let inArray = false;
-        for(let j = 0; j < selectedGameObjects.length; j++){
+        for (let j = 0; j < selectedGameObjects.length; j++){
             let selectedGameObject = selectedGameObjects[j];
             if(selectedGameObject.id == gameObject.id){
                 inArray = true;
             }
         }
 
-        if(inArray){
+        if (inArray){
             ctx.fillStyle = '#FF0000';
         } else{
             ctx.fillStyle = '#43f7ff';
         }
 
 
-        let x = gameObject.positionComponent.x;
-        let y = gameObject.positionComponent.y;
-        let width = gameObject.sizeComponent.width;
-        let height = gameObject.sizeComponent.height;
+        let x = gameObject.physicsComponent.x;
+        let y = gameObject.physicsComponent.y;
+        let width = gameObject.physicsComponent.width;
+        let height = gameObject.physicsComponent.height;
         ctx.fillRect(x, y, width, height);
     }
 }
@@ -126,7 +130,7 @@ function getMouseRect(mouseDownEvent, mouseUpEvent){
 }
 
 function drawMouse(mouseDownEvent, mouseMoveEvent){
-    if(mouseDownEvent != null && mouseMoveEvent != null){
+    if(mouseDownEvent != null && mouseMoveEvent != null && mouseMoveEvent.which == 1){
         let mouseRect = getMouseRect(mouseDownEvent, mouseMoveEvent);
         ctx.fillStyle = "#485157";
         ctx.strokeRect(mouseRect.x, mouseRect.y, mouseRect.width, mouseRect.height);
@@ -136,13 +140,12 @@ function drawMouse(mouseDownEvent, mouseMoveEvent){
 function selectUnits(mouseDownEvent, mouseUpEvent){
     let mouseRect = getMouseRect(mouseDownEvent, mouseUpEvent);
 
-    selectedGameObjects = [];
     for(let i = 0; i < game.gameObjects.length; i++){
         let gameObject = game.gameObjects[i];
-        let x = gameObject.positionComponent.x;
-        let y = gameObject.positionComponent.y;
-        let width = gameObject.sizeComponent.width;
-        let height = gameObject.sizeComponent.height;
+        let x = gameObject.physicsComponent.x;
+        let y = gameObject.physicsComponent.y;
+        let width = gameObject.physicsComponent.width;
+        let height = gameObject.physicsComponent.height;
         if( x < mouseRect.x + mouseRect.width && x + width  > mouseRect.x &&
             y < mouseRect.y + mouseRect.height && y + height > mouseRect.y) {
             selectedGameObjects.push(gameObject);
@@ -155,11 +158,12 @@ socket.on('update game', function(gameJSON){
     game.gameObjects = [];
     for(let i = 0; i < serverGame.gameObjects.length; i++) {
         let object = Object.assign(new GameObject, serverGame.gameObjects[i]);
+        object.physicsComponent = Object.assign(new PhysicsComponent, object.physicsComponent);
         game.gameObjects.push(object);
     }
 });
 
-},{"../../server/Game.js":12,"../../server/GameObject.js":13,"../../server/component/PositionComponent.js":15,"../../server/component/SizeComponent.js":16,"../../server/component/VelocityComponent.js":17}],2:[function(require,module,exports){
+},{"../../server/Game.js":12,"../../server/GameObject.js":13,"../../server/component/PhysicsComponent.js":14}],2:[function(require,module,exports){
 'use strict';
 module.exports = require('./lib/index');
 
@@ -502,15 +506,15 @@ class Game{
         this.gameObjects.push(new GameObject(80, 80, 100, 20));
     }
     update(){
-        for (let i = 0; i < this.gameObjects.length; i++){
-            this.gameObjects[i].update();
+        for (let i = 0; i < this.gameObjects.length; i++) {
+            this.gameObjects[i].update(this.gameObjects);
         }
     }
     moveObjects(objects, mouseCoords){
         for(let i = 0; i < this.gameObjects.length; i++){
             for(let j = 0; j < objects.length; j++){
                 if (this.gameObjects[i].id == objects[j].id){
-                    this.gameObjects[i].destinationComponent.updateDestination(mouseCoords.x, mouseCoords.y);
+                    this.gameObjects[i].updateDestination(mouseCoords.x, mouseCoords.y);
                 }
             }
         }
@@ -522,85 +526,122 @@ module.exports = Game;
 },{"./GameObject.js":13,"shortid":2}],13:[function(require,module,exports){
 'use strict';
 var shortid = require('shortid');
-var PositionComponent = require('./component/PositionComponent.js');
-var SizeComponent = require('./component/SizeComponent.js');
-var VelocityComponent = require('./component/VelocityComponent.js');
-var DestinationComponent = require('./component/DestinationComponent.js');
+var PhysicsComponent = require('./component/PhysicsComponent.js');
 
 class GameObject{
     constructor(x, y, width, height){
         this.id = shortid.generate();
-        this.sizeComponent = new SizeComponent(width, height);
-        this.positionComponent = new PositionComponent(x, y);
-        this.destinationComponent = new DestinationComponent(x, y);
-        this.velocityComponent = new VelocityComponent();
+        this.physicsComponent = new PhysicsComponent(this.id, x, y, width, height, 200);
     }
-    update(){
-        if(this.positionComponent.x != this.destinationComponent.x){
-            let coeff = this.positionComponent.x > this.destinationComponent.x ? -1 : 1;
-            if (Math.abs(this.positionComponent.x - this.destinationComponent.x) < this.velocityComponent.xVelocity) {
-                this.positionComponent.x = this.destinationComponent.x;
-            } else {
-                this.positionComponent.x += coeff * this.velocityComponent.xVelocity;
-            }
-        }
-
-        if(this.positionComponent.y != this.destinationComponent.y){
-            let coeff = this.positionComponent.y > this.destinationComponent.y ? -1 : 1;
-            if(Math.abs(this.positionComponent.y - this.destinationComponent.y) < this.velocityComponent.yVelocity){
-                this.positionComponent.y = this.destinationComponent.y;
-            } else {
-                this.positionComponent.y += coeff * this.velocityComponent.yVelocity;
-            }
-        }
+    update(objects){
+        this.physicsComponent.update(objects);
+    }
+    updateDestination(x, y){
+        this.physicsComponent.updateDestination(x, y);
     }
 }
 
 module.exports = GameObject;
-},{"./component/DestinationComponent.js":14,"./component/PositionComponent.js":15,"./component/SizeComponent.js":16,"./component/VelocityComponent.js":17,"shortid":2}],14:[function(require,module,exports){
+},{"./component/PhysicsComponent.js":14,"shortid":2}],14:[function(require,module,exports){
 
-class DestinationComponent {
-    constructor(x, y){
+
+class PhysicsComponent {
+    constructor(id, x, y, width, height, speed){
+        this.id = id;
         this.x = x;
         this.y = y;
-    }
-    updateDestination(x, y){
-        this.x = x;
-        this.y = y;
-    }
-}
-
-module.exports = DestinationComponent;
-},{}],15:[function(require,module,exports){
-
-
-class PositionComponent{
-    constructor(x, y){
-        this.x = x;
-        this.y = y;
-    }
-}
-
-module.exports = PositionComponent;
-},{}],16:[function(require,module,exports){
-
-
-class SizeComponent{
-    constructor(width, height){
         this.width = width;
         this.height = height;
+        this.destX = x;
+        this.destY = y;
+        this.speed = speed;
+        this.timeStamp = null;
+    }
+    update(objects){
+        let newRect = this.getNewRect();
+        let collision = this.checkCollision(objects, newRect);
+        if (!collision) {
+            this.updatePhysics(newRect);
+        }
+    }
+    calculateDeltaTime(){
+        let lastTimeStamp = this.timeStamp;
+        this.timeStamp = Date.now()
+        var dt = this.timeStamp - lastTimeStamp;
+        return dt;
+    }
+    updateDestination(x, y){
+        this.destX = x;
+        this.destY = y;
+    }
+    getNewRect(){
+        let distance = Math.sqrt(Math.pow(this.destX - this.x, 2) + Math.pow(this.destY - this.y, 2));
+        let xDistance = Math.abs(this.x - this.destX);
+        let yDistance = Math.abs(this.y - this.destY);
+    
+        let cos = xDistance / distance;
+        let sin = yDistance / distance;
+
+        let dt = this.calculateDeltaTime();
+
+        let move = {
+            x : this.speed * cos * (1/1000 * dt),
+            y : this.speed * sin * (1/1000 * dt)
+        };
+    
+        let newX = null;
+        if (this.destX != this.x){
+            let coeff = this.destX < this.x ? -1 : 1;
+            if (Math.abs(this.destX - this.x) < move.x) {
+                newX = this.destX;
+            } else {
+                newX = this.x + move.x * coeff;
+            }
+        } else {
+            newX = this.x;
+        }
+    
+        let newY = null;
+        if (this.destY != this.y){
+            let coeff = this.destY < this.y ? -1 : 1;
+            if (Math.abs(this.destY - this.y) < move.y){
+                newY = this.destY;
+            } else {
+                newY = this.y + move.y * coeff;
+            }
+        } else {
+            newY = this.y;
+        }
+    
+        let newPosRect = {
+            width : this.width,
+            height : this.height,
+            x : newX,
+            y : newY
+        }
+        
+        return newPosRect;
+    }
+    checkCollision(objects, newRect){
+        for (let i = 0; i < objects.length; i++){
+            let object = objects[i];
+            if (this.id != object.id) {
+                if (newRect.x < object.physicsComponent.x + object.physicsComponent.width &&
+                    newRect.x + newRect.width > object.physicsComponent.x &&
+                    newRect.y < object.physicsComponent.y + object.physicsComponent.height &&
+                    newRect.y + newRect.height  > object.physicsComponent.y) {
+                    // collision detected!
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+    updatePhysics(newRect){
+        this.x = newRect.x;
+        this.y = newRect.y;
     }
 }
 
-module.exports = SizeComponent;
-},{}],17:[function(require,module,exports){
-
-class VelocityComponent{
-    constructor(){
-        this.xVelocity = 5;
-        this.yVelocity = 5;
-    }
-}
-
-module.exports = VelocityComponent;
+module.exports = PhysicsComponent;
 },{}]},{},[1]);

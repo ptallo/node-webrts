@@ -3,9 +3,7 @@
 var socket = io();
 var Game = require("../../server/Game.js");
 var GameObject = require('../../server/GameObject.js');
-var PositionComponent = require('../../server/component/PositionComponent.js');
-var SizeComponent = require('../../server/component/SizeComponent.js');
-var VelocityComponent = require('../../server/component/VelocityComponent.js');
+var PhysicsComponent = require('../../server/component/PhysicsComponent.js');
 
 //Other global variables which need to be expressed
 var canvas = document.getElementById("game_canvas");
@@ -18,6 +16,7 @@ var mouseDownEvent = null;
 var mouseMoveEvent = null;
 var selectedGameObjects = [];
 
+
 $('body').on('contextmenu', '#game_canvas', function(e){
     //disabling context menu while right clicking on the canvas
     return false;
@@ -26,8 +25,11 @@ $('body').on('contextmenu', '#game_canvas', function(e){
 $(document).ready(function () {
     socket.emit('join io room', game_id);
     setInterval(
-        drawGame,
-        1000/60
+        function (){
+            drawGame();
+            game.update();
+        },
+        0
     );
 });
 
@@ -41,12 +43,14 @@ document.addEventListener('mousedown', function(e){
     
     switch (e.which){
         case 1:
+            selectedGameObjects = [];
             break;
         case 3:
-            socket.emit('move objects',
-                    JSON.stringify(mouseDown),
-                    game_id,
-                    JSON.stringify(selectedGameObjects)
+            socket.emit(
+                'move objects',
+                JSON.stringify(mouseDown),
+                game_id,
+                JSON.stringify(selectedGameObjects)
             );
             
             game.moveObjects(
@@ -79,24 +83,24 @@ function drawGameObjects(){
         let gameObject = game.gameObjects[i];
 
         let inArray = false;
-        for(let j = 0; j < selectedGameObjects.length; j++){
+        for (let j = 0; j < selectedGameObjects.length; j++){
             let selectedGameObject = selectedGameObjects[j];
             if(selectedGameObject.id == gameObject.id){
                 inArray = true;
             }
         }
 
-        if(inArray){
+        if (inArray){
             ctx.fillStyle = '#FF0000';
         } else{
             ctx.fillStyle = '#43f7ff';
         }
 
 
-        let x = gameObject.positionComponent.x;
-        let y = gameObject.positionComponent.y;
-        let width = gameObject.sizeComponent.width;
-        let height = gameObject.sizeComponent.height;
+        let x = gameObject.physicsComponent.x;
+        let y = gameObject.physicsComponent.y;
+        let width = gameObject.physicsComponent.width;
+        let height = gameObject.physicsComponent.height;
         ctx.fillRect(x, y, width, height);
     }
 }
@@ -125,7 +129,7 @@ function getMouseRect(mouseDownEvent, mouseUpEvent){
 }
 
 function drawMouse(mouseDownEvent, mouseMoveEvent){
-    if(mouseDownEvent != null && mouseMoveEvent != null){
+    if(mouseDownEvent != null && mouseMoveEvent != null && mouseMoveEvent.which == 1){
         let mouseRect = getMouseRect(mouseDownEvent, mouseMoveEvent);
         ctx.fillStyle = "#485157";
         ctx.strokeRect(mouseRect.x, mouseRect.y, mouseRect.width, mouseRect.height);
@@ -135,13 +139,12 @@ function drawMouse(mouseDownEvent, mouseMoveEvent){
 function selectUnits(mouseDownEvent, mouseUpEvent){
     let mouseRect = getMouseRect(mouseDownEvent, mouseUpEvent);
 
-    selectedGameObjects = [];
     for(let i = 0; i < game.gameObjects.length; i++){
         let gameObject = game.gameObjects[i];
-        let x = gameObject.positionComponent.x;
-        let y = gameObject.positionComponent.y;
-        let width = gameObject.sizeComponent.width;
-        let height = gameObject.sizeComponent.height;
+        let x = gameObject.physicsComponent.x;
+        let y = gameObject.physicsComponent.y;
+        let width = gameObject.physicsComponent.width;
+        let height = gameObject.physicsComponent.height;
         if( x < mouseRect.x + mouseRect.width && x + width  > mouseRect.x &&
             y < mouseRect.y + mouseRect.height && y + height > mouseRect.y) {
             selectedGameObjects.push(gameObject);
@@ -154,6 +157,7 @@ socket.on('update game', function(gameJSON){
     game.gameObjects = [];
     for(let i = 0; i < serverGame.gameObjects.length; i++) {
         let object = Object.assign(new GameObject, serverGame.gameObjects[i]);
+        object.physicsComponent = Object.assign(new PhysicsComponent, object.physicsComponent);
         game.gameObjects.push(object);
     }
 });
