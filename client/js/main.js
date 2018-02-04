@@ -4,6 +4,7 @@ var socket = io();
 var Game = require("../../server/Game.js");
 var GameObject = require('../../server/GameObject.js');
 var PhysicsComponent = require('../../server/component/PhysicsComponent.js');
+var RenderComponent = require('../../server/component/RenderComponent.js');
 
 //Other global variables which need to be expressed
 var canvas = document.getElementById("game_canvas");
@@ -74,35 +75,7 @@ document.addEventListener('mousemove', function(e){
 
 function drawGame() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    drawGameObjects();
     drawMouse(mouseDownEvent, mouseMoveEvent);
-}
-
-function drawGameObjects(){
-    for (let i = 0; i < game.gameObjects.length; i++) {
-        let gameObject = game.gameObjects[i];
-
-        let inArray = false;
-        for (let j = 0; j < selectedGameObjects.length; j++){
-            let selectedGameObject = selectedGameObjects[j];
-            if(selectedGameObject.id == gameObject.id){
-                inArray = true;
-            }
-        }
-
-        if (inArray){
-            ctx.fillStyle = '#FF0000';
-        } else{
-            ctx.fillStyle = '#43f7ff';
-        }
-
-
-        let x = gameObject.physicsComponent.x;
-        let y = gameObject.physicsComponent.y;
-        let width = gameObject.physicsComponent.width;
-        let height = gameObject.physicsComponent.height;
-        ctx.fillRect(x, y, width, height);
-    }
 }
 
 function getMouseRect(mouseDownEvent, mouseUpEvent){
@@ -158,6 +131,7 @@ socket.on('update game', function(gameJSON){
     for(let i = 0; i < serverGame.gameObjects.length; i++) {
         let object = Object.assign(new GameObject, serverGame.gameObjects[i]);
         object.physicsComponent = Object.assign(new PhysicsComponent, object.physicsComponent);
+        object.renderComponent = Object.assign(new RenderComponent, object.renderComponent);
         game.gameObjects.push(object);
     }
 });

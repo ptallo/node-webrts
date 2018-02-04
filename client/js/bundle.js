@@ -5,6 +5,7 @@ var socket = io();
 var Game = require("../../server/Game.js");
 var GameObject = require('../../server/GameObject.js');
 var PhysicsComponent = require('../../server/component/PhysicsComponent.js');
+var RenderComponent = require('../../server/component/RenderComponent.js');
 
 //Other global variables which need to be expressed
 var canvas = document.getElementById("game_canvas");
@@ -75,35 +76,7 @@ document.addEventListener('mousemove', function(e){
 
 function drawGame() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    drawGameObjects();
     drawMouse(mouseDownEvent, mouseMoveEvent);
-}
-
-function drawGameObjects(){
-    for (let i = 0; i < game.gameObjects.length; i++) {
-        let gameObject = game.gameObjects[i];
-
-        let inArray = false;
-        for (let j = 0; j < selectedGameObjects.length; j++){
-            let selectedGameObject = selectedGameObjects[j];
-            if(selectedGameObject.id == gameObject.id){
-                inArray = true;
-            }
-        }
-
-        if (inArray){
-            ctx.fillStyle = '#FF0000';
-        } else{
-            ctx.fillStyle = '#43f7ff';
-        }
-
-
-        let x = gameObject.physicsComponent.x;
-        let y = gameObject.physicsComponent.y;
-        let width = gameObject.physicsComponent.width;
-        let height = gameObject.physicsComponent.height;
-        ctx.fillRect(x, y, width, height);
-    }
 }
 
 function getMouseRect(mouseDownEvent, mouseUpEvent){
@@ -159,11 +132,12 @@ socket.on('update game', function(gameJSON){
     for(let i = 0; i < serverGame.gameObjects.length; i++) {
         let object = Object.assign(new GameObject, serverGame.gameObjects[i]);
         object.physicsComponent = Object.assign(new PhysicsComponent, object.physicsComponent);
+        object.renderComponent = Object.assign(new RenderComponent, object.renderComponent);
         game.gameObjects.push(object);
     }
 });
 
-},{"../../server/Game.js":12,"../../server/GameObject.js":13,"../../server/component/PhysicsComponent.js":14}],2:[function(require,module,exports){
+},{"../../server/Game.js":12,"../../server/GameObject.js":13,"../../server/component/PhysicsComponent.js":14,"../../server/component/RenderComponent.js":15}],2:[function(require,module,exports){
 'use strict';
 module.exports = require('./lib/index');
 
@@ -503,7 +477,7 @@ class Game{
         this.id = id == "none" ? shortid.generate() : id;
         this.gameObjects = [];
         this.gameObjects.push(new GameObject(20, 20, 40, 40));
-        this.gameObjects.push(new GameObject(80, 80, 100, 20));
+        this.gameObjects.push(new GameObject(32, 32, 100, 20));
     }
     update(){
         for (let i = 0; i < this.gameObjects.length; i++) {
@@ -527,14 +501,17 @@ module.exports = Game;
 'use strict';
 var shortid = require('shortid');
 var PhysicsComponent = require('./component/PhysicsComponent.js');
+var RenderComponent = require('./component/RenderComponent.js');
 
 class GameObject{
     constructor(x, y, width, height){
         this.id = shortid.generate();
         this.physicsComponent = new PhysicsComponent(this.id, x, y, width, height, 200);
+        this.renderComponent = new RenderComponent('images/tree.png', this.physicsComponent);
     }
-    update(objects){
-        this.physicsComponent.update(objects);
+    update(gameObjects){
+        this.physicsComponent.update(gameObjects);
+        this.renderComponent.draw();
     }
     updateDestination(x, y){
         this.physicsComponent.updateDestination(x, y);
@@ -542,7 +519,7 @@ class GameObject{
 }
 
 module.exports = GameObject;
-},{"./component/PhysicsComponent.js":14,"shortid":2}],14:[function(require,module,exports){
+},{"./component/PhysicsComponent.js":14,"./component/RenderComponent.js":15,"shortid":2}],14:[function(require,module,exports){
 
 
 class PhysicsComponent {
@@ -557,9 +534,9 @@ class PhysicsComponent {
         this.speed = speed;
         this.timeStamp = null;
     }
-    update(objects){
+    update(gameObjects){
         let newRect = this.getNewRect();
-        let collision = this.checkCollision(objects, newRect);
+        let collision = this.checkCollision(gameObjects, newRect);
         if (!collision) {
             this.updatePhysics(newRect);
         }
@@ -622,14 +599,14 @@ class PhysicsComponent {
         
         return newPosRect;
     }
-    checkCollision(objects, newRect){
-        for (let i = 0; i < objects.length; i++){
-            let object = objects[i];
-            if (this.id != object.id) {
-                if (newRect.x < object.physicsComponent.x + object.physicsComponent.width &&
-                    newRect.x + newRect.width > object.physicsComponent.x &&
-                    newRect.y < object.physicsComponent.y + object.physicsComponent.height &&
-                    newRect.y + newRect.height  > object.physicsComponent.y) {
+    checkCollision(gameObjects, newRect){
+        for (let i = 0; i < gameObjects.length; i++){
+            let gameObject = gameObjects[i];
+            if (this.id != gameObject.id) {
+                if (newRect.x < gameObject.physicsComponent.x + gameObject.physicsComponent.width &&
+                    newRect.x + newRect.width > gameObject.physicsComponent.x &&
+                    newRect.y < gameObject.physicsComponent.y + gameObject.physicsComponent.height &&
+                    newRect.y + newRect.height  > gameObject.physicsComponent.y) {
                     // collision detected!
                     return true;
                 }
@@ -644,4 +621,29 @@ class PhysicsComponent {
 }
 
 module.exports = PhysicsComponent;
+},{}],15:[function(require,module,exports){
+
+class RenderComponent {
+    constructor(url, physicsComponent){
+        this.url = url;
+        this.physicsComponent = physicsComponent;
+    }
+    draw(){
+        if (typeof window !== 'undefined' && window.document){
+            var image = new Image();
+            image.src = this.url;
+            let canvas = document.getElementById('game_canvas');
+            let context = canvas.getContext('2d');
+            context.drawImage(
+                image,
+                this.physicsComponent.x,
+                this.physicsComponent.y,
+                this.physicsComponent.width,
+                this.physicsComponent.height
+            );
+        }
+    }
+}
+
+module.exports = RenderComponent;
 },{}]},{},[1]);
