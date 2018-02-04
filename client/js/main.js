@@ -41,24 +41,21 @@ document.addEventListener('mousedown', function(e){
         x : mouseDownEvent.pageX - rect.left,
         y : mouseDownEvent.pageY - rect.top
     };
-    
-    switch (e.which){
-        case 1:
-            selectedGameObjects = [];
-            break;
-        case 3:
-            socket.emit(
-                'move objects',
-                JSON.stringify(mouseDown),
-                game_id,
-                JSON.stringify(selectedGameObjects)
-            );
-            
-            game.moveObjects(
-                selectedGameObjects,
-                mouseDown
-            );
-            break;
+
+    if (e.which === 1) {
+        selectedGameObjects = [];
+    } else if (e.which === 3) {
+        game.moveObjects(
+            selectedGameObjects,
+            mouseDown
+        );
+
+        socket.emit(
+            'move objects',
+            game_id,
+            JSON.stringify(mouseDown),
+            JSON.stringify(selectedGameObjects)
+        );
     }
 });
 
@@ -92,10 +89,10 @@ function getMouseRect(mouseDownEvent, mouseUpEvent){
     };
 
     let mouseRect = {
-        x : mouseDown.x > mouseUp.x ? mouseUp.x : mouseDown.x,
-        y : mouseDown.y > mouseUp.y ? mouseUp.y : mouseDown.y,
-        width : mouseDown.x > mouseUp.x ? mouseDown.x - mouseUp.x : mouseUp.x - mouseDown.x,
-        height : mouseDown.y > mouseUp.y ? mouseDown.y - mouseUp.y : mouseUp.y - mouseDown.y
+        x : Math.min(mouseDown.x , mouseUp.x),
+        y : Math.min(mouseDown.y, mouseUp.y),
+        width : Math.abs(mouseDown.x - mouseUp.x),
+        height : Math.abs(mouseDown.y - mouseUp.y)
     };
 
     return mouseRect;
@@ -122,6 +119,7 @@ function selectUnits(mouseDownEvent, mouseUpEvent){
             y < mouseRect.y + mouseRect.height && y + height > mouseRect.y) {
             selectedGameObjects.push(gameObject);
         }
+        $('#test1').text(JSON.stringify(selectedGameObjects));
     }
 }
 
