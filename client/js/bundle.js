@@ -18,7 +18,6 @@ var mouseDownEvent = null;
 var mouseMoveEvent = null;
 var selectedGameObjects = [];
 
-
 $('body').on('contextmenu', '#game_canvas', function(e){
     //disabling context menu while right clicking on the canvas
     return false;
@@ -38,12 +37,8 @@ $(document).ready(function () {
 
 var mouseEventHandler = {
     mousedown : e => {
-        let rect = canvas.getBoundingClientRect();
         mouseDownEvent = e;
-        let mouseDown = {
-            x : mouseDownEvent.pageX - rect.left,
-            y : mouseDownEvent.pageY - rect.top
-        };
+        let mouseDown = getMouseCoords(mouseDownEvent);
 
         if (e.which === 1) {
             selectedGameObjects = [];
@@ -76,13 +71,28 @@ window.onmousedown = mouseEventHandler.mousedown;
 window.onmousemove = mouseEventHandler.mousemove;
 window.onmouseup = mouseEventHandler.mouseup;
 
-function getMouseCoords(mouseEvent){
-    let rect = canvas.getBoundingClientRect();
-    let mouseCoords = {
-        x : mouseEvent.pageX - rect.left,
-        y : mouseEvent.pageY - rect.top
-    };
-    return mouseCoords;
+function selectUnits(mouseDownEvent, mouseUpEvent){
+    let mouseRect = getMouseSelectionRect(mouseDownEvent, mouseUpEvent);
+
+    for(let i = 0; i < game.gameObjects.length; i++){
+        let gameObject = game.gameObjects[i];
+        let x = gameObject.physicsComponent.x;
+        let y = gameObject.physicsComponent.y;
+        let width = gameObject.physicsComponent.width;
+        let height = gameObject.physicsComponent.height;
+        if( x < mouseRect.x + mouseRect.width && x + width  > mouseRect.x &&
+            y < mouseRect.y + mouseRect.height && y + height > mouseRect.y) {
+            selectedGameObjects.push(gameObject);
+        }
+    }
+}
+
+function drawSelectionRect(mouseDownEvent, mouseMoveEvent){
+    if(mouseDownEvent != null && mouseMoveEvent != null && mouseMoveEvent.which === 1){
+        let mouseRect = getMouseSelectionRect(mouseDownEvent, mouseMoveEvent);
+        ctx.fillStyle = "#485157";
+        ctx.strokeRect(mouseRect.x, mouseRect.y, mouseRect.width, mouseRect.height);
+    }
 }
 
 function getMouseSelectionRect(mouseDownEvent, mouseUpEvent){
@@ -99,28 +109,13 @@ function getMouseSelectionRect(mouseDownEvent, mouseUpEvent){
     return mouseRect;
 }
 
-function drawSelectionRect(mouseDownEvent, mouseMoveEvent){
-    if(mouseDownEvent != null && mouseMoveEvent != null && mouseMoveEvent.which === 1){
-        let mouseRect = getMouseSelectionRect(mouseDownEvent, mouseMoveEvent);
-        ctx.fillStyle = "#485157";
-        ctx.strokeRect(mouseRect.x, mouseRect.y, mouseRect.width, mouseRect.height);
-    }
-}
-
-function selectUnits(mouseDownEvent, mouseUpEvent){
-    let mouseRect = getMouseSelectionRect(mouseDownEvent, mouseUpEvent);
-
-    for(let i = 0; i < game.gameObjects.length; i++){
-        let gameObject = game.gameObjects[i];
-        let x = gameObject.physicsComponent.x;
-        let y = gameObject.physicsComponent.y;
-        let width = gameObject.physicsComponent.width;
-        let height = gameObject.physicsComponent.height;
-        if( x < mouseRect.x + mouseRect.width && x + width  > mouseRect.x &&
-            y < mouseRect.y + mouseRect.height && y + height > mouseRect.y) {
-            selectedGameObjects.push(gameObject);
-        }
-    }
+function getMouseCoords(mouseEvent){
+    let rect = canvas.getBoundingClientRect();
+    let mouseCoords = {
+        x : mouseEvent.pageX - rect.left,
+        y : mouseEvent.pageY - rect.top
+    };
+    return mouseCoords;
 }
 
 socket.on('update game', function(gameJSON){
