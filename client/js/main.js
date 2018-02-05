@@ -27,66 +27,66 @@ $(document).ready(function () {
     socket.emit('join io room', game_id);
     setInterval(
         function (){
-            drawGame();
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawSelectionRect(mouseDownEvent, mouseMoveEvent);
             game.update();
         },
         0
     );
 });
 
-document.addEventListener('mousedown', function(e){
+var mouseEventHandler = {
+    mousedown : e => {
+        let rect = canvas.getBoundingClientRect();
+        mouseDownEvent = e;
+        let mouseDown = {
+            x : mouseDownEvent.pageX - rect.left,
+            y : mouseDownEvent.pageY - rect.top
+        };
+
+        if (e.which === 1) {
+            selectedGameObjects = [];
+        } else if (e.which === 3) {
+            game.moveObjects(
+                selectedGameObjects,
+                mouseDown
+            );
+
+            socket.emit(
+                'move objects',
+                game_id,
+                JSON.stringify(mouseDown),
+                JSON.stringify(selectedGameObjects)
+            );
+        }
+    },
+    mousemove : e => {
+        mouseMoveEvent = e;
+    },
+    mouseup : e => {
+        if(mouseDownEvent != null){
+            selectUnits(mouseDownEvent, e);
+        }
+        mouseDownEvent = null;
+    }
+};
+
+window.onmousedown = mouseEventHandler.mousedown;
+window.onmousemove = mouseEventHandler.mousemove;
+window.onmouseup = mouseEventHandler.mouseup;
+
+function getMouseCoords(mouseEvent){
     let rect = canvas.getBoundingClientRect();
-    mouseDownEvent = e;
-    let mouseDown = {
-        x : mouseDownEvent.pageX - rect.left,
-        y : mouseDownEvent.pageY - rect.top
+    let mouseCoords = {
+        x : mouseEvent.pageX - rect.left,
+        y : mouseEvent.pageY - rect.top
     };
-
-    if (e.which === 1) {
-        selectedGameObjects = [];
-    } else if (e.which === 3) {
-        game.moveObjects(
-            selectedGameObjects,
-            mouseDown
-        );
-
-        socket.emit(
-            'move objects',
-            game_id,
-            JSON.stringify(mouseDown),
-            JSON.stringify(selectedGameObjects)
-        );
-    }
-});
-
-document.addEventListener('mouseup', function(e) {
-    if(mouseDownEvent != null){
-        selectUnits(mouseDownEvent, e);
-    }
-    mouseDownEvent = null;
-});
-
-document.addEventListener('mousemove', function(e){
-    mouseMoveEvent = e;
-});
-
-function drawGame() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    drawMouse(mouseDownEvent, mouseMoveEvent);
+    return mouseCoords;
 }
 
-function getMouseRect(mouseDownEvent, mouseUpEvent){
-    let rect = canvas.getBoundingClientRect();
-
-    let mouseDown = {
-        x : mouseDownEvent.pageX - rect.left,
-        y : mouseDownEvent.pageY - rect.top
-    };
-
-    let mouseUp = {
-        x : mouseUpEvent.pageX - rect.left,
-        y : mouseUpEvent.pageY - rect.top
-    };
+function getMouseSelectionRect(mouseDownEvent, mouseUpEvent){
+    let mouseDown = getMouseCoords(mouseDownEvent);
+    let mouseUp = getMouseCoords(mouseUpEvent);
 
     let mouseRect = {
         x : Math.min(mouseDown.x , mouseUp.x),
@@ -98,16 +98,16 @@ function getMouseRect(mouseDownEvent, mouseUpEvent){
     return mouseRect;
 }
 
-function drawMouse(mouseDownEvent, mouseMoveEvent){
-    if(mouseDownEvent != null && mouseMoveEvent != null && mouseMoveEvent.which == 1){
-        let mouseRect = getMouseRect(mouseDownEvent, mouseMoveEvent);
+function drawSelectionRect(mouseDownEvent, mouseMoveEvent){
+    if(mouseDownEvent != null && mouseMoveEvent != null && mouseMoveEvent.which === 1){
+        let mouseRect = getMouseSelectionRect(mouseDownEvent, mouseMoveEvent);
         ctx.fillStyle = "#485157";
         ctx.strokeRect(mouseRect.x, mouseRect.y, mouseRect.width, mouseRect.height);
     }
 }
 
 function selectUnits(mouseDownEvent, mouseUpEvent){
-    let mouseRect = getMouseRect(mouseDownEvent, mouseUpEvent);
+    let mouseRect = getMouseSelectionRect(mouseDownEvent, mouseUpEvent);
 
     for(let i = 0; i < game.gameObjects.length; i++){
         let gameObject = game.gameObjects[i];
@@ -119,7 +119,6 @@ function selectUnits(mouseDownEvent, mouseUpEvent){
             y < mouseRect.y + mouseRect.height && y + height > mouseRect.y) {
             selectedGameObjects.push(gameObject);
         }
-        $('#test1').text(JSON.stringify(selectedGameObjects));
     }
 }
 

@@ -28,66 +28,66 @@ $(document).ready(function () {
     socket.emit('join io room', game_id);
     setInterval(
         function (){
-            drawGame();
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawSelectionRect(mouseDownEvent, mouseMoveEvent);
             game.update();
         },
         0
     );
 });
 
-document.addEventListener('mousedown', function(e){
+var mouseEventHandler = {
+    mousedown : e => {
+        let rect = canvas.getBoundingClientRect();
+        mouseDownEvent = e;
+        let mouseDown = {
+            x : mouseDownEvent.pageX - rect.left,
+            y : mouseDownEvent.pageY - rect.top
+        };
+
+        if (e.which === 1) {
+            selectedGameObjects = [];
+        } else if (e.which === 3) {
+            game.moveObjects(
+                selectedGameObjects,
+                mouseDown
+            );
+
+            socket.emit(
+                'move objects',
+                game_id,
+                JSON.stringify(mouseDown),
+                JSON.stringify(selectedGameObjects)
+            );
+        }
+    },
+    mousemove : e => {
+        mouseMoveEvent = e;
+    },
+    mouseup : e => {
+        if(mouseDownEvent != null){
+            selectUnits(mouseDownEvent, e);
+        }
+        mouseDownEvent = null;
+    }
+};
+
+window.onmousedown = mouseEventHandler.mousedown;
+window.onmousemove = mouseEventHandler.mousemove;
+window.onmouseup = mouseEventHandler.mouseup;
+
+function getMouseCoords(mouseEvent){
     let rect = canvas.getBoundingClientRect();
-    mouseDownEvent = e;
-    let mouseDown = {
-        x : mouseDownEvent.pageX - rect.left,
-        y : mouseDownEvent.pageY - rect.top
+    let mouseCoords = {
+        x : mouseEvent.pageX - rect.left,
+        y : mouseEvent.pageY - rect.top
     };
-
-    if (e.which === 1) {
-        selectedGameObjects = [];
-    } else if (e.which === 3) {
-        game.moveObjects(
-            selectedGameObjects,
-            mouseDown
-        );
-
-        socket.emit(
-            'move objects',
-            game_id,
-            JSON.stringify(mouseDown),
-            JSON.stringify(selectedGameObjects)
-        );
-    }
-});
-
-document.addEventListener('mouseup', function(e) {
-    if(mouseDownEvent != null){
-        selectUnits(mouseDownEvent, e);
-    }
-    mouseDownEvent = null;
-});
-
-document.addEventListener('mousemove', function(e){
-    mouseMoveEvent = e;
-});
-
-function drawGame() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    drawMouse(mouseDownEvent, mouseMoveEvent);
+    return mouseCoords;
 }
 
-function getMouseRect(mouseDownEvent, mouseUpEvent){
-    let rect = canvas.getBoundingClientRect();
-
-    let mouseDown = {
-        x : mouseDownEvent.pageX - rect.left,
-        y : mouseDownEvent.pageY - rect.top
-    };
-
-    let mouseUp = {
-        x : mouseUpEvent.pageX - rect.left,
-        y : mouseUpEvent.pageY - rect.top
-    };
+function getMouseSelectionRect(mouseDownEvent, mouseUpEvent){
+    let mouseDown = getMouseCoords(mouseDownEvent);
+    let mouseUp = getMouseCoords(mouseUpEvent);
 
     let mouseRect = {
         x : Math.min(mouseDown.x , mouseUp.x),
@@ -99,16 +99,16 @@ function getMouseRect(mouseDownEvent, mouseUpEvent){
     return mouseRect;
 }
 
-function drawMouse(mouseDownEvent, mouseMoveEvent){
-    if(mouseDownEvent != null && mouseMoveEvent != null && mouseMoveEvent.which == 1){
-        let mouseRect = getMouseRect(mouseDownEvent, mouseMoveEvent);
+function drawSelectionRect(mouseDownEvent, mouseMoveEvent){
+    if(mouseDownEvent != null && mouseMoveEvent != null && mouseMoveEvent.which === 1){
+        let mouseRect = getMouseSelectionRect(mouseDownEvent, mouseMoveEvent);
         ctx.fillStyle = "#485157";
         ctx.strokeRect(mouseRect.x, mouseRect.y, mouseRect.width, mouseRect.height);
     }
 }
 
 function selectUnits(mouseDownEvent, mouseUpEvent){
-    let mouseRect = getMouseRect(mouseDownEvent, mouseUpEvent);
+    let mouseRect = getMouseSelectionRect(mouseDownEvent, mouseUpEvent);
 
     for(let i = 0; i < game.gameObjects.length; i++){
         let gameObject = game.gameObjects[i];
@@ -120,7 +120,6 @@ function selectUnits(mouseDownEvent, mouseUpEvent){
             y < mouseRect.y + mouseRect.height && y + height > mouseRect.y) {
             selectedGameObjects.push(gameObject);
         }
-        $('#test1').text(JSON.stringify(selectedGameObjects));
     }
 }
 
@@ -530,60 +529,72 @@ class PhysicsComponent {
         this.destX = x;
         this.destY = y;
         this.speed = speed;
-        this.timeStamp = Date.now();
+        this.timeStamp = null;
     }
     update(gameObjects){
-        let nextRect = this.getNextRect();
-        let collision = this.checkCollision(gameObjects, nextRect);
+        let newRect = this.getNewRect();
+        let collision = this.checkCollision(gameObjects, newRect);
         if (!collision) {
-            this.updatePosition(nextRect);
+            this.updatePhysics(newRect);
         }
     }
     calculateDeltaTime(){
         let lastTimeStamp = this.timeStamp;
-        this.timeStamp = Date.now();
-        let dt = this.timeStamp - lastTimeStamp;
+        this.timeStamp = Date.now()
+        var dt = this.timeStamp - lastTimeStamp;
         return dt;
     }
     updateDestination(x, y){
         this.destX = x;
         this.destY = y;
     }
-    getNextRect() {
+    getNewRect(){
         let distance = Math.sqrt(Math.pow(this.destX - this.x, 2) + Math.pow(this.destY - this.y, 2));
-        let xDist = Math.abs(this.destX - this.x);
-        let yDist = Math.abs(this.destY - this.y);
-
-        let cos = xDist / distance;
-        let sin = yDist / distance;
+        let xDistance = Math.abs(this.x - this.destX);
+        let yDistance = Math.abs(this.y - this.destY);
+    
+        let cos = xDistance / distance;
+        let sin = yDistance / distance;
 
         let dt = this.calculateDeltaTime();
 
         let move = {
-            x: cos * this.speed * (dt / 1000),
-            y: sin * this.speed * (dt / 1000)
+            x : this.speed * cos * (1/1000 * dt),
+            y : this.speed * sin * (1/1000 * dt)
         };
-
-        let nextRect = {
-            width: this.width,
-            height: this.height
-        };
-
-        let coeff = this.x > this.destX ? -1 : 1;
-        if (move.x > xDist) {
-            nextRect.x = this.x + move.x * coeff;
+    
+        let newX = null;
+        if (this.destX != this.x){
+            let coeff = this.destX < this.x ? -1 : 1;
+            if (Math.abs(this.destX - this.x) < move.x) {
+                newX = this.destX;
+            } else {
+                newX = this.x + move.x * coeff;
+            }
         } else {
-            nextRect.x = this.destX;
+            newX = this.x;
         }
-
-        coeff = this.y > this.destY ? -1 : 1;
-        if(move.y > yDist){
-            nextRect.y = this.y + move.y * coeff;
+    
+        let newY = null;
+        if (this.destY != this.y){
+            let coeff = this.destY < this.y ? -1 : 1;
+            if (Math.abs(this.destY - this.y) < move.y){
+                newY = this.destY;
+            } else {
+                newY = this.y + move.y * coeff;
+            }
         } else {
-            nextRect.y = this.destY;
+            newY = this.y;
         }
-
-        return nextRect;
+    
+        let newPosRect = {
+            width : this.width,
+            height : this.height,
+            x : newX,
+            y : newY
+        }
+        
+        return newPosRect;
     }
     checkCollision(gameObjects, newRect){
         for (let i = 0; i < gameObjects.length; i++){
@@ -600,7 +611,7 @@ class PhysicsComponent {
         }
         return false;
     }
-    updatePosition(newRect){
+    updatePhysics(newRect){
         this.x = newRect.x;
         this.y = newRect.y;
     }
