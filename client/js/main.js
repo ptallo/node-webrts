@@ -64,10 +64,10 @@ var mouseEventHandler = {
     }
 };
 
-window.onmousedown = mouseEventHandler.mousedown;
-window.onmousemove = mouseEventHandler.mousemove;
-window.onmouseup = mouseEventHandler.mouseup;
-window.oncontextmenu = mouseEventHandler.contextmenu;
+canvas.onmousedown = mouseEventHandler.mousedown;
+canvas.onmousemove = mouseEventHandler.mousemove;
+canvas.onmouseup = mouseEventHandler.mouseup;
+canvas.oncontextmenu = mouseEventHandler.contextmenu;
 
 function selectUnits(mouseDownEvent, mouseUpEvent){
     let mouseRect = getMouseSelectionRect(mouseDownEvent, mouseUpEvent);
