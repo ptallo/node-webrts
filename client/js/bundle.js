@@ -18,11 +18,6 @@ var mouseDownEvent = null;
 var mouseMoveEvent = null;
 var selectedGameObjects = [];
 
-$('body').on('contextmenu', '#game_canvas', function(e){
-    //disabling context menu while right clicking on the canvas
-    return false;
-});
-
 $(document).ready(function () {
     socket.emit('join io room', game_id);
     setInterval(
@@ -64,12 +59,16 @@ var mouseEventHandler = {
             selectUnits(mouseDownEvent, e);
         }
         mouseDownEvent = null;
+    },
+    contextmenu : e => {
+        return false;
     }
 };
 
 window.onmousedown = mouseEventHandler.mousedown;
 window.onmousemove = mouseEventHandler.mousemove;
 window.onmouseup = mouseEventHandler.mouseup;
+window.oncontextmenu = mouseEventHandler.contextmenu;
 
 function selectUnits(mouseDownEvent, mouseUpEvent){
     let mouseRect = getMouseSelectionRect(mouseDownEvent, mouseUpEvent);
@@ -535,7 +534,7 @@ class PhysicsComponent {
     }
     calculateDeltaTime(){
         let lastTimeStamp = this.timeStamp;
-        this.timeStamp = Date.now()
+        this.timeStamp = Date.now();
         var dt = this.timeStamp - lastTimeStamp;
         return dt;
     }
