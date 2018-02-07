@@ -500,7 +500,7 @@ class GameObject{
     constructor(x, y, width, height){
         this.id = shortid.generate();
         this.physicsComponent = new PhysicsComponent(this.id, x, y, width, height, 100);
-        this.renderComponent = new SpriteSheetRenderComponent('images/spritesheet.png', this.physicsComponent, 32, 32, 8);
+        this.renderComponent = new SpriteSheetRenderComponent('images/cowboy.png', this.physicsComponent, 32, 32, 7);
     }
     update(gameObjects){
         this.physicsComponent.update(gameObjects);
