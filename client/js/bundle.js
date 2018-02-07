@@ -6,7 +6,6 @@ var Game = require("../../server/Game.js");
 var GameObject = require('../../server/GameObject.js');
 var PhysicsComponent = require('../../server/component/PhysicsComponent.js');
 var RenderComponent = require('../../server/component/RenderComponent.js');
-var SpriteSheetRenderComponent = require('../../server/component/SpriteSheetRenderComponent.js');
 
 //Other global variables which need to be expressed
 var canvas = document.getElementById("game_canvas");
@@ -124,12 +123,12 @@ socket.on('update game', function(gameJSON){
     for(let i = 0; i < serverGame.gameObjects.length; i++) {
         let object = Object.assign(new GameObject, serverGame.gameObjects[i]);
         object.physicsComponent = Object.assign(new PhysicsComponent, object.physicsComponent);
-        object.renderComponent = Object.assign(new SpriteSheetRenderComponent, object.renderComponent);
+        object.renderComponent = Object.assign(new RenderComponent, object.renderComponent);
         game.gameObjects.push(object);
     }
 });
 
-},{"../../server/Game.js":12,"../../server/GameObject.js":13,"../../server/component/PhysicsComponent.js":14,"../../server/component/RenderComponent.js":15,"../../server/component/SpriteSheetRenderComponent.js":16}],2:[function(require,module,exports){
+},{"../../server/Game.js":12,"../../server/GameObject.js":13,"../../server/component/PhysicsComponent.js":14,"../../server/component/RenderComponent.js":15}],2:[function(require,module,exports){
 'use strict';
 module.exports = require('./lib/index');
 
@@ -494,13 +493,14 @@ module.exports = Game;
 var shortid = require('shortid');
 var PhysicsComponent = require('./component/PhysicsComponent.js');
 var RenderComponent = require('./component/RenderComponent.js');
-var SpriteSheetRenderComponent = require('./component/SpriteSheetRenderComponent.js');
+var State = require('./component/State.js');
 
 class GameObject{
     constructor(x, y, width, height){
         this.id = shortid.generate();
+        this.state = State.IDLE;
         this.physicsComponent = new PhysicsComponent(this.id, x, y, width, height, 100);
-        this.renderComponent = new SpriteSheetRenderComponent('images/cowboy.png', this.physicsComponent, 32, 32, 7);
+        this.renderComponent = new RenderComponent(this.physicsComponent, 'images/cowboy.png', 32, 32, 7);
     }
     update(gameObjects){
         this.physicsComponent.update(gameObjects);
@@ -512,7 +512,7 @@ class GameObject{
 }
 
 module.exports = GameObject;
-},{"./component/PhysicsComponent.js":14,"./component/RenderComponent.js":15,"./component/SpriteSheetRenderComponent.js":16,"shortid":2}],14:[function(require,module,exports){
+},{"./component/PhysicsComponent.js":14,"./component/RenderComponent.js":15,"./component/State.js":16,"shortid":2}],14:[function(require,module,exports){
 
 
 class PhysicsComponent {
@@ -617,41 +617,11 @@ module.exports = PhysicsComponent;
 },{}],15:[function(require,module,exports){
 
 class RenderComponent {
-    constructor(url, physicsComponent){
-        this.url = url;
-        this.physicsComponent = physicsComponent;
-        this.image = null;
-    }
-    draw(){
-        if (typeof window !== 'undefined' && window.document){
-            if (this.image === null){
-                this.loadImage();
-            }
-            let canvas = document.getElementById('game_canvas');
-            let context = canvas.getContext('2d');
-            context.drawImage(
-                this.image,
-                this.physicsComponent.x,
-                this.physicsComponent.y,
-                this.physicsComponent.width,
-                this.physicsComponent.height
-            );
-        }
-    }
-    loadImage(){
-        this.image = new Image();
-        this.image.src = this.url;
-    }
-}
-
-module.exports = RenderComponent;
-},{}],16:[function(require,module,exports){
-
-class SpriteSheetRenderComponent {
-    constructor(url, physicsComponent, frameWidth, frameHeight, totalFrames){
+    constructor(physicsComponent, url, frameWidth, frameHeight, totalAnimations, totalFrames){
         this.image = null;
         this.url = url;
         this.physicsComponent = physicsComponent;
+        
         this.frameWidth = frameWidth;
         this.frameHeight = frameHeight;
         this.totalFrames = totalFrames;
@@ -700,5 +670,13 @@ class SpriteSheetRenderComponent {
     }
  }
  
- module.exports = SpriteSheetRenderComponent;
+ module.exports = RenderComponent;
+},{}],16:[function(require,module,exports){
+
+var State = {
+    IDLE : 'idle',
+    WALKING : 'walking'
+};
+
+module.exports = State;
 },{}]},{},[1]);

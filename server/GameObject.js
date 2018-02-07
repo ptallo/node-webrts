@@ -2,13 +2,14 @@
 var shortid = require('shortid');
 var PhysicsComponent = require('./component/PhysicsComponent.js');
 var RenderComponent = require('./component/RenderComponent.js');
-var SpriteSheetRenderComponent = require('./component/SpriteSheetRenderComponent.js');
+var State = require('./component/State.js');
 
 class GameObject{
     constructor(x, y, width, height){
         this.id = shortid.generate();
+        this.state = State.IDLE;
         this.physicsComponent = new PhysicsComponent(this.id, x, y, width, height, 100);
-        this.renderComponent = new SpriteSheetRenderComponent('images/cowboy.png', this.physicsComponent, 32, 32, 7);
+        this.renderComponent = new RenderComponent(this.physicsComponent, 'images/cowboy.png', 32, 32, 7);
     }
     update(gameObjects){
         this.physicsComponent.update(gameObjects);

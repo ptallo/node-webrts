@@ -1,33 +1,26 @@
-
-class SpriteSheetRenderComponent {
-    constructor(url, physicsComponent, frameWidth, frameHeight, totalFrames){
-        this.image = null;
-        this.url = url;
+class Animation {
+    constructor(physicsComponent, url, numberAnimation, frameWidth, frameHeight, totalFrames){
         this.physicsComponent = physicsComponent;
+        this.url = url;
+        this.image = null;
+        this.shift = 0;
+        this.numberAnimation = numberAnimation;
+        this.currentFrame = 1;
         this.frameWidth = frameWidth;
         this.frameHeight = frameHeight;
         this.totalFrames = totalFrames;
-        this.currentFrame = 1;
-        this.shift = 0;
-        this.timeStamp = Date.now();
     }
     draw(){
-        let newTime = Date.now();
-        if(newTime - this.timeStamp > 250){
-            this.animate();
-            this.timeStamp = newTime;
-        }
         if (typeof window !== 'undefined' && window.document){
             if (this.image === null){
                 this.loadImage();
             }
             let canvas = document.getElementById('game_canvas');
             let context = canvas.getContext('2d');
-            //ctx.drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight);
             context.drawImage(
                 this.image,
-                this.shift, //sourceX
-                0, //sourceY
+                this.shift,
+                this.numberAnimation * this.frameHeight,
                 this.frameWidth,
                 this.frameHeight,
                 this.physicsComponent.x,
@@ -37,12 +30,8 @@ class SpriteSheetRenderComponent {
             );
         }
     }
-    loadImage(){
-        this.image = new Image();
-        this.image.src = this.url;
-    }
     animate(){
-        if (this.totalFrames > this.currentFrame) {
+        if (this.currentFrame < this.totalFrames) {
             this.shift += this.frameWidth;
             this.currentFrame += 1;
         } else {
@@ -50,6 +39,10 @@ class SpriteSheetRenderComponent {
             this.currentFrame = 1;
         }
     }
- }
- 
- module.exports = SpriteSheetRenderComponent;
+    loadImage(){
+        this.image = new Image();
+        this.image.src = this.url;
+    }
+}
+
+module.exports = Animation;
