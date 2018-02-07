@@ -6,6 +6,7 @@ var Game = require("../../server/Game.js");
 var GameObject = require('../../server/GameObject.js');
 var PhysicsComponent = require('../../server/component/PhysicsComponent.js');
 var RenderComponent = require('../../server/component/RenderComponent.js');
+var SpriteSheetRenderComponent = require('../../server/component/SpriteSheetRenderComponent.js');
 
 //Other global variables which need to be expressed
 var canvas = document.getElementById("game_canvas");
@@ -123,12 +124,12 @@ socket.on('update game', function(gameJSON){
     for(let i = 0; i < serverGame.gameObjects.length; i++) {
         let object = Object.assign(new GameObject, serverGame.gameObjects[i]);
         object.physicsComponent = Object.assign(new PhysicsComponent, object.physicsComponent);
-        object.renderComponent = Object.assign(new RenderComponent, object.renderComponent);
+        object.renderComponent = Object.assign(new SpriteSheetRenderComponent, object.renderComponent);
         game.gameObjects.push(object);
     }
 });
 
-},{"../../server/Game.js":12,"../../server/GameObject.js":13,"../../server/component/PhysicsComponent.js":14,"../../server/component/RenderComponent.js":15}],2:[function(require,module,exports){
+},{"../../server/Game.js":12,"../../server/GameObject.js":13,"../../server/component/PhysicsComponent.js":14,"../../server/component/RenderComponent.js":15,"../../server/component/SpriteSheetRenderComponent.js":16}],2:[function(require,module,exports){
 'use strict';
 module.exports = require('./lib/index');
 
@@ -467,8 +468,8 @@ class Game{
     constructor(id="none"){
         this.id = id == "none" ? shortid.generate() : id;
         this.gameObjects = [];
-        this.gameObjects.push(new GameObject(20, 20, 40, 40));
-        this.gameObjects.push(new GameObject(100, 100, 32, 32));
+        this.gameObjects.push(new GameObject(20, 20, 64, 64));
+        this.gameObjects.push(new GameObject(200, 200, 32, 32));
     }
     update(){
         for (let i = 0; i < this.gameObjects.length; i++) {
@@ -493,12 +494,13 @@ module.exports = Game;
 var shortid = require('shortid');
 var PhysicsComponent = require('./component/PhysicsComponent.js');
 var RenderComponent = require('./component/RenderComponent.js');
+var SpriteSheetRenderComponent = require('./component/SpriteSheetRenderComponent.js');
 
 class GameObject{
     constructor(x, y, width, height){
         this.id = shortid.generate();
         this.physicsComponent = new PhysicsComponent(this.id, x, y, width, height, 100);
-        this.renderComponent = new RenderComponent('images/tree.png', this.physicsComponent);
+        this.renderComponent = new SpriteSheetRenderComponent('images/spritesheet.png', this.physicsComponent, 32, 32, 8);
     }
     update(gameObjects){
         this.physicsComponent.update(gameObjects);
@@ -510,7 +512,7 @@ class GameObject{
 }
 
 module.exports = GameObject;
-},{"./component/PhysicsComponent.js":14,"./component/RenderComponent.js":15,"shortid":2}],14:[function(require,module,exports){
+},{"./component/PhysicsComponent.js":14,"./component/RenderComponent.js":15,"./component/SpriteSheetRenderComponent.js":16,"shortid":2}],14:[function(require,module,exports){
 
 
 class PhysicsComponent {
@@ -643,4 +645,60 @@ class RenderComponent {
 }
 
 module.exports = RenderComponent;
+},{}],16:[function(require,module,exports){
+
+class SpriteSheetRenderComponent {
+    constructor(url, physicsComponent, frameWidth, frameHeight, totalFrames){
+        this.image = null;
+        this.url = url;
+        this.physicsComponent = physicsComponent;
+        this.frameWidth = frameWidth;
+        this.frameHeight = frameHeight;
+        this.totalFrames = totalFrames;
+        this.currentFrame = 1;
+        this.shift = 0;
+        this.timeStamp = Date.now();
+    }
+    draw(){
+        let newTime = Date.now();
+        if(newTime - this.timeStamp > 250){
+            this.animate();
+            this.timeStamp = newTime;
+        }
+        if (typeof window !== 'undefined' && window.document){
+            if (this.image === null){
+                this.loadImage();
+            }
+            let canvas = document.getElementById('game_canvas');
+            let context = canvas.getContext('2d');
+            //ctx.drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight);
+            context.drawImage(
+                this.image,
+                this.shift, //sourceX
+                0, //sourceY
+                this.frameWidth,
+                this.frameHeight,
+                this.physicsComponent.x,
+                this.physicsComponent.y,
+                this.physicsComponent.width,
+                this.physicsComponent.height
+            );
+        }
+    }
+    loadImage(){
+        this.image = new Image();
+        this.image.src = this.url;
+    }
+    animate(){
+        if (this.totalFrames > this.currentFrame) {
+            this.shift += this.frameWidth;
+            this.currentFrame += 1;
+        } else {
+            this.shift = 0;
+            this.currentFrame = 1;
+        }
+    }
+ }
+ 
+ module.exports = SpriteSheetRenderComponent;
 },{}]},{},[1]);
