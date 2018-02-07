@@ -1,7 +1,7 @@
 
-var StateEnum = {
+var State = {
     IDLE : 'idle',
     WALKING : 'walking'
 };
 
-module.exports = StateEnum;
+module.exports = State;
