@@ -507,7 +507,6 @@ class GameObject{
         this.physicsComponent = new PhysicsComponent(this.id, x, y, width, height, 100);
         this.renderComponent = new RenderComponent(this.physicsComponent, 'images/cowboy.png');
         this.renderComponent.addAnimation(State.IDLE, 32, 32, 1, 7);
-        this.renderComponent.changeState(this.state);
     }
     update(gameObjects){
         this.physicsComponent.update(gameObjects);
@@ -533,7 +532,7 @@ class Animation {
         this.totalFrames = totalFrames;
         this.timeStamp = Date.now();
         this.nextAnimationTime = this.timeStamp;
-        this.interval = interval;
+        this.interval = interval; //set this to zero if you want to interval
     }
     draw(){
         if (typeof window !== 'undefined' && window.document){
@@ -697,6 +696,9 @@ class RenderComponent {
             key : state,
             value : animation
         };
+        if (this.animations.length === 0){
+            this.currentAnimation = animation;
+        }
         this.animations.push(animationDictEntry);
     }
     changeState(state){

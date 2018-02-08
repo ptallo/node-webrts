@@ -16,6 +16,9 @@ class RenderComponent {
             key : state,
             value : animation
         };
+        if (this.animations.length === 0){
+            this.currentAnimation = animation;
+        }
         this.animations.push(animationDictEntry);
     }
     changeState(state){
