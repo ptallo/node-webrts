@@ -6,6 +6,7 @@ var Game = require("../../server/Game.js");
 var GameObject = require('../../server/GameObject.js');
 var PhysicsComponent = require('../../server/component/PhysicsComponent.js');
 var RenderComponent = require('../../server/component/RenderComponent.js');
+var Animation = require('../../server/component/Animation.js');
 
 //Other global variables which need to be expressed
 var canvas = document.getElementById("game_canvas");
@@ -124,11 +125,15 @@ socket.on('update game', function(gameJSON){
         let object = Object.assign(new GameObject, serverGame.gameObjects[i]);
         object.physicsComponent = Object.assign(new PhysicsComponent, object.physicsComponent);
         object.renderComponent = Object.assign(new RenderComponent, object.renderComponent);
+        for (let animation in object.renderComponent.animations){
+            object.renderComponent.animations = Object.assign(new Animation, animation);
+        }
+        object.renderComponent.currentAnimation = Object.assign(new Animation, object.renderComponent.currentAnimation);
         game.gameObjects.push(object);
     }
 });
 
-},{"../../server/Game.js":12,"../../server/GameObject.js":13,"../../server/component/PhysicsComponent.js":14,"../../server/component/RenderComponent.js":15}],2:[function(require,module,exports){
+},{"../../server/Game.js":12,"../../server/GameObject.js":13,"../../server/component/Animation.js":14,"../../server/component/PhysicsComponent.js":15,"../../server/component/RenderComponent.js":16}],2:[function(require,module,exports){
 'use strict';
 module.exports = require('./lib/index');
 
@@ -500,7 +505,9 @@ class GameObject{
         this.id = shortid.generate();
         this.state = State.IDLE;
         this.physicsComponent = new PhysicsComponent(this.id, x, y, width, height, 100);
-        this.renderComponent = new RenderComponent(this.physicsComponent, 'images/cowboy.png', 32, 32, 7);
+        this.renderComponent = new RenderComponent(this.physicsComponent, 'images/cowboy.png');
+        this.renderComponent.addAnimation(State.IDLE, 32, 32, 1, 7);
+        this.renderComponent.changeState(this.state);
     }
     update(gameObjects){
         this.physicsComponent.update(gameObjects);
@@ -512,7 +519,56 @@ class GameObject{
 }
 
 module.exports = GameObject;
-},{"./component/PhysicsComponent.js":14,"./component/RenderComponent.js":15,"./component/State.js":16,"shortid":2}],14:[function(require,module,exports){
+},{"./component/PhysicsComponent.js":15,"./component/RenderComponent.js":16,"./component/State.js":17,"shortid":2}],14:[function(require,module,exports){
+class Animation {
+    constructor(physicsComponent, url, animationNumber, frameWidth, frameHeight, totalFrames){
+        this.physicsComponent = physicsComponent;
+        this.url = url;
+        this.image = null;
+        this.shift = 0;
+        this.animationNumber = animationNumber - 1;
+        this.currentFrame = 1;
+        this.frameWidth = frameWidth;
+        this.frameHeight = frameHeight;
+        this.totalFrames = totalFrames;
+    }
+    draw(){
+        if (typeof window !== 'undefined' && window.document){
+            if (this.image === null){
+                this.loadImage();
+            }
+            let canvas = document.getElementById('game_canvas');
+            let context = canvas.getContext('2d');
+            context.drawImage(
+                this.image,
+                this.shift,
+                this.animationNumber * this.frameHeight,
+                this.frameWidth,
+                this.frameHeight,
+                this.physicsComponent.x,
+                this.physicsComponent.y,
+                this.physicsComponent.width,
+                this.physicsComponent.height
+            );
+        }
+    }
+    animate(){
+        if (this.currentFrame < this.totalFrames) {
+            this.shift += this.frameWidth;
+            this.currentFrame += 1;
+        } else {
+            this.shift = 0;
+            this.currentFrame = 1;
+        }
+    }
+    loadImage(){
+        this.image = new Image();
+        this.image.src = this.url;
+    }
+}
+
+module.exports = Animation;
+},{}],15:[function(require,module,exports){
 
 
 class PhysicsComponent {
@@ -614,64 +670,69 @@ class PhysicsComponent {
 }
 
 module.exports = PhysicsComponent;
-},{}],15:[function(require,module,exports){
+},{}],16:[function(require,module,exports){
+var Animation = require('./Animation.js');
+var State = require('./State.js');
 
 class RenderComponent {
-    constructor(physicsComponent, url, frameWidth, frameHeight, totalAnimations, totalFrames){
+    constructor(physicsComponent, url){
         this.image = null;
         this.url = url;
         this.physicsComponent = physicsComponent;
-        
-        this.frameWidth = frameWidth;
-        this.frameHeight = frameHeight;
-        this.totalFrames = totalFrames;
-        this.currentFrame = 1;
-        this.shift = 0;
+        this.animations = [];
+        this.currentAnimation = null;
         this.timeStamp = Date.now();
     }
-    draw(){
-        let newTime = Date.now();
-        if(newTime - this.timeStamp > 250){
-            this.animate();
-            this.timeStamp = newTime;
-        }
-        if (typeof window !== 'undefined' && window.document){
-            if (this.image === null){
-                this.loadImage();
+    addAnimation(state, frameWidth, frameHeight, animationNumber, totalFrames){
+        let animation = new Animation(this.physicsComponent, this.url, animationNumber, frameWidth, frameHeight, totalFrames);
+        let animationDictEntry = {
+            key : state,
+            value : animation
+        };
+        this.animations.push(animationDictEntry);
+    }
+    changeState(state){
+        for(let i = 0; i < this.animations.length; i++){
+            if (this.animations[i].key === state){
+                if (this.currentAnimation !== null){
+                    this.currentAnimation.currentFrame = 1;
+                    this.currentAnimation.shift = 0;
+                }
+                this.currentAnimation = this.animations[i].value;
             }
-            let canvas = document.getElementById('game_canvas');
-            let context = canvas.getContext('2d');
-            //ctx.drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight);
-            context.drawImage(
-                this.image,
-                this.shift, //sourceX
-                0, //sourceY
-                this.frameWidth,
-                this.frameHeight,
-                this.physicsComponent.x,
-                this.physicsComponent.y,
-                this.physicsComponent.width,
-                this.physicsComponent.height
-            );
         }
     }
-    loadImage(){
-        this.image = new Image();
-        this.image.src = this.url;
+    draw(){
+        this.animate();
+        if (typeof window !== 'undefined' && window.document) {
+            if (this.currentAnimation === null) {
+                let canvas = document.getElementById('game_canvas');
+                let context = canvas.getContext('2d');
+                this.image = new Image();
+                this.image.url = this.url;
+                context.drawImage(
+                    this.image,
+                    this.physicsComponent.x,
+                    this.physicsComponent.y,
+                    this.physicsComponent.width,
+                    this.physicsComponent.height
+                );
+            } else {
+                this.currentAnimation.draw();
+            }
+        }
     }
     animate(){
-        if (this.totalFrames > this.currentFrame) {
-            this.shift += this.frameWidth;
-            this.currentFrame += 1;
-        } else {
-            this.shift = 0;
-            this.currentFrame = 1;
+        let newTimestamp = Date.now();
+        if(newTimestamp - this.timeStamp > 250 && this.currentAnimation != null){
+            this.currentAnimation.animate();
+            this.timeStamp = newTimestamp;
         }
     }
  }
  
  module.exports = RenderComponent;
-},{}],16:[function(require,module,exports){
+},{"./Animation.js":14,"./State.js":17}],17:[function(require,module,exports){
 
 var State = {
     IDLE : 'idle',

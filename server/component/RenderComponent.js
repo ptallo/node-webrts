@@ -1,54 +1,59 @@
+var Animation = require('./Animation.js');
+var State = require('./State.js');
 
 class RenderComponent {
-    constructor(physicsComponent, url, frameWidth, frameHeight, totalAnimations, totalFrames){
+    constructor(physicsComponent, url){
         this.image = null;
         this.url = url;
         this.physicsComponent = physicsComponent;
-        
-        this.frameWidth = frameWidth;
-        this.frameHeight = frameHeight;
-        this.totalFrames = totalFrames;
-        this.currentFrame = 1;
-        this.shift = 0;
+        this.animations = [];
+        this.currentAnimation = null;
         this.timeStamp = Date.now();
     }
-    draw(){
-        let newTime = Date.now();
-        if(newTime - this.timeStamp > 250){
-            this.animate();
-            this.timeStamp = newTime;
-        }
-        if (typeof window !== 'undefined' && window.document){
-            if (this.image === null){
-                this.loadImage();
+    addAnimation(state, frameWidth, frameHeight, animationNumber, totalFrames){
+        let animation = new Animation(this.physicsComponent, this.url, animationNumber, frameWidth, frameHeight, totalFrames);
+        let animationDictEntry = {
+            key : state,
+            value : animation
+        };
+        this.animations.push(animationDictEntry);
+    }
+    changeState(state){
+        for(let i = 0; i < this.animations.length; i++){
+            if (this.animations[i].key === state){
+                if (this.currentAnimation !== null){
+                    this.currentAnimation.currentFrame = 1;
+                    this.currentAnimation.shift = 0;
+                }
+                this.currentAnimation = this.animations[i].value;
             }
-            let canvas = document.getElementById('game_canvas');
-            let context = canvas.getContext('2d');
-            //ctx.drawImage(image, sx, sy, sWidth, sHeight, dx, dy, dWidth, dHeight);
-            context.drawImage(
-                this.image,
-                this.shift, //sourceX
-                0, //sourceY
-                this.frameWidth,
-                this.frameHeight,
-                this.physicsComponent.x,
-                this.physicsComponent.y,
-                this.physicsComponent.width,
-                this.physicsComponent.height
-            );
         }
     }
-    loadImage(){
-        this.image = new Image();
-        this.image.src = this.url;
+    draw(){
+        this.animate();
+        if (typeof window !== 'undefined' && window.document) {
+            if (this.currentAnimation === null) {
+                let canvas = document.getElementById('game_canvas');
+                let context = canvas.getContext('2d');
+                this.image = new Image();
+                this.image.url = this.url;
+                context.drawImage(
+                    this.image,
+                    this.physicsComponent.x,
+                    this.physicsComponent.y,
+                    this.physicsComponent.width,
+                    this.physicsComponent.height
+                );
+            } else {
+                this.currentAnimation.draw();
+            }
+        }
     }
     animate(){
-        if (this.totalFrames > this.currentFrame) {
-            this.shift += this.frameWidth;
-            this.currentFrame += 1;
-        } else {
-            this.shift = 0;
-            this.currentFrame = 1;
+        let newTimestamp = Date.now();
+        if(newTimestamp - this.timeStamp > 250 && this.currentAnimation != null){
+            this.currentAnimation.animate();
+            this.timeStamp = newTimestamp;
         }
     }
  }

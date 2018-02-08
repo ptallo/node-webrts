@@ -5,6 +5,7 @@ var Game = require("../../server/Game.js");
 var GameObject = require('../../server/GameObject.js');
 var PhysicsComponent = require('../../server/component/PhysicsComponent.js');
 var RenderComponent = require('../../server/component/RenderComponent.js');
+var Animation = require('../../server/component/Animation.js');
 
 //Other global variables which need to be expressed
 var canvas = document.getElementById("game_canvas");
@@ -123,6 +124,10 @@ socket.on('update game', function(gameJSON){
         let object = Object.assign(new GameObject, serverGame.gameObjects[i]);
         object.physicsComponent = Object.assign(new PhysicsComponent, object.physicsComponent);
         object.renderComponent = Object.assign(new RenderComponent, object.renderComponent);
+        for (let animation in object.renderComponent.animations){
+            object.renderComponent.animations = Object.assign(new Animation, animation);
+        }
+        object.renderComponent.currentAnimation = Object.assign(new Animation, object.renderComponent.currentAnimation);
         game.gameObjects.push(object);
     }
 });

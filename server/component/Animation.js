@@ -1,10 +1,10 @@
 class Animation {
-    constructor(physicsComponent, url, numberAnimation, frameWidth, frameHeight, totalFrames){
+    constructor(physicsComponent, url, animationNumber, frameWidth, frameHeight, totalFrames){
         this.physicsComponent = physicsComponent;
         this.url = url;
         this.image = null;
         this.shift = 0;
-        this.numberAnimation = numberAnimation;
+        this.animationNumber = animationNumber - 1;
         this.currentFrame = 1;
         this.frameWidth = frameWidth;
         this.frameHeight = frameHeight;
@@ -20,7 +20,7 @@ class Animation {
             context.drawImage(
                 this.image,
                 this.shift,
-                this.numberAnimation * this.frameHeight,
+                this.animationNumber * this.frameHeight,
                 this.frameWidth,
                 this.frameHeight,
                 this.physicsComponent.x,
