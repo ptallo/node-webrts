@@ -11,7 +11,7 @@ class RenderComponent {
         this.timeStamp = Date.now();
     }
     addAnimation(state, frameWidth, frameHeight, animationNumber, totalFrames){
-        let animation = new Animation(this.physicsComponent, this.url, animationNumber, frameWidth, frameHeight, totalFrames);
+        let animation = new Animation(this.physicsComponent, this.url, animationNumber, frameWidth, frameHeight, totalFrames, 3000);
         let animationDictEntry = {
             key : state,
             value : animation
@@ -50,11 +50,7 @@ class RenderComponent {
         }
     }
     animate(){
-        let newTimestamp = Date.now();
-        if(newTimestamp - this.timeStamp > 250 && this.currentAnimation != null){
-            this.currentAnimation.animate();
-            this.timeStamp = newTimestamp;
-        }
+        this.currentAnimation.animate();
     }
  }
  
