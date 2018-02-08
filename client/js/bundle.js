@@ -5,6 +5,8 @@ var socket = io();
 var Game = require("../../server/Game.js");
 var GameObject = require('../../server/GameObject.js');
 var PhysicsComponent = require('../../server/component/PhysicsComponent.js');
+var RenderComponent = require('../../server/component/RenderComponent.js');
+var Animation = require('../../server/component/Animation.js');
 
 //Other global variables which need to be expressed
 var canvas = document.getElementById("game_canvas");
@@ -17,128 +19,60 @@ var mouseDownEvent = null;
 var mouseMoveEvent = null;
 var selectedGameObjects = [];
 
-
-$('body').on('contextmenu', '#game_canvas', function(e){
-    //disabling context menu while right clicking on the canvas
-    return false;
-});
-
 $(document).ready(function () {
     socket.emit('join io room', game_id);
     setInterval(
         function (){
-            drawGame();
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            drawSelectionRect(mouseDownEvent, mouseMoveEvent);
             game.update();
         },
         0
     );
 });
 
-document.addEventListener('mousedown', function(e){
-    let rect = canvas.getBoundingClientRect();
-    mouseDownEvent = e;
-    let mouseDown = {
-        x : mouseDownEvent.pageX - rect.left,
-        y : mouseDownEvent.pageY - rect.top
-    };
-    
-    switch (e.which){
-        case 1:
+var mouseEventHandler = {
+    mousedown : e => {
+        mouseDownEvent = e;
+        let mouseDown = getMouseCoords(mouseDownEvent);
+
+        if (e.which === 1) {
             selectedGameObjects = [];
-            break;
-        case 3:
-            socket.emit(
-                'move objects',
-                JSON.stringify(mouseDown),
-                game_id,
-                JSON.stringify(selectedGameObjects)
-            );
-            
+        } else if (e.which === 3) {
             game.moveObjects(
                 selectedGameObjects,
                 mouseDown
             );
-            break;
-    }
-});
 
-document.addEventListener('mouseup', function(e) {
-    if(mouseDownEvent != null){
-        selectUnits(mouseDownEvent, e);
-    }
-    mouseDownEvent = null;
-});
-
-document.addEventListener('mousemove', function(e){
-    mouseMoveEvent = e;
-});
-
-function drawGame() {
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    drawGameObjects();
-    drawMouse(mouseDownEvent, mouseMoveEvent);
-}
-
-function drawGameObjects(){
-    for (let i = 0; i < game.gameObjects.length; i++) {
-        let gameObject = game.gameObjects[i];
-
-        let inArray = false;
-        for (let j = 0; j < selectedGameObjects.length; j++){
-            let selectedGameObject = selectedGameObjects[j];
-            if(selectedGameObject.id == gameObject.id){
-                inArray = true;
-            }
+            socket.emit(
+                'move objects',
+                game_id,
+                JSON.stringify(mouseDown),
+                JSON.stringify(selectedGameObjects)
+            );
         }
-
-        if (inArray){
-            ctx.fillStyle = '#FF0000';
-        } else{
-            ctx.fillStyle = '#43f7ff';
+    },
+    mousemove : e => {
+        mouseMoveEvent = e;
+    },
+    mouseup : e => {
+        if(mouseDownEvent != null){
+            selectUnits(mouseDownEvent, e);
         }
-
-
-        let x = gameObject.physicsComponent.x;
-        let y = gameObject.physicsComponent.y;
-        let width = gameObject.physicsComponent.width;
-        let height = gameObject.physicsComponent.height;
-        ctx.fillRect(x, y, width, height);
+        mouseDownEvent = null;
+    },
+    contextmenu : e => {
+        return false;
     }
-}
+};
 
-function getMouseRect(mouseDownEvent, mouseUpEvent){
-    let rect = canvas.getBoundingClientRect();
-
-    let mouseDown = {
-        x : mouseDownEvent.pageX - rect.left,
-        y : mouseDownEvent.pageY - rect.top
-    };
-
-    let mouseUp = {
-        x : mouseUpEvent.pageX - rect.left,
-        y : mouseUpEvent.pageY - rect.top
-    };
-
-    let mouseRect = {
-        x : mouseDown.x > mouseUp.x ? mouseUp.x : mouseDown.x,
-        y : mouseDown.y > mouseUp.y ? mouseUp.y : mouseDown.y,
-        width : mouseDown.x > mouseUp.x ? mouseDown.x - mouseUp.x : mouseUp.x - mouseDown.x,
-        height : mouseDown.y > mouseUp.y ? mouseDown.y - mouseUp.y : mouseUp.y - mouseDown.y
-    };
-
-    return mouseRect;
-}
-
-function drawMouse(mouseDownEvent, mouseMoveEvent){
-    if(mouseDownEvent != null && mouseMoveEvent != null && mouseMoveEvent.which == 1){
-        let mouseRect = getMouseRect(mouseDownEvent, mouseMoveEvent);
-        ctx.fillStyle = "#485157";
-        ctx.strokeRect(mouseRect.x, mouseRect.y, mouseRect.width, mouseRect.height);
-    }
-}
+canvas.onmousedown = mouseEventHandler.mousedown;
+canvas.onmousemove = mouseEventHandler.mousemove;
+canvas.onmouseup = mouseEventHandler.mouseup;
+canvas.oncontextmenu = mouseEventHandler.contextmenu;
 
 function selectUnits(mouseDownEvent, mouseUpEvent){
-    let mouseRect = getMouseRect(mouseDownEvent, mouseUpEvent);
+    let mouseRect = getMouseSelectionRect(mouseDownEvent, mouseUpEvent);
 
     for(let i = 0; i < game.gameObjects.length; i++){
         let gameObject = game.gameObjects[i];
@@ -153,17 +87,53 @@ function selectUnits(mouseDownEvent, mouseUpEvent){
     }
 }
 
+function drawSelectionRect(mouseDownEvent, mouseMoveEvent){
+    if(mouseDownEvent != null && mouseMoveEvent != null && mouseMoveEvent.which === 1){
+        let mouseRect = getMouseSelectionRect(mouseDownEvent, mouseMoveEvent);
+        ctx.fillStyle = "#485157";
+        ctx.strokeRect(mouseRect.x, mouseRect.y, mouseRect.width, mouseRect.height);
+    }
+}
+
+function getMouseSelectionRect(mouseDownEvent, mouseUpEvent){
+    let mouseDown = getMouseCoords(mouseDownEvent);
+    let mouseUp = getMouseCoords(mouseUpEvent);
+
+    let mouseRect = {
+        x : Math.min(mouseDown.x , mouseUp.x),
+        y : Math.min(mouseDown.y, mouseUp.y),
+        width : Math.abs(mouseDown.x - mouseUp.x),
+        height : Math.abs(mouseDown.y - mouseUp.y)
+    };
+
+    return mouseRect;
+}
+
+function getMouseCoords(mouseEvent){
+    let rect = canvas.getBoundingClientRect();
+    let mouseCoords = {
+        x : mouseEvent.pageX - rect.left,
+        y : mouseEvent.pageY - rect.top
+    };
+    return mouseCoords;
+}
+
 socket.on('update game', function(gameJSON){
     let serverGame = JSON.parse(gameJSON);
     game.gameObjects = [];
     for(let i = 0; i < serverGame.gameObjects.length; i++) {
         let object = Object.assign(new GameObject, serverGame.gameObjects[i]);
         object.physicsComponent = Object.assign(new PhysicsComponent, object.physicsComponent);
+        object.renderComponent = Object.assign(new RenderComponent, object.renderComponent);
+        for (let animation in object.renderComponent.animations){
+            object.renderComponent.animations = Object.assign(new Animation, animation);
+        }
+        object.renderComponent.currentAnimation = Object.assign(new Animation, object.renderComponent.currentAnimation);
         game.gameObjects.push(object);
     }
 });
 
-},{"../../server/Game.js":12,"../../server/GameObject.js":13,"../../server/component/PhysicsComponent.js":14}],2:[function(require,module,exports){
+},{"../../server/Game.js":12,"../../server/GameObject.js":13,"../../server/component/Animation.js":14,"../../server/component/PhysicsComponent.js":15,"../../server/component/RenderComponent.js":16}],2:[function(require,module,exports){
 'use strict';
 module.exports = require('./lib/index');
 
@@ -502,8 +472,8 @@ class Game{
     constructor(id="none"){
         this.id = id == "none" ? shortid.generate() : id;
         this.gameObjects = [];
-        this.gameObjects.push(new GameObject(20, 20, 40, 40));
-        this.gameObjects.push(new GameObject(80, 80, 100, 20));
+        this.gameObjects.push(new GameObject(20, 20, 64, 64));
+        this.gameObjects.push(new GameObject(200, 200, 32, 32));
     }
     update(){
         for (let i = 0; i < this.gameObjects.length; i++) {
@@ -527,14 +497,21 @@ module.exports = Game;
 'use strict';
 var shortid = require('shortid');
 var PhysicsComponent = require('./component/PhysicsComponent.js');
+var RenderComponent = require('./component/RenderComponent.js');
+var State = require('./component/State.js');
 
 class GameObject{
     constructor(x, y, width, height){
         this.id = shortid.generate();
-        this.physicsComponent = new PhysicsComponent(this.id, x, y, width, height, 200);
+        this.state = State.IDLE;
+        this.physicsComponent = new PhysicsComponent(this.id, x, y, width, height, 100);
+        this.renderComponent = new RenderComponent(this.physicsComponent, 'images/cowboy.png');
+        this.renderComponent.addAnimation(State.IDLE, 32, 32, 1, 7);
+        this.renderComponent.changeState(this.state);
     }
-    update(objects){
-        this.physicsComponent.update(objects);
+    update(gameObjects){
+        this.physicsComponent.update(gameObjects);
+        this.renderComponent.draw();
     }
     updateDestination(x, y){
         this.physicsComponent.updateDestination(x, y);
@@ -542,7 +519,64 @@ class GameObject{
 }
 
 module.exports = GameObject;
-},{"./component/PhysicsComponent.js":14,"shortid":2}],14:[function(require,module,exports){
+},{"./component/PhysicsComponent.js":15,"./component/RenderComponent.js":16,"./component/State.js":17,"shortid":2}],14:[function(require,module,exports){
+class Animation {
+    constructor(physicsComponent, url, animationNumber, frameWidth, frameHeight, totalFrames, interval){
+        this.physicsComponent = physicsComponent;
+        this.url = url;
+        this.image = null;
+        this.shift = 0;
+        this.animationNumber = animationNumber - 1;
+        this.currentFrame = 1;
+        this.frameWidth = frameWidth;
+        this.frameHeight = frameHeight;
+        this.totalFrames = totalFrames;
+        this.timeStamp = Date.now();
+        this.nextAnimationTime = this.timeStamp;
+        this.interval = interval;
+    }
+    draw(){
+        if (typeof window !== 'undefined' && window.document){
+            if (this.image === null){
+                this.loadImage();
+            }
+            let canvas = document.getElementById('game_canvas');
+            let context = canvas.getContext('2d');
+            context.drawImage(
+                this.image,
+                this.shift,
+                this.animationNumber * this.frameHeight,
+                this.frameWidth,
+                this.frameHeight,
+                this.physicsComponent.x,
+                this.physicsComponent.y,
+                this.physicsComponent.width,
+                this.physicsComponent.height
+            );
+        }
+    }
+    animate(){
+        let newTimestamp = Date.now();
+        if(newTimestamp - this.timeStamp > 250 && this.nextAnimationTime < newTimestamp){
+            if (this.currentFrame < this.totalFrames) {
+                this.shift += this.frameWidth;
+                this.currentFrame += 1;
+            } else {
+                this.shift = 0;
+                this.currentFrame = 1;
+                this.nextAnimationTime = newTimestamp + this.interval;
+            }
+            this.timeStamp = newTimestamp;
+        }
+    }
+    loadImage(){
+        this.image = new Image();
+        this.image.src = this.url;
+    }
+}
+
+module.exports = Animation;
+},{}],15:[function(require,module,exports){
 
 
 class PhysicsComponent {
@@ -557,16 +591,16 @@ class PhysicsComponent {
         this.speed = speed;
         this.timeStamp = null;
     }
-    update(objects){
+    update(gameObjects){
         let newRect = this.getNewRect();
-        let collision = this.checkCollision(objects, newRect);
+        let collision = this.checkCollision(gameObjects, newRect);
         if (!collision) {
             this.updatePhysics(newRect);
         }
     }
     calculateDeltaTime(){
         let lastTimeStamp = this.timeStamp;
-        this.timeStamp = Date.now()
+        this.timeStamp = Date.now();
         var dt = this.timeStamp - lastTimeStamp;
         return dt;
     }
@@ -622,14 +656,14 @@ class PhysicsComponent {
         
         return newPosRect;
     }
-    checkCollision(objects, newRect){
-        for (let i = 0; i < objects.length; i++){
-            let object = objects[i];
-            if (this.id != object.id) {
-                if (newRect.x < object.physicsComponent.x + object.physicsComponent.width &&
-                    newRect.x + newRect.width > object.physicsComponent.x &&
-                    newRect.y < object.physicsComponent.y + object.physicsComponent.height &&
-                    newRect.y + newRect.height  > object.physicsComponent.y) {
+    checkCollision(gameObjects, newRect){
+        for (let i = 0; i < gameObjects.length; i++){
+            let gameObject = gameObjects[i];
+            if (this.id != gameObject.id) {
+                if (newRect.x < gameObject.physicsComponent.x + gameObject.physicsComponent.width &&
+                    newRect.x + newRect.width > gameObject.physicsComponent.x &&
+                    newRect.y < gameObject.physicsComponent.y + gameObject.physicsComponent.height &&
+                    newRect.y + newRect.height  > gameObject.physicsComponent.y) {
                     // collision detected!
                     return true;
                 }
@@ -644,4 +678,70 @@ class PhysicsComponent {
 }
 
 module.exports = PhysicsComponent;
+},{}],16:[function(require,module,exports){
+var Animation = require('./Animation.js');
+var State = require('./State.js');
+
+class RenderComponent {
+    constructor(physicsComponent, url){
+        this.image = null;
+        this.url = url;
+        this.physicsComponent = physicsComponent;
+        this.animations = [];
+        this.currentAnimation = null;
+        this.timeStamp = Date.now();
+    }
+    addAnimation(state, frameWidth, frameHeight, animationNumber, totalFrames){
+        let animation = new Animation(this.physicsComponent, this.url, animationNumber, frameWidth, frameHeight, totalFrames, 3000);
+        let animationDictEntry = {
+            key : state,
+            value : animation
+        };
+        this.animations.push(animationDictEntry);
+    }
+    changeState(state){
+        for(let i = 0; i < this.animations.length; i++){
+            if (this.animations[i].key === state){
+                if (this.currentAnimation !== null){
+                    this.currentAnimation.currentFrame = 1;
+                    this.currentAnimation.shift = 0;
+                }
+                this.currentAnimation = this.animations[i].value;
+            }
+        }
+    }
+    draw(){
+        this.animate();
+        if (typeof window !== 'undefined' && window.document) {
+            if (this.currentAnimation === null) {
+                let canvas = document.getElementById('game_canvas');
+                let context = canvas.getContext('2d');
+                this.image = new Image();
+                this.image.url = this.url;
+                context.drawImage(
+                    this.image,
+                    this.physicsComponent.x,
+                    this.physicsComponent.y,
+                    this.physicsComponent.width,
+                    this.physicsComponent.height
+                );
+            } else {
+                this.currentAnimation.draw();
+            }
+        }
+    }
+    animate(){
+        this.currentAnimation.animate();
+    }
+ }
+ 
+ module.exports = RenderComponent;
+},{"./Animation.js":14,"./State.js":17}],17:[function(require,module,exports){
+
+var State = {
+    IDLE : 'idle',
+    WALKING : 'walking'
+};
+
+module.exports = State;
 },{}]},{},[1]);

@@ -9,7 +9,7 @@ var Game = require('./server/Game.js');
 var Player = require('./server/Player.js');
 
 var PORT = 8080;
-var SERVER_TICKRATE = 1000/15;
+var SERVER_TICKRATE = 1000/60;
 
 //Configuration
 app.use(express.static(__dirname + '/client'));
@@ -132,7 +132,7 @@ io.on('connection', function(socket){
     
     //the below functions pertain to running the game
     
-    socket.on('move objects', function (mouseDownJSON, gameId, selectedGameObjectsJSON) {
+    socket.on('move objects', function (gameId, mouseDownJSON, selectedGameObjectsJSON) {
         let mouseDown = JSON.parse(mouseDownJSON);
         let selectedGameObjects = JSON.parse(selectedGameObjectsJSON);
         for (let i = 0; i < games.length; i++){

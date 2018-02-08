@@ -21,7 +21,7 @@ class PhysicsComponent {
     }
     calculateDeltaTime(){
         let lastTimeStamp = this.timeStamp;
-        this.timeStamp = Date.now()
+        this.timeStamp = Date.now();
         var dt = this.timeStamp - lastTimeStamp;
         return dt;
     }
