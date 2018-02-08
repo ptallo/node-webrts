@@ -11,7 +11,7 @@ class Animation {
         this.totalFrames = totalFrames;
         this.timeStamp = Date.now();
         this.nextAnimationTime = this.timeStamp;
-        this.interval = interval;
+        this.interval = interval; //set this to zero if you want to interval
     }
     draw(){
         if (typeof window !== 'undefined' && window.document){
