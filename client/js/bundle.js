@@ -505,8 +505,9 @@ class GameObject{
         this.id = shortid.generate();
         this.state = State.IDLE;
         this.physicsComponent = new PhysicsComponent(this.id, x, y, width, height, 100);
-        this.renderComponent = new RenderComponent(this.physicsComponent, 'images/cowboy.png');
-        this.renderComponent.addAnimation(State.IDLE, 32, 32, 1, 7);
+        this.renderComponent = new RenderComponent(this.physicsComponent, 'images/character.png');
+        this.renderComponent.addAnimation(State.IDLE, 2, 4, 32, 32);
+        this.renderComponent.addAnimation(State.WALKING, 6, 4, 32, 32);
     }
     update(gameObjects){
         this.physicsComponent.update(gameObjects);
@@ -520,19 +521,16 @@ class GameObject{
 module.exports = GameObject;
 },{"./component/PhysicsComponent.js":15,"./component/RenderComponent.js":16,"./component/State.js":17,"shortid":2}],14:[function(require,module,exports){
 class Animation {
-    constructor(physicsComponent, url, animationNumber, frameWidth, frameHeight, totalFrames, interval){
+    constructor(physicsComponent, url, startFrame, totalFrames, frameWidth, frameHeight){
         this.physicsComponent = physicsComponent;
         this.url = url;
         this.image = null;
-        this.shift = 0;
-        this.animationNumber = animationNumber - 1;
-        this.currentFrame = 1;
+        this.startFrame = startFrame - 1;
+        this.currentFrame = startFrame;
+        this.totalFrames = totalFrames;
         this.frameWidth = frameWidth;
         this.frameHeight = frameHeight;
-        this.totalFrames = totalFrames;
         this.timeStamp = Date.now();
-        this.nextAnimationTime = this.timeStamp;
-        this.interval = interval; //set this to zero if you want to interval
     }
     draw(){
         if (typeof window !== 'undefined' && window.document){
@@ -543,8 +541,8 @@ class Animation {
             let context = canvas.getContext('2d');
             context.drawImage(
                 this.image,
-                this.shift,
-                this.animationNumber * this.frameHeight,
+                this.currentFrame * this.frameWidth,
+                0,
                 this.frameWidth,
                 this.frameHeight,
                 this.physicsComponent.x,
@@ -556,14 +554,11 @@ class Animation {
     }
     animate(){
         let newTimestamp = Date.now();
-        if(newTimestamp - this.timeStamp > 250 && this.nextAnimationTime < newTimestamp){
-            if (this.currentFrame < this.totalFrames) {
-                this.shift += this.frameWidth;
+        if (Math.abs(this.timeStamp - newTimestamp) > 250) {
+            if (this.currentFrame < this.startFrame + this.totalFrames - 1) {
                 this.currentFrame += 1;
             } else {
-                this.shift = 0;
-                this.currentFrame = 1;
-                this.nextAnimationTime = newTimestamp + this.interval;
+                this.currentFrame = this.startFrame;
             }
             this.timeStamp = newTimestamp;
         }
@@ -690,8 +685,8 @@ class RenderComponent {
         this.currentAnimation = null;
         this.timeStamp = Date.now();
     }
-    addAnimation(state, frameWidth, frameHeight, animationNumber, totalFrames){
-        let animation = new Animation(this.physicsComponent, this.url, animationNumber, frameWidth, frameHeight, totalFrames, 3000);
+    addAnimation(state, startFrame, totalFrames, frameWidth, frameHeight){
+        let animation = new Animation(this.physicsComponent, this.url, startFrame, totalFrames, frameWidth, frameHeight);
         let animationDictEntry = {
             key : state,
             value : animation

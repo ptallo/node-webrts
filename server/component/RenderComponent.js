@@ -10,8 +10,8 @@ class RenderComponent {
         this.currentAnimation = null;
         this.timeStamp = Date.now();
     }
-    addAnimation(state, frameWidth, frameHeight, animationNumber, totalFrames){
-        let animation = new Animation(this.physicsComponent, this.url, animationNumber, frameWidth, frameHeight, totalFrames, 3000);
+    addAnimation(state, startFrame, totalFrames, frameWidth, frameHeight){
+        let animation = new Animation(this.physicsComponent, this.url, startFrame, totalFrames, frameWidth, frameHeight);
         let animationDictEntry = {
             key : state,
             value : animation

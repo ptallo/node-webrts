@@ -1,17 +1,14 @@
 class Animation {
-    constructor(physicsComponent, url, animationNumber, frameWidth, frameHeight, totalFrames, interval){
+    constructor(physicsComponent, url, startFrame, totalFrames, frameWidth, frameHeight){
         this.physicsComponent = physicsComponent;
         this.url = url;
         this.image = null;
-        this.shift = 0;
-        this.animationNumber = animationNumber - 1;
-        this.currentFrame = 1;
+        this.startFrame = startFrame - 1;
+        this.currentFrame = startFrame;
+        this.totalFrames = totalFrames;
         this.frameWidth = frameWidth;
         this.frameHeight = frameHeight;
-        this.totalFrames = totalFrames;
         this.timeStamp = Date.now();
-        this.nextAnimationTime = this.timeStamp;
-        this.interval = interval; //set this to zero if you want to interval
     }
     draw(){
         if (typeof window !== 'undefined' && window.document){
@@ -22,8 +19,8 @@ class Animation {
             let context = canvas.getContext('2d');
             context.drawImage(
                 this.image,
-                this.shift,
-                this.animationNumber * this.frameHeight,
+                this.currentFrame * this.frameWidth,
+                0,
                 this.frameWidth,
                 this.frameHeight,
                 this.physicsComponent.x,
@@ -35,14 +32,11 @@ class Animation {
     }
     animate(){
         let newTimestamp = Date.now();
-        if(newTimestamp - this.timeStamp > 250 && this.nextAnimationTime < newTimestamp){
-            if (this.currentFrame < this.totalFrames) {
-                this.shift += this.frameWidth;
+        if (Math.abs(this.timeStamp - newTimestamp) > 250) {
+            if (this.currentFrame < this.startFrame + this.totalFrames - 1) {
                 this.currentFrame += 1;
             } else {
-                this.shift = 0;
-                this.currentFrame = 1;
-                this.nextAnimationTime = newTimestamp + this.interval;
+                this.currentFrame = this.startFrame;
             }
             this.timeStamp = newTimestamp;
         }

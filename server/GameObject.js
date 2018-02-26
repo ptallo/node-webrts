@@ -9,8 +9,9 @@ class GameObject{
         this.id = shortid.generate();
         this.state = State.IDLE;
         this.physicsComponent = new PhysicsComponent(this.id, x, y, width, height, 100);
-        this.renderComponent = new RenderComponent(this.physicsComponent, 'images/cowboy.png');
-        this.renderComponent.addAnimation(State.IDLE, 32, 32, 1, 7);
+        this.renderComponent = new RenderComponent(this.physicsComponent, 'images/character.png');
+        this.renderComponent.addAnimation(State.IDLE, 2, 4, 32, 32);
+        this.renderComponent.addAnimation(State.WALKING, 6, 4, 32, 32);
     }
     update(gameObjects){
         this.physicsComponent.update(gameObjects);
