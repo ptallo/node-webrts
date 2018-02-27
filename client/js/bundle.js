@@ -510,12 +510,12 @@ class GameObject{
         this.renderComponent.addAnimation(State.WALKING, 6, 4, 32, 32);
     }
     update(gameObjects){
-        this.physicsComponent.update(gameObjects);
-        this.renderComponent.draw();
         let newState = this.determineState();
         if(this.state !== newState){
             this.setState(newState);
         }
+        this.physicsComponent.update(gameObjects);
+        this.renderComponent.draw();
     }
     updateDestination(x, y){
         this.physicsComponent.updateDestination(x, y);
@@ -546,6 +546,7 @@ class Animation {
         this.frameWidth = frameWidth;
         this.frameHeight = frameHeight;
         this.timeStamp = Date.now();
+        this.changedAnimation = false;
     }
     draw(){
         if (typeof window !== 'undefined' && window.document){
@@ -569,13 +570,16 @@ class Animation {
     }
     animate(){
         let newTimestamp = Date.now();
-        if (Math.abs(this.timeStamp - newTimestamp) > 250) {
+        if (Math.abs(this.timeStamp - newTimestamp) > 250 || this.changedAnimation) {
             if (this.currentFrame < this.startFrame + this.totalFrames - 1) {
                 this.currentFrame += 1;
             } else {
                 this.currentFrame = this.startFrame;
             }
             this.timeStamp = newTimestamp;
+            if (this.changedAnimation){
+                this.changedAnimation = false;
+            }
         }
     }
     loadImage(){
@@ -698,7 +702,6 @@ class RenderComponent {
         this.physicsComponent = physicsComponent;
         this.animations = [];
         this.currentAnimation = null;
-        this.timeStamp = Date.now();
     }
     addAnimation(state, startFrame, totalFrames, frameWidth, frameHeight){
         let animation = new Animation(this.physicsComponent, this.url, startFrame, totalFrames, frameWidth, frameHeight);
@@ -715,21 +718,20 @@ class RenderComponent {
         for(let i = 0; i < this.animations.length; i++){
             if (this.animations[i].key === state){
                 if (this.currentAnimation !== null){
-                    this.currentAnimation.currentFrame = 1;
-                    this.currentAnimation.shift = 0;
+                    this.currentAnimation.currentFrame = this.currentAnimation.startFrame;
                 }
                 this.currentAnimation = this.animations[i].value;
+                this.currentAnimation.changedAnimation = true;
             }
         }
     }
     draw(){
-        this.animate();
+        this.currentAnimation.animate();
         if (typeof window !== 'undefined' && window.document) {
             if (this.currentAnimation === null) {
                 let canvas = document.getElementById('game_canvas');
                 let context = canvas.getContext('2d');
-                this.image = new Image();
-                this.image.url = this.url;
+                this.loadImage();
                 context.drawImage(
                     this.image,
                     this.physicsComponent.x,
@@ -742,8 +744,11 @@ class RenderComponent {
             }
         }
     }
-    animate(){
-        this.currentAnimation.animate();
+    loadImage(){
+        if (this.image === null) {
+            this.image = new Image();
+            this.image.url = this.url;
+        }
     }
  }
  

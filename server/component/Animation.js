@@ -9,6 +9,7 @@ class Animation {
         this.frameWidth = frameWidth;
         this.frameHeight = frameHeight;
         this.timeStamp = Date.now();
+        this.changedAnimation = false;
     }
     draw(){
         if (typeof window !== 'undefined' && window.document){
@@ -32,13 +33,16 @@ class Animation {
     }
     animate(){
         let newTimestamp = Date.now();
-        if (Math.abs(this.timeStamp - newTimestamp) > 250) {
+        if (Math.abs(this.timeStamp - newTimestamp) > 250 || this.changedAnimation) {
             if (this.currentFrame < this.startFrame + this.totalFrames - 1) {
                 this.currentFrame += 1;
             } else {
                 this.currentFrame = this.startFrame;
             }
             this.timeStamp = newTimestamp;
+            if (this.changedAnimation){
+                this.changedAnimation = false;
+            }
         }
     }
     loadImage(){

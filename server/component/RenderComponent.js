@@ -8,7 +8,6 @@ class RenderComponent {
         this.physicsComponent = physicsComponent;
         this.animations = [];
         this.currentAnimation = null;
-        this.timeStamp = Date.now();
     }
     addAnimation(state, startFrame, totalFrames, frameWidth, frameHeight){
         let animation = new Animation(this.physicsComponent, this.url, startFrame, totalFrames, frameWidth, frameHeight);
@@ -25,21 +24,20 @@ class RenderComponent {
         for(let i = 0; i < this.animations.length; i++){
             if (this.animations[i].key === state){
                 if (this.currentAnimation !== null){
-                    this.currentAnimation.currentFrame = 1;
-                    this.currentAnimation.shift = 0;
+                    this.currentAnimation.currentFrame = this.currentAnimation.startFrame;
                 }
                 this.currentAnimation = this.animations[i].value;
+                this.currentAnimation.changedAnimation = true;
             }
         }
     }
     draw(){
-        this.animate();
+        this.currentAnimation.animate();
         if (typeof window !== 'undefined' && window.document) {
             if (this.currentAnimation === null) {
                 let canvas = document.getElementById('game_canvas');
                 let context = canvas.getContext('2d');
-                this.image = new Image();
-                this.image.url = this.url;
+                this.loadImage();
                 context.drawImage(
                     this.image,
                     this.physicsComponent.x,
@@ -52,8 +50,11 @@ class RenderComponent {
             }
         }
     }
-    animate(){
-        this.currentAnimation.animate();
+    loadImage(){
+        if (this.image === null) {
+            this.image = new Image();
+            this.image.url = this.url;
+        }
     }
  }
  

@@ -14,12 +14,12 @@ class GameObject{
         this.renderComponent.addAnimation(State.WALKING, 6, 4, 32, 32);
     }
     update(gameObjects){
-        this.physicsComponent.update(gameObjects);
-        this.renderComponent.draw();
         let newState = this.determineState();
         if(this.state !== newState){
             this.setState(newState);
         }
+        this.physicsComponent.update(gameObjects);
+        this.renderComponent.draw();
     }
     updateDestination(x, y){
         this.physicsComponent.updateDestination(x, y);
