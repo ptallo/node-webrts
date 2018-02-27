@@ -16,9 +16,24 @@ class GameObject{
     update(gameObjects){
         this.physicsComponent.update(gameObjects);
         this.renderComponent.draw();
+        let newState = this.determineState();
+        if(this.state !== newState){
+            this.setState(newState);
+        }
     }
     updateDestination(x, y){
         this.physicsComponent.updateDestination(x, y);
+    }
+    setState(state){
+        this.state = state;
+        this.renderComponent.changeState(state);
+    }
+    determineState(){
+        let state = State.IDLE;
+        if (this.physicsComponent.destX !== this.physicsComponent.x || this.physicsComponent.destY !== this.physicsComponent.y) {
+            state = State.WALKING;
+        }
+        return state;
     }
 }
 
