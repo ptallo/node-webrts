@@ -9,7 +9,7 @@ class Animation {
         this.frameWidth = frameWidth;
         this.frameHeight = frameHeight;
         this.timeStamp = Date.now();
-        this.changedAnimation = false;
+        this.changedAnimation = false; // this is a boolean which will supercede the 250ms timer between animations
     }
     draw(){
         if (typeof window !== 'undefined' && window.document){
