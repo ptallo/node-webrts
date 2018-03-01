@@ -7,6 +7,8 @@ var GameObject = require('../../server/GameObject.js');
 var PhysicsComponent = require('../../server/component/PhysicsComponent.js');
 var RenderComponent = require('../../server/component/RenderComponent.js');
 var Animation = require('../../server/component/Animation.js');
+var Map = require('../../server/Map.js');
+var Tile = require('../../server/Tile.js');
 
 //Other global variables which need to be expressed
 var canvas = document.getElementById("game_canvas");
@@ -131,9 +133,14 @@ socket.on('update game', function(gameJSON){
         object.renderComponent.currentAnimation = Object.assign(new Animation, object.renderComponent.currentAnimation);
         game.gameObjects.push(object);
     }
+    game.map = Object.assign(new Map, game.map);
+    let keysList = Object.keys(game.map.tileDef);
+    for(let i = 0; i < keysList.length; i++){
+        game.map.tileDef[keysList[i]] = Object.assign(new Tile, game.map.tileDef[keysList[i]]);
+    }
 });
 
-},{"../../server/Game.js":12,"../../server/GameObject.js":13,"../../server/component/Animation.js":14,"../../server/component/PhysicsComponent.js":15,"../../server/component/RenderComponent.js":16}],2:[function(require,module,exports){
+},{"../../server/Game.js":12,"../../server/GameObject.js":13,"../../server/Map.js":14,"../../server/Tile.js":15,"../../server/component/Animation.js":16,"../../server/component/PhysicsComponent.js":17,"../../server/component/RenderComponent.js":18}],2:[function(require,module,exports){
 'use strict';
 module.exports = require('./lib/index');
 
@@ -467,15 +474,30 @@ module.exports = 0;
 'use strict';
 var shortid = require('shortid');
 var GameObject = require('./GameObject.js');
+var Map = require('./Map.js');
+var Tile = require('./Tile.js');
 
 class Game{
     constructor(id="none"){
         this.id = id == "none" ? shortid.generate() : id;
         this.gameObjects = [];
-        this.gameObjects.push(new GameObject(20, 20, 64, 64));
-        this.gameObjects.push(new GameObject(200, 200, 32, 32));
+        // this.gameObjects.push(new GameObject(20, 20, 64, 64));
+        // this.gameObjects.push(new GameObject(200, 200, 32, 32));
     }
     update(){
+        if (typeof window !== 'undefined' && window.document) {
+            let canvas = document.getElementById('game_canvas');
+            let context = canvas.getContext('2d');
+            let image = new Image();
+            image.url = 'images/basetile.png';
+            context.drawImage(
+                image,
+                50,
+                50,
+                32,
+                32
+            );
+        }
         for (let i = 0; i < this.gameObjects.length; i++) {
             this.gameObjects[i].update(this.gameObjects);
         }
@@ -493,7 +515,7 @@ class Game{
 
 module.exports = Game;
 
-},{"./GameObject.js":13,"shortid":2}],13:[function(require,module,exports){
+},{"./GameObject.js":13,"./Map.js":14,"./Tile.js":15,"shortid":2}],13:[function(require,module,exports){
 'use strict';
 var shortid = require('shortid');
 var PhysicsComponent = require('./component/PhysicsComponent.js');
@@ -534,7 +556,81 @@ class GameObject{
 }
 
 module.exports = GameObject;
-},{"./component/PhysicsComponent.js":15,"./component/RenderComponent.js":16,"./component/State.js":17,"shortid":2}],14:[function(require,module,exports){
+},{"./component/PhysicsComponent.js":17,"./component/RenderComponent.js":18,"./component/State.js":19,"shortid":2}],14:[function(require,module,exports){
+var Tile = require('./Tile.js');
+
+class Map{
+    constructor(){
+        this.tileHeight = 32;
+        this.tileWidth = 32;
+        this.mapDef = [
+            [1, 1, 1],
+            [1, 1, 1],
+            [1, 1, 1],
+            [1, 1, 1]
+        ];
+        this.tileDef = {
+            1 : new Tile('images/basetile.png', this.tileHeight, this.tileWidth)
+        }
+    }
+    drawMap(){
+        for(let i = 0; i < this.mapDef.length; i++){
+            for(let j = 0; j < this.mapDef[i].length; j++){
+                let point = {};
+                point.x = j * this.tileWidth;
+                point.y = i * this.tileHeight;
+                this.tileDef[this.mapDef[i][j]].drawImage(this.cartToIso(point));
+            }
+        }
+    }
+    isoToCart(point){
+        let cartoPoint = {};
+        cartoPoint.x = (2 * point.x + point.y) / 2;
+        cartoPoint.y = (2 * point.y - point.y) / 2;
+        return cartoPoint;
+    }
+    cartToIso(point){
+        let isoPoint = {};
+        isoPoint.x = point.x - point.y;
+        isoPoint.y = (point.x + point.y) / 2;
+        return isoPoint;
+    }
+}
+
+module.exports = Map;
+},{"./Tile.js":15}],15:[function(require,module,exports){
+
+class Tile {
+    constructor(url, width, height){
+        this.url = url;
+        this.image = null;
+        this.width = width;
+        this.height = height;
+    }
+    drawImage(point){
+        if (typeof window !== 'undefined' && window.document) {
+            let canvas = document.getElementById('game_canvas');
+            let context = canvas.getContext('2d');
+            this.loadImage();
+            context.drawImage(
+                this.image,
+                point.x,
+                point.y,
+                this.width,
+                this.height
+            );
+        }
+    }
+    loadImage(){
+        if (this.image === null) {
+            this.image = new Image();
+            this.image.url = this.url;
+        }
+    }
+}
+
+module.exports = Tile;
+},{}],16:[function(require,module,exports){
 class Animation {
     constructor(physicsComponent, url, startFrame, totalFrames, frameWidth, frameHeight){
         this.physicsComponent = physicsComponent;
@@ -546,7 +642,7 @@ class Animation {
         this.frameWidth = frameWidth;
         this.frameHeight = frameHeight;
         this.timeStamp = Date.now();
-        this.changedAnimation = false;
+        this.changedAnimation = false; // this is a boolean which will supercede the 250ms timer between animations
     }
     draw(){
         if (typeof window !== 'undefined' && window.document){
@@ -589,7 +685,7 @@ class Animation {
 }
 
 module.exports = Animation;
-},{}],15:[function(require,module,exports){
+},{}],17:[function(require,module,exports){
 
 
 class PhysicsComponent {
@@ -691,7 +787,7 @@ class PhysicsComponent {
 }
 
 module.exports = PhysicsComponent;
-},{}],16:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 var Animation = require('./Animation.js');
 var State = require('./State.js');
 
@@ -753,7 +849,7 @@ class RenderComponent {
  }
  
  module.exports = RenderComponent;
-},{"./Animation.js":14,"./State.js":17}],17:[function(require,module,exports){
+},{"./Animation.js":16,"./State.js":19}],19:[function(require,module,exports){
 
 var State = {
     IDLE : 'idle',

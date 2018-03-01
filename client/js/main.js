@@ -6,6 +6,8 @@ var GameObject = require('../../server/GameObject.js');
 var PhysicsComponent = require('../../server/component/PhysicsComponent.js');
 var RenderComponent = require('../../server/component/RenderComponent.js');
 var Animation = require('../../server/component/Animation.js');
+var Map = require('../../server/Map.js');
+var Tile = require('../../server/Tile.js');
 
 //Other global variables which need to be expressed
 var canvas = document.getElementById("game_canvas");
@@ -129,5 +131,10 @@ socket.on('update game', function(gameJSON){
         }
         object.renderComponent.currentAnimation = Object.assign(new Animation, object.renderComponent.currentAnimation);
         game.gameObjects.push(object);
+    }
+    game.map = Object.assign(new Map, game.map);
+    let keysList = Object.keys(game.map.tileDef);
+    for(let i = 0; i < keysList.length; i++){
+        game.map.tileDef[keysList[i]] = Object.assign(new Tile, game.map.tileDef[keysList[i]]);
     }
 });
