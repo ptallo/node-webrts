@@ -5,13 +5,13 @@ class Map{
         this.tileHeight = 32;
         this.tileWidth = 32;
         this.mapDef = [
-            [1, 1, 1],
-            [1, 1, 1],
-            [1, 1, 1],
-            [1, 1, 1]
+            [1, 1, 1, 1, 1, 1, 1],
+            [1, 1, 1, 1, 1, 1, 1],
+            [1, 1, 1, 1, 1, 1, 1],
+            [1, 1, 1, 1, 1, 1, 1]
         ];
         this.tileDef = {
-            1 : new Tile('images/basetile.png', this.tileHeight, this.tileWidth)
+            1 : new Tile('images/basetile2.png')
         }
     }
     drawMap(){
@@ -20,7 +20,9 @@ class Map{
                 let point = {};
                 point.x = j * this.tileWidth;
                 point.y = i * this.tileHeight;
-                this.tileDef[this.mapDef[i][j]].drawImage(this.cartToIso(point));
+                let tileType = this.mapDef[i][j];
+                let tile = this.tileDef[tileType];
+                tile.draw(this.cartToIso(point));
             }
         }
     }

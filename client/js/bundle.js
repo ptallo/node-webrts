@@ -483,10 +483,10 @@ class Game{
         this.gameObjects = [];
         this.gameObjects.push(new GameObject(20, 20, 64, 64));
         this.gameObjects.push(new GameObject(200, 200, 32, 32));
-        this.tile = new Tile('images/basetile.png');
+        this.map = new Map();
     }
     update(){
-        this.tile.draw({x : 100, y : 100});
+        this.map.drawMap();
         for (let i = 0; i < this.gameObjects.length; i++) {
             this.gameObjects[i].update(this.gameObjects);
         }
@@ -556,13 +556,13 @@ class Map{
         this.tileHeight = 32;
         this.tileWidth = 32;
         this.mapDef = [
-            [1, 1, 1],
-            [1, 1, 1],
-            [1, 1, 1],
-            [1, 1, 1]
+            [1, 1, 1, 1, 1, 1, 1],
+            [1, 1, 1, 1, 1, 1, 1],
+            [1, 1, 1, 1, 1, 1, 1],
+            [1, 1, 1, 1, 1, 1, 1]
         ];
         this.tileDef = {
-            1 : new Tile('images/basetile.png', this.tileHeight, this.tileWidth)
+            1 : new Tile('images/basetile2.png')
         }
     }
     drawMap(){
@@ -571,7 +571,9 @@ class Map{
                 let point = {};
                 point.x = j * this.tileWidth;
                 point.y = i * this.tileHeight;
-                this.tileDef[this.mapDef[i][j]].drawImage(this.cartToIso(point));
+                let tileType = this.mapDef[i][j];
+                let tile = this.tileDef[tileType];
+                tile.draw(this.cartToIso(point));
             }
         }
     }
