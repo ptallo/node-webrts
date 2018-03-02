@@ -8,6 +8,9 @@ class Map{
             [1, 1, 1, 1, 1, 1, 1],
             [1, 1, 1, 1, 1, 1, 1],
             [1, 1, 1, 1, 1, 1, 1],
+            [1, 1, 1, 1, 1, 1, 1],
+            [1, 1, 1, 1, 1, 1, 1],
+            [1, 1, 1, 1, 1, 1, 1],
             [1, 1, 1, 1, 1, 1, 1]
         ];
         this.tileDef = {
@@ -22,17 +25,17 @@ class Map{
                 point.y = i * this.tileHeight;
                 let tileType = this.mapDef[i][j];
                 let tile = this.tileDef[tileType];
-                tile.draw(this.cartToIso(point));
+                tile.draw(this.twoDToIso(point));
             }
         }
     }
-    isoToCart(point){
+    isoToTwoD(point){
         let cartoPoint = {};
         cartoPoint.x = (2 * point.x + point.y) / 2;
         cartoPoint.y = (2 * point.y - point.y) / 2;
         return cartoPoint;
     }
-    cartToIso(point){
+    twoDToIso(point){
         let isoPoint = {};
         isoPoint.x = point.x - point.y;
         isoPoint.y = (point.x + point.y) / 2;
