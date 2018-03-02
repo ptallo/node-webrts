@@ -26,8 +26,8 @@ $(document).ready(function () {
     setInterval(
         function (){
             ctx.clearRect(0, 0, canvas.width, canvas.height);
-            drawSelectionRect(mouseDownEvent, mouseMoveEvent);
             game.update();
+            drawSelectionRect(mouseDownEvent, mouseMoveEvent);
         },
         0
     );
