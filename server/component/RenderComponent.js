@@ -52,7 +52,7 @@ class RenderComponent {
     loadImage(){
         if (this.image === null) {
             this.image = new Image();
-            this.image.url = this.url;
+            this.image.src = this.url;
         }
     }
  }

@@ -483,8 +483,10 @@ class Game{
         this.gameObjects = [];
         this.gameObjects.push(new GameObject(20, 20, 64, 64));
         this.gameObjects.push(new GameObject(200, 200, 32, 32));
+        this.tile = new Tile('images/basetile.png');
     }
     update(){
+        this.tile.draw({x : 100, y : 100});
         for (let i = 0; i < this.gameObjects.length; i++) {
             this.gameObjects[i].update(this.gameObjects);
         }
@@ -589,38 +591,19 @@ class Map{
 
 module.exports = Map;
 },{"./Tile.js":15}],15:[function(require,module,exports){
+var RenderComponent = require('./component/RenderComponent.js');
 
 class Tile {
-    constructor(url, width, height){
-        this.url = url;
-        this.image = null;
-        this.width = width;
-        this.height = height;
+    constructor(url){
+        this.renderComponent = new RenderComponent(url);
     }
-    drawImage(point){
-        if (typeof window !== 'undefined' && window.document) {
-            let canvas = document.getElementById('game_canvas');
-            let context = canvas.getContext('2d');
-            this.loadImage();
-            context.drawImage(
-                this.image,
-                point.x,
-                point.y,
-                this.width,
-                this.height
-            );
-        }
-    }
-    loadImage(){
-        if (this.image === null) {
-            this.image = new Image();
-            this.image.url = this.url;
-        }
+    draw(point){
+        this.renderComponent.draw(point);
     }
 }
 
 module.exports = Tile;
-},{}],16:[function(require,module,exports){
+},{"./component/RenderComponent.js":18}],16:[function(require,module,exports){
 class Animation {
     constructor(url, startFrame, totalFrames, frameWidth, frameHeight){
         this.url = url;
@@ -810,7 +793,9 @@ class RenderComponent {
         }
     }
     draw(point){
-        this.currentAnimation.animate();
+        if (this.currentAnimation !== null) {
+            this.currentAnimation.animate();
+        }
         if (typeof window !== 'undefined' && window.document) {
             if (this.currentAnimation === null) {
                 let canvas = document.getElementById('game_canvas');
@@ -831,7 +816,7 @@ class RenderComponent {
     loadImage(){
         if (this.image === null) {
             this.image = new Image();
-            this.image.url = this.url;
+            this.image.src = this.url;
         }
     }
  }
