@@ -31,7 +31,9 @@ class RenderComponent {
         }
     }
     draw(point){
-        this.currentAnimation.animate();
+        if (this.currentAnimation !== null) {
+            this.currentAnimation.animate();
+        }
         if (typeof window !== 'undefined' && window.document) {
             if (this.currentAnimation === null) {
                 let canvas = document.getElementById('game_canvas');
