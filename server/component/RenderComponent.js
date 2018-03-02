@@ -2,15 +2,14 @@ var Animation = require('./Animation.js');
 var State = require('./State.js');
 
 class RenderComponent {
-    constructor(physicsComponent, url){
+    constructor(url){
         this.image = null;
         this.url = url;
-        this.physicsComponent = physicsComponent;
         this.animations = [];
         this.currentAnimation = null;
     }
     addAnimation(state, startFrame, totalFrames, frameWidth, frameHeight){
-        let animation = new Animation(this.physicsComponent, this.url, startFrame, totalFrames, frameWidth, frameHeight);
+        let animation = new Animation(this.url, startFrame, totalFrames, frameWidth, frameHeight);
         let animationDictEntry = {
             key : state,
             value : animation
@@ -31,7 +30,7 @@ class RenderComponent {
             }
         }
     }
-    draw(){
+    draw(point){
         this.currentAnimation.animate();
         if (typeof window !== 'undefined' && window.document) {
             if (this.currentAnimation === null) {
@@ -40,13 +39,13 @@ class RenderComponent {
                 this.loadImage();
                 context.drawImage(
                     this.image,
-                    this.physicsComponent.x,
-                    this.physicsComponent.y,
-                    this.physicsComponent.width,
-                    this.physicsComponent.height
+                    point.x,
+                    point.y,
+                    this.image.width,
+                    this.image.height
                 );
             } else {
-                this.currentAnimation.draw();
+                this.currentAnimation.draw(point);
             }
         }
     }

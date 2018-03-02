@@ -481,23 +481,10 @@ class Game{
     constructor(id="none"){
         this.id = id == "none" ? shortid.generate() : id;
         this.gameObjects = [];
-        // this.gameObjects.push(new GameObject(20, 20, 64, 64));
-        // this.gameObjects.push(new GameObject(200, 200, 32, 32));
+        this.gameObjects.push(new GameObject(20, 20, 64, 64));
+        this.gameObjects.push(new GameObject(200, 200, 32, 32));
     }
     update(){
-        if (typeof window !== 'undefined' && window.document) {
-            let canvas = document.getElementById('game_canvas');
-            let context = canvas.getContext('2d');
-            let image = new Image();
-            image.url = 'images/basetile.png';
-            context.drawImage(
-                image,
-                50,
-                50,
-                32,
-                32
-            );
-        }
         for (let i = 0; i < this.gameObjects.length; i++) {
             this.gameObjects[i].update(this.gameObjects);
         }
@@ -527,7 +514,7 @@ class GameObject{
         this.id = shortid.generate();
         this.state = State.IDLE;
         this.physicsComponent = new PhysicsComponent(this.id, x, y, width, height, 100);
-        this.renderComponent = new RenderComponent(this.physicsComponent, 'images/character.png');
+        this.renderComponent = new RenderComponent('images/character.png');
         this.renderComponent.addAnimation(State.IDLE, 2, 4, 32, 32);
         this.renderComponent.addAnimation(State.WALKING, 6, 4, 32, 32);
     }
@@ -537,7 +524,10 @@ class GameObject{
             this.setState(newState);
         }
         this.physicsComponent.update(gameObjects);
-        this.renderComponent.draw();
+        let point = {};
+        point.x = this.physicsComponent.x;
+        point.y = this.physicsComponent.y;
+        this.renderComponent.draw(point);
     }
     updateDestination(x, y){
         this.physicsComponent.updateDestination(x, y);
@@ -632,8 +622,7 @@ class Tile {
 module.exports = Tile;
 },{}],16:[function(require,module,exports){
 class Animation {
-    constructor(physicsComponent, url, startFrame, totalFrames, frameWidth, frameHeight){
-        this.physicsComponent = physicsComponent;
+    constructor(url, startFrame, totalFrames, frameWidth, frameHeight){
         this.url = url;
         this.image = null;
         this.startFrame = startFrame - 1;
@@ -644,7 +633,7 @@ class Animation {
         this.timeStamp = Date.now();
         this.changedAnimation = false; // this is a boolean which will supercede the 250ms timer between animations
     }
-    draw(){
+    draw(point){
         if (typeof window !== 'undefined' && window.document){
             if (this.image === null){
                 this.loadImage();
@@ -657,10 +646,10 @@ class Animation {
                 0,
                 this.frameWidth,
                 this.frameHeight,
-                this.physicsComponent.x,
-                this.physicsComponent.y,
-                this.physicsComponent.width,
-                this.physicsComponent.height
+                point.x,
+                point.y,
+                this.frameWidth,
+                this.frameHeight
             );
         }
     }
@@ -792,15 +781,14 @@ var Animation = require('./Animation.js');
 var State = require('./State.js');
 
 class RenderComponent {
-    constructor(physicsComponent, url){
+    constructor(url){
         this.image = null;
         this.url = url;
-        this.physicsComponent = physicsComponent;
         this.animations = [];
         this.currentAnimation = null;
     }
     addAnimation(state, startFrame, totalFrames, frameWidth, frameHeight){
-        let animation = new Animation(this.physicsComponent, this.url, startFrame, totalFrames, frameWidth, frameHeight);
+        let animation = new Animation(this.url, startFrame, totalFrames, frameWidth, frameHeight);
         let animationDictEntry = {
             key : state,
             value : animation
@@ -821,7 +809,7 @@ class RenderComponent {
             }
         }
     }
-    draw(){
+    draw(point){
         this.currentAnimation.animate();
         if (typeof window !== 'undefined' && window.document) {
             if (this.currentAnimation === null) {
@@ -830,13 +818,13 @@ class RenderComponent {
                 this.loadImage();
                 context.drawImage(
                     this.image,
-                    this.physicsComponent.x,
-                    this.physicsComponent.y,
-                    this.physicsComponent.width,
-                    this.physicsComponent.height
+                    point.x,
+                    point.y,
+                    this.image.width,
+                    this.image.height
                 );
             } else {
-                this.currentAnimation.draw();
+                this.currentAnimation.draw(point);
             }
         }
     }
