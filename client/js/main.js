@@ -68,17 +68,17 @@ var mouseEventHandler = {
             x : 0,
             y : 0
         };
-        if(mouseCoords.x < distanceFromWindow){
+        if(mouseCoords.x < distanceFromWindow - totalTranslate.x){
             transform.x = 1;
-        } else if (mouseCoords.x > canvas.width - distanceFromWindow){
+        } else if (mouseCoords.x> canvas.width - distanceFromWindow - totalTranslate.x){
             transform.x = -1;
         } else {
             transform.x = 0;
         }
     
-        if(mouseCoords.y < distanceFromWindow){
+        if(mouseCoords.y < distanceFromWindow - totalTranslate.y ){
             transform.y = 1;
-        } else if (mouseCoords.y > canvas.height - distanceFromWindow){
+        } else if (mouseCoords.y > canvas.height - distanceFromWindow - totalTranslate.y){
             transform.y = -1;
         } else {
             transform.y = 0;
@@ -87,10 +87,6 @@ var mouseEventHandler = {
         ctx.translate(transform.x, transform.y);
         totalTranslate.x += transform.x;
         totalTranslate.y += transform.y;
-        $('#test1').text('total translate: ' +  JSON.stringify(totalTranslate));
-        //if mousePos is close to the edge of the canvas
-            //updateShift depending on which side its close to
-            //send node call to updateShift to server
     },
     mouseup : e => {
         if(mouseDownEvent != null){
@@ -149,8 +145,8 @@ function getMouseSelectionRect(mouseDownEvent, mouseUpEvent){
 function getMouseCoords(mouseEvent){
     let rect = canvas.getBoundingClientRect();
     let mouseCoords = {
-        x : mouseEvent.pageX - rect.left,
-        y : mouseEvent.pageY - rect.top
+        x : mouseEvent.pageX - rect.left - totalTranslate.x,
+        y : mouseEvent.pageY - rect.top - totalTranslate.y
     };
     return mouseCoords;
 }
