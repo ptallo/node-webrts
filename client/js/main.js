@@ -16,15 +16,22 @@ var game_id = sessionStorage.getItem('game_id');
 
 var game = new Game(game_id);
 
+var totalTranslate = {
+    x : 0,
+    y : 0
+};
+
 var mouseDownEvent = null;
 var mouseMoveEvent = null;
 var selectedGameObjects = [];
+
+var distanceFromWindow = 50; //mouse distance away from the window that will cause the window to move
 
 $(document).ready(function () {
     socket.emit('join io room', game_id);
     setInterval(
         function (){
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.clearRect(-totalTranslate.x, -totalTranslate.y, canvas.width, canvas.height);
             game.update();
             drawSelectionRect(mouseDownEvent, mouseMoveEvent);
         },
@@ -55,6 +62,35 @@ var mouseEventHandler = {
     },
     mousemove : e => {
         mouseMoveEvent = e;
+        
+        let mouseCoords = getMouseCoords(e);
+        let transform = {
+            x : 0,
+            y : 0
+        };
+        if(mouseCoords.x < distanceFromWindow){
+            transform.x = 1;
+        } else if (mouseCoords.x > canvas.width - distanceFromWindow){
+            transform.x = -1;
+        } else {
+            transform.x = 0;
+        }
+    
+        if(mouseCoords.y < distanceFromWindow){
+            transform.y = 1;
+        } else if (mouseCoords.y > canvas.height - distanceFromWindow){
+            transform.y = -1;
+        } else {
+            transform.y = 0;
+        }
+        
+        ctx.translate(transform.x, transform.y);
+        totalTranslate.x += transform.x;
+        totalTranslate.y += transform.y;
+        $('#test1').text('total translate: ' +  JSON.stringify(totalTranslate));
+        //if mousePos is close to the edge of the canvas
+            //updateShift depending on which side its close to
+            //send node call to updateShift to server
     },
     mouseup : e => {
         if(mouseDownEvent != null){
