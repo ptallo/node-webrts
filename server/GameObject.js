@@ -13,12 +13,14 @@ class GameObject{
         this.renderComponent.addAnimation(State.IDLE, 2, 4, 32, 32);
         this.renderComponent.addAnimation(State.WALKING, 6, 4, 32, 32);
     }
-    update(gameObjects){
+    update(gameObjects, map){
         let newState = this.determineState();
-        if(this.state !== newState){
+        if (this.state !== newState){
             this.setState(newState);
         }
-        this.physicsComponent.update(gameObjects);
+
+        this.physicsComponent.update(gameObjects, map);
+
         let point = {};
         point.x = this.physicsComponent.x;
         point.y = this.physicsComponent.y;

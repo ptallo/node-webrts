@@ -553,7 +553,7 @@ class Game{
     update(){
         this.map.drawMap();
         for (let i = 0; i < this.gameObjects.length; i++) {
-            this.gameObjects[i].update(this.gameObjects);
+            this.gameObjects[i].update(this.gameObjects, this.map);
         }
     }
     moveObjects(objects, mouseCoords){
@@ -585,12 +585,14 @@ class GameObject{
         this.renderComponent.addAnimation(State.IDLE, 2, 4, 32, 32);
         this.renderComponent.addAnimation(State.WALKING, 6, 4, 32, 32);
     }
-    update(gameObjects){
+    update(gameObjects, map){
         let newState = this.determineState();
-        if(this.state !== newState){
+        if (this.state !== newState){
             this.setState(newState);
         }
-        this.physicsComponent.update(gameObjects);
+
+        this.physicsComponent.update(gameObjects, map);
+
         let point = {};
         point.x = this.physicsComponent.x;
         point.y = this.physicsComponent.y;
@@ -623,10 +625,10 @@ class Map{
         this.mapDef = [
             [1, 1, 1, 1, 1, 1, 1],
             [1, 2, 1, 1, 3, 3, 1],
-            [1, 2, 1, 1, 3, 3, 1],
+            [1, 2, 2, 1, 3, 3, 1],
             [1, 2, 1, 1, 1, 1, 1],
             [1, 2, 2, 2, 1, 1, 1],
-            [1, 1, 1, 1, 1, 1, 1],
+            [1, 2, 1, 1, 1, 1, 1],
             [1, 1, 1, 1, 1, 1, 1]
         ];
         this.tileDef = {
@@ -658,6 +660,18 @@ class Map{
         isoPoint.x = point.x - point.y;
         isoPoint.y = (point.x + point.y) / 2;
         return isoPoint;
+    }
+    getTileAtPoint(isoPoint){
+
+    }
+    checkMovable(rect){
+        let point = {
+            x : rect.x,
+            y : rect.y
+        };
+
+        let isoPoint = this.twoDToIso(point);
+        let tile = this.getTileAtPoint(isoPoint)
     }
 }
 
@@ -746,9 +760,12 @@ class PhysicsComponent {
         this.speed = speed;
         this.timeStamp = null;
     }
-    update(gameObjects){
+    update(gameObjects, map){
         let newRect = this.getNewRect();
         let collision = this.checkCollision(gameObjects, newRect);
+        if (!collision){
+            map.checkMovable(newRect);
+        }
         if (!collision) {
             this.updatePhysics(newRect);
         }

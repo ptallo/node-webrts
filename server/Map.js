@@ -7,10 +7,10 @@ class Map{
         this.mapDef = [
             [1, 1, 1, 1, 1, 1, 1],
             [1, 2, 1, 1, 3, 3, 1],
-            [1, 2, 1, 1, 3, 3, 1],
+            [1, 2, 2, 1, 3, 3, 1],
             [1, 2, 1, 1, 1, 1, 1],
             [1, 2, 2, 2, 1, 1, 1],
-            [1, 1, 1, 1, 1, 1, 1],
+            [1, 2, 1, 1, 1, 1, 1],
             [1, 1, 1, 1, 1, 1, 1]
         ];
         this.tileDef = {
@@ -42,6 +42,18 @@ class Map{
         isoPoint.x = point.x - point.y;
         isoPoint.y = (point.x + point.y) / 2;
         return isoPoint;
+    }
+    getTileAtPoint(point){
+
+    }
+    checkMovable(rect){
+        let point = {
+            x : rect.x,
+            y : rect.y
+        };
+
+        let isoPoint = this.twoDToIso(point);
+        let tile = this.getTileAtPoint(isoPoint)
     }
 }
 

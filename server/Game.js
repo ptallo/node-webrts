@@ -15,7 +15,7 @@ class Game{
     update(){
         this.map.drawMap();
         for (let i = 0; i < this.gameObjects.length; i++) {
-            this.gameObjects[i].update(this.gameObjects);
+            this.gameObjects[i].update(this.gameObjects, this.map);
         }
     }
     moveObjects(objects, mouseCoords){
