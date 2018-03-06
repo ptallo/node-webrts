@@ -21,6 +21,11 @@ var totalTranslate = {
     y : 0
 };
 
+var translateOn = {
+    x : false,
+    y : false
+};
+
 var mouseDownEvent = null;
 var mouseMoveEvent = null;
 var selectedGameObjects = [];
@@ -31,6 +36,7 @@ $(document).ready(function () {
     socket.emit('join io room', game_id);
     setInterval(
         function (){
+            translateCanvas();
             ctx.clearRect(-totalTranslate.x, -totalTranslate.y, canvas.width, canvas.height);
             game.update();
             drawSelectionRect(mouseDownEvent, mouseMoveEvent);
@@ -62,31 +68,7 @@ var mouseEventHandler = {
     },
     mousemove : e => {
         mouseMoveEvent = e;
-        
-        let mouseCoords = getMouseCoords(e);
-        let transform = {
-            x : 0,
-            y : 0
-        };
-        if(mouseCoords.x < distanceFromWindow - totalTranslate.x){
-            transform.x = 1;
-        } else if (mouseCoords.x> canvas.width - distanceFromWindow - totalTranslate.x){
-            transform.x = -1;
-        } else {
-            transform.x = 0;
-        }
-    
-        if(mouseCoords.y < distanceFromWindow - totalTranslate.y ){
-            transform.y = 1;
-        } else if (mouseCoords.y > canvas.height - distanceFromWindow - totalTranslate.y){
-            transform.y = -1;
-        } else {
-            transform.y = 0;
-        }
-        
-        ctx.translate(transform.x, transform.y);
-        totalTranslate.x += transform.x;
-        totalTranslate.y += transform.y;
+        checkTranslateCanvas(mouseMoveEvent);
     },
     mouseup : e => {
         if(mouseDownEvent != null){
@@ -103,6 +85,57 @@ canvas.onmousedown = mouseEventHandler.mousedown;
 canvas.onmousemove = mouseEventHandler.mousemove;
 canvas.onmouseup = mouseEventHandler.mouseup;
 canvas.oncontextmenu = mouseEventHandler.contextmenu;
+
+function checkTranslateCanvas(e){
+    let mouseCoords = getMouseCoords(e);
+
+    let translate = {
+        x : false,
+        y: false
+    };
+
+    if(mouseCoords.x < distanceFromWindow - totalTranslate.x || mouseCoords.x> canvas.width - distanceFromWindow - totalTranslate.x){
+        translate.x = true;
+    } else {
+        translate.x = false;
+    }
+
+    if(mouseCoords.y < distanceFromWindow - totalTranslate.y || mouseCoords.y > canvas.height - distanceFromWindow - totalTranslate.y){
+        translate.y = true;
+    } else {
+        translate.y = false;
+    }
+
+    translateOn = translate;
+}
+
+function translateCanvas(){
+    let mouseCoords = getMouseCoords(mouseMoveEvent);
+    let translate = {
+        x : 0,
+        y : 0
+    };
+
+    if(mouseCoords.x < distanceFromWindow - totalTranslate.x){
+        translate.x = 1;
+    } else if (mouseCoords.x> canvas.width - distanceFromWindow - totalTranslate.x) {
+        translate.x = -1;
+    } else {
+        translate.x = 0;
+    }
+
+    if(mouseCoords.y < distanceFromWindow - totalTranslate.y){
+        translate.y = 1;
+    } else if (mouseCoords.y > canvas.height - distanceFromWindow - totalTranslate.y) {
+        translate.y = -1;
+    } else {
+        translate.y = 0;
+    }
+
+    ctx.translate(translate.x, translate.y);
+    totalTranslate.x += translate.x;
+    totalTranslate.y = translate.y;
+}
 
 function selectUnits(mouseDownEvent, mouseUpEvent){
     let mouseRect = getMouseSelectionRect(mouseDownEvent, mouseUpEvent);
