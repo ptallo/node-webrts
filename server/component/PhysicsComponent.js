@@ -15,9 +15,6 @@ class PhysicsComponent {
     update(gameObjects, map){
         let newRect = this.getNewRect();
         let collision = this.checkCollision(gameObjects, newRect);
-        if (!collision){
-            map.checkMovable(newRect);
-        }
         if (!collision) {
             this.updatePhysics(newRect);
         }
