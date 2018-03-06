@@ -661,8 +661,15 @@ class Map{
         isoPoint.y = (point.x + point.y) / 2;
         return isoPoint;
     }
-    getTileAtPoint(isoPoint){
-
+    getTileAtIsoPoint(point){
+        let wIndex = Math.floor(point.x / this.tileWidth);
+        let hIndex = Math.floor(point.y / this.tileHeight);
+        let tile = this.mapDef[hIndex][wIndex];
+        return tile;
+    }
+    getTileAtOrthoPoint(point){
+        let isoPoint = this.twoDToIso(point);
+        return this.getTileAtIsoPoint(isoPoint);
     }
     checkMovable(rect){
         let point = {
@@ -671,7 +678,9 @@ class Map{
         };
 
         let isoPoint = this.twoDToIso(point);
-        let tile = this.getTileAtPoint(isoPoint)
+        let tile = this.getTileAtIsoPoint(isoPoint);
+        
+        return tile.isMovable;
     }
 }
 
