@@ -135,7 +135,7 @@ function translateCanvas(){
 
     ctx.translate(translate.x, translate.y);
     totalTranslate.x += translate.x;
-    totalTranslate.y = translate.y;
+    totalTranslate.y += translate.y;
 }
 
 function selectUnits(mouseDownEvent, mouseUpEvent){
