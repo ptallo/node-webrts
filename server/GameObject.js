@@ -9,17 +9,22 @@ class GameObject{
         this.id = shortid.generate();
         this.state = State.IDLE;
         this.physicsComponent = new PhysicsComponent(this.id, x, y, width, height, 100);
-        this.renderComponent = new RenderComponent(this.physicsComponent, 'images/character.png');
+        this.renderComponent = new RenderComponent('images/character.png');
         this.renderComponent.addAnimation(State.IDLE, 2, 4, 32, 32);
         this.renderComponent.addAnimation(State.WALKING, 6, 4, 32, 32);
     }
-    update(gameObjects){
+    update(gameObjects, map){
         let newState = this.determineState();
-        if(this.state !== newState){
+        if (this.state !== newState){
             this.setState(newState);
         }
-        this.physicsComponent.update(gameObjects);
-        this.renderComponent.draw();
+
+        this.physicsComponent.update(gameObjects, map);
+
+        let point = {};
+        point.x = this.physicsComponent.x;
+        point.y = this.physicsComponent.y;
+        this.renderComponent.draw(point);
     }
     updateDestination(x, y){
         this.physicsComponent.updateDestination(x, y);

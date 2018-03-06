@@ -2,15 +2,14 @@ var Animation = require('./Animation.js');
 var State = require('./State.js');
 
 class RenderComponent {
-    constructor(physicsComponent, url){
+    constructor(url){
         this.image = null;
         this.url = url;
-        this.physicsComponent = physicsComponent;
         this.animations = [];
         this.currentAnimation = null;
     }
     addAnimation(state, startFrame, totalFrames, frameWidth, frameHeight){
-        let animation = new Animation(this.physicsComponent, this.url, startFrame, totalFrames, frameWidth, frameHeight);
+        let animation = new Animation(this.url, startFrame, totalFrames, frameWidth, frameHeight);
         let animationDictEntry = {
             key : state,
             value : animation
@@ -31,8 +30,10 @@ class RenderComponent {
             }
         }
     }
-    draw(){
-        this.currentAnimation.animate();
+    draw(point){
+        if (this.currentAnimation !== null) {
+            this.currentAnimation.animate();
+        }
         if (typeof window !== 'undefined' && window.document) {
             if (this.currentAnimation === null) {
                 let canvas = document.getElementById('game_canvas');
@@ -40,20 +41,20 @@ class RenderComponent {
                 this.loadImage();
                 context.drawImage(
                     this.image,
-                    this.physicsComponent.x,
-                    this.physicsComponent.y,
-                    this.physicsComponent.width,
-                    this.physicsComponent.height
+                    point.x,
+                    point.y,
+                    this.image.width,
+                    this.image.height
                 );
             } else {
-                this.currentAnimation.draw();
+                this.currentAnimation.draw(point);
             }
         }
     }
     loadImage(){
         if (this.image === null) {
             this.image = new Image();
-            this.image.url = this.url;
+            this.image.src = this.url;
         }
     }
  }

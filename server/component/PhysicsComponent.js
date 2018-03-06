@@ -12,7 +12,7 @@ class PhysicsComponent {
         this.speed = speed;
         this.timeStamp = null;
     }
-    update(gameObjects){
+    update(gameObjects, map){
         let newRect = this.getNewRect();
         let collision = this.checkCollision(gameObjects, newRect);
         if (!collision) {

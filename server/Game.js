@@ -1,6 +1,8 @@
 'use strict';
 var shortid = require('shortid');
 var GameObject = require('./GameObject.js');
+var Map = require('./Map.js');
+var Tile = require('./Tile.js');
 
 class Game{
     constructor(id="none"){
@@ -8,10 +10,12 @@ class Game{
         this.gameObjects = [];
         this.gameObjects.push(new GameObject(20, 20, 64, 64));
         this.gameObjects.push(new GameObject(200, 200, 32, 32));
+        this.map = new Map();
     }
     update(){
+        this.map.drawMap();
         for (let i = 0; i < this.gameObjects.length; i++) {
-            this.gameObjects[i].update(this.gameObjects);
+            this.gameObjects[i].update(this.gameObjects, this.map);
         }
     }
     moveObjects(objects, mouseCoords){

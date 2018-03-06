@@ -1,6 +1,5 @@
 class Animation {
-    constructor(physicsComponent, url, startFrame, totalFrames, frameWidth, frameHeight){
-        this.physicsComponent = physicsComponent;
+    constructor(url, startFrame, totalFrames, frameWidth, frameHeight){
         this.url = url;
         this.image = null;
         this.startFrame = startFrame - 1;
@@ -11,7 +10,7 @@ class Animation {
         this.timeStamp = Date.now();
         this.changedAnimation = false; // this is a boolean which will supercede the 250ms timer between animations
     }
-    draw(){
+    draw(point){
         if (typeof window !== 'undefined' && window.document){
             if (this.image === null){
                 this.loadImage();
@@ -24,10 +23,10 @@ class Animation {
                 0,
                 this.frameWidth,
                 this.frameHeight,
-                this.physicsComponent.x,
-                this.physicsComponent.y,
-                this.physicsComponent.width,
-                this.physicsComponent.height
+                point.x,
+                point.y,
+                this.frameWidth,
+                this.frameHeight
             );
         }
     }
