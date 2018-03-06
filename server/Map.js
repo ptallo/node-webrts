@@ -2,19 +2,21 @@ var Tile = require('./Tile.js');
 
 class Map{
     constructor(){
-        this.tileHeight = 32;
-        this.tileWidth = 32;
+        this.tileHeight = 64;
+        this.tileWidth = 64;
         this.mapDef = [
             [1, 1, 1, 1, 1, 1, 1],
-            [1, 1, 1, 1, 1, 1, 1],
-            [1, 1, 1, 1, 1, 1, 1],
-            [1, 1, 1, 1, 1, 1, 1],
-            [1, 1, 1, 1, 1, 1, 1],
+            [1, 2, 1, 1, 3, 3, 1],
+            [1, 2, 1, 1, 3, 3, 1],
+            [1, 2, 1, 1, 1, 1, 1],
+            [1, 2, 2, 2, 1, 1, 1],
             [1, 1, 1, 1, 1, 1, 1],
             [1, 1, 1, 1, 1, 1, 1]
         ];
         this.tileDef = {
-            1 : new Tile('images/basetile2.png')
+            1 : new Tile('images/grasstile.png', true, true),
+            2 : new Tile('images/sandtile.png', false, true),
+            3 : new Tile('images/swamp.png', false, false)
         }
     }
     drawMap(){
