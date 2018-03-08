@@ -771,12 +771,12 @@ class PhysicsComponent {
         }
     }
     getNewCircle(){
-        let distance = Math.sqrt(Math.pow(this.destX - this.x, 2) + Math.pow(this.destY - this.y, 2));
-        let xDistance = Math.abs(this.x - this.destX);
-        let yDistance = Math.abs(this.y - this.destY);
-    
-        let cos = xDistance / distance;
-        let sin = yDistance / distance;
+        let dx = Math.abs(this.circle.x - this.destPoint.x);
+        let dy = Math.abs(this.circle.y - this.destPoint.y);
+        let distance = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
+
+        let cos = dx / distance;
+        let sin = dy / distance;
 
         let dt = this.calculateDeltaTime();
 
@@ -786,27 +786,27 @@ class PhysicsComponent {
         };
     
         let newX = null;
-        if (this.destPoint.x !== this.x){
-            let coeff = this.destPoint.x < this.x ? -1 : 1;
-            if (Math.abs(this.destPoint.x - this.x) < move.x) {
+        if (this.destPoint.x !== this.circle.x){
+            let coefficient = this.destPoint.x < this.circle.x ? -1 : 1;
+            if (Math.abs(this.destPoint.x - this.circle.x) < move.x) {
                 newX = this.destPoint.x ;
             } else {
-                newX = this.x + move.x * coeff;
+                newX = this.circle.x + move.x * coefficient;
             }
         } else {
-            newX = this.x;
+            newX = this.circle.x;
         }
     
         let newY = null;
-        if (this.destPoint.y !== this.y){
-            let coeff = this.destPoint.y < this.y ? -1 : 1;
-            if (Math.abs(this.destPoint.y - this.y) < move.y){
+        if (this.destPoint.y !== this.circle.y){
+            let coefficient = this.destPoint.y < this.circle.y ? -1 : 1;
+            if (Math.abs(this.destPoint.y - this.circle.y) < move.y){
                 newY = this.destPoint.y ;
             } else {
-                newY = this.y + move.y * coeff;
+                newY = this.circle.y + move.y * coefficient;
             }
         } else {
-            newY = this.y;
+            newY = this.circle.y;
         }
     
         let newCircle = {
@@ -820,11 +820,11 @@ class PhysicsComponent {
     checkCollision(gameObjects, newCircle){
         for (let i = 0; i < gameObjects.length; i++){
             let gameObject = gameObjects[i];
-            if (this.id != gameObject.id) {
-                var dx = gameObject[i].circle.x - newCircle.x;
-                var dy = gameObject[i].circle.y - newCircle.y;
-                var distance = Math.sqrt(Math.pow(dx,2) + Math.pow(dy, 2));
-                if (distance < newCircle.radius + gameObject[i].circle.radius) {
+            if (this.id !== gameObject.id) {
+                let dx = gameObject.physicsComponent.circle.x - newCircle.x;
+                let dy = gameObject.physicsComponent.circle.y - newCircle.y;
+                let distance = Math.sqrt(Math.pow(dx,2) + Math.pow(dy, 2));
+                if (distance < newCircle.radius + gameObject.physicsComponent.circle.radius) {
                     // collision detected!
                     return true;
                 }
