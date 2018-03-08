@@ -8,8 +8,8 @@ class Game{
     constructor(id="none"){
         this.id = id == "none" ? shortid.generate() : id;
         this.gameObjects = [];
-        this.gameObjects.push(new GameObject(20, 20, 64, 64));
-        this.gameObjects.push(new GameObject(200, 200, 32, 32));
+        this.gameObjects.push(new GameObject(20, 20, 64));
+        this.gameObjects.push(new GameObject(200, 200, 64));
         this.map = new Map();
     }
     update(){
