@@ -21,9 +21,7 @@ class GameObject{
 
         this.physicsComponent.update(gameObjects, map);
 
-        let point = {};
-        point.x = this.physicsComponent.x;
-        point.y = this.physicsComponent.y;
+        let point = this.physicsComponent.circle;
         this.renderComponent.draw(point);
     }
     updateDestination(x, y){
@@ -35,7 +33,7 @@ class GameObject{
     }
     determineState(){
         let state = State.IDLE;
-        if (this.physicsComponent.destX !== this.physicsComponent.x || this.physicsComponent.destY !== this.physicsComponent.y) {
+        if (this.physicsComponent.destPoint.x !== this.physicsComponent.circle.x || this.physicsComponent.destPoint.y !== this.physicsComponent.circle.y) {
             state = State.WALKING;
         }
         return state;

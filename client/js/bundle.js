@@ -140,18 +140,53 @@ function translateCanvas(){
 
 function selectUnits(mouseDownEvent, mouseUpEvent){
     let mouseRect = getMouseSelectionRect(mouseDownEvent, mouseUpEvent);
-
-    for(let i = 0; i < game.gameObjects.length; i++){
-        let gameObject = game.gameObjects[i];
-        let x = gameObject.physicsComponent.x;
-        let y = gameObject.physicsComponent.y;
-        let width = gameObject.physicsComponent.width;
-        let height = gameObject.physicsComponent.height;
-        if( x < mouseRect.x + mouseRect.width && x + width  > mouseRect.x &&
-            y < mouseRect.y + mouseRect.height && y + height > mouseRect.y) {
-            selectedGameObjects.push(gameObject);
+    
+    selectedGameObjects = [];
+    for (let i = 0; i < game.gameObjects.length; i++){
+        if (checkCircleRectCollision(game.gameObjects[i].physicsComponent.circle, mouseRect)){
+            selectedGameObjects.push(game.gameObjects[i]);
         }
     }
+    $('#test1').text(JSON.stringify(selectedGameObjects));
+}
+
+function checkCircleRectCollision(circle, rect){
+    let dx = circle.x - Math.max(rect.x, Math.min(circle.x, rect.x + rect.width));
+    let dy = circle.y - Math.max(rect.y, Math.min(circle.y , rect.y + rect.height));
+    let collision = Math.pow(dx, 2) + Math.pow(dy, 2) < Math.pow(circle.radius, 2);
+    console.log('col: ' + collision);
+    return collision;
+}
+
+function getRectVertices(rect){
+    let vertices = [];
+    
+    let v1 = {
+        x : rect.x,
+        y : rect.y
+    };
+    
+    let v2 = {
+        x : rect.x + rect.width,
+        y : rect.y
+    };
+    
+    let v3 = {
+        x : rect.x,
+        y : rect.y + rect.height
+    };
+    
+    let v4 = {
+        x : rect.x + rect.width,
+        y : rect.y + rect.height
+    };
+    
+    vertices.push(v1);
+    vertices.push(v2);
+    vertices.push(v3);
+    vertices.push(v4);
+    
+    return vertices;
 }
 
 function drawSelectionRect(mouseDownEvent, mouseMoveEvent){
@@ -546,8 +581,8 @@ class Game{
     constructor(id="none"){
         this.id = id == "none" ? shortid.generate() : id;
         this.gameObjects = [];
-        this.gameObjects.push(new GameObject(20, 20, 64));
-        this.gameObjects.push(new GameObject(200, 200, 64));
+        this.gameObjects.push(new GameObject(20, 20, 32));
+        this.gameObjects.push(new GameObject(200, 200, 32));
         this.map = new Map();
     }
     update(){
@@ -593,9 +628,7 @@ class GameObject{
 
         this.physicsComponent.update(gameObjects, map);
 
-        let point = {};
-        point.x = this.physicsComponent.x;
-        point.y = this.physicsComponent.y;
+        let point = this.physicsComponent.circle;
         this.renderComponent.draw(point);
     }
     updateDestination(x, y){
@@ -607,7 +640,7 @@ class GameObject{
     }
     determineState(){
         let state = State.IDLE;
-        if (this.physicsComponent.destX !== this.physicsComponent.x || this.physicsComponent.destY !== this.physicsComponent.y) {
+        if (this.physicsComponent.destPoint.x !== this.physicsComponent.circle.x || this.physicsComponent.destPoint.y !== this.physicsComponent.circle.y) {
             state = State.WALKING;
         }
         return state;
