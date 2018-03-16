@@ -36,7 +36,9 @@ $(document).ready(function () {
     socket.emit('join io room', game_id);
     setInterval(
         function (){
-            translateCanvas();
+            if (mouseMoveEvent !== null) {
+                translateCanvas();
+            }
             ctx.clearRect(-totalTranslate.x, -totalTranslate.y, canvas.width, canvas.height);
             game.update();
             drawSelectionRect(mouseDownEvent, mouseMoveEvent);
@@ -140,52 +142,18 @@ function translateCanvas(){
 function selectUnits(mouseDownEvent, mouseUpEvent){
     let mouseRect = getMouseSelectionRect(mouseDownEvent, mouseUpEvent);
     
-    selectedGameObjects = [];
     for (let i = 0; i < game.gameObjects.length; i++){
         if (checkCircleRectCollision(game.gameObjects[i].physicsComponent.circle, mouseRect)){
             selectedGameObjects.push(game.gameObjects[i]);
         }
     }
-    $('#test1').text(JSON.stringify(selectedGameObjects));
 }
 
 function checkCircleRectCollision(circle, rect){
     let dx = circle.x - Math.max(rect.x, Math.min(circle.x, rect.x + rect.width));
     let dy = circle.y - Math.max(rect.y, Math.min(circle.y , rect.y + rect.height));
     let collision = Math.pow(dx, 2) + Math.pow(dy, 2) < Math.pow(circle.radius, 2);
-    console.log('col: ' + collision);
     return collision;
-}
-
-function getRectVertices(rect){
-    let vertices = [];
-    
-    let v1 = {
-        x : rect.x,
-        y : rect.y
-    };
-    
-    let v2 = {
-        x : rect.x + rect.width,
-        y : rect.y
-    };
-    
-    let v3 = {
-        x : rect.x,
-        y : rect.y + rect.height
-    };
-    
-    let v4 = {
-        x : rect.x + rect.width,
-        y : rect.y + rect.height
-    };
-    
-    vertices.push(v1);
-    vertices.push(v2);
-    vertices.push(v3);
-    vertices.push(v4);
-    
-    return vertices;
 }
 
 function drawSelectionRect(mouseDownEvent, mouseMoveEvent){

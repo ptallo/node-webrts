@@ -5,9 +5,13 @@ var RenderComponent = require('./component/RenderComponent.js');
 var State = require('./component/State.js');
 
 class GameObject{
-    constructor(x, y, radius){
+    constructor(x, y, radius, xDisjoint, yDisjoint){
         this.id = shortid.generate();
         this.state = State.IDLE;
+        this.disjoint = {
+            x : xDisjoint,
+            y : yDisjoint
+        };
         this.physicsComponent = new PhysicsComponent(this.id, x, y, radius, 100);
         this.renderComponent = new RenderComponent('images/character.png');
         this.renderComponent.addAnimation(State.IDLE, 2, 4, 32, 32);
@@ -22,7 +26,12 @@ class GameObject{
         this.physicsComponent.update(gameObjects, map);
 
         let point = this.physicsComponent.circle;
-        this.renderComponent.draw(point);
+        let drawPoint = {
+            x : point.x - this.disjoint.x,
+            y : point.y - this.disjoint.y
+        };
+        this.physicsComponent.drawCollisionSize();
+        this.renderComponent.draw(drawPoint);
     }
     updateDestination(x, y){
         this.physicsComponent.updateDestination(x, y);

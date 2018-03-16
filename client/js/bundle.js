@@ -37,7 +37,9 @@ $(document).ready(function () {
     socket.emit('join io room', game_id);
     setInterval(
         function (){
-            translateCanvas();
+            if (mouseMoveEvent !== null) {
+                translateCanvas();
+            }
             ctx.clearRect(-totalTranslate.x, -totalTranslate.y, canvas.width, canvas.height);
             game.update();
             drawSelectionRect(mouseDownEvent, mouseMoveEvent);
@@ -141,52 +143,18 @@ function translateCanvas(){
 function selectUnits(mouseDownEvent, mouseUpEvent){
     let mouseRect = getMouseSelectionRect(mouseDownEvent, mouseUpEvent);
     
-    selectedGameObjects = [];
     for (let i = 0; i < game.gameObjects.length; i++){
         if (checkCircleRectCollision(game.gameObjects[i].physicsComponent.circle, mouseRect)){
             selectedGameObjects.push(game.gameObjects[i]);
         }
     }
-    $('#test1').text(JSON.stringify(selectedGameObjects));
 }
 
 function checkCircleRectCollision(circle, rect){
     let dx = circle.x - Math.max(rect.x, Math.min(circle.x, rect.x + rect.width));
     let dy = circle.y - Math.max(rect.y, Math.min(circle.y , rect.y + rect.height));
     let collision = Math.pow(dx, 2) + Math.pow(dy, 2) < Math.pow(circle.radius, 2);
-    console.log('col: ' + collision);
     return collision;
-}
-
-function getRectVertices(rect){
-    let vertices = [];
-    
-    let v1 = {
-        x : rect.x,
-        y : rect.y
-    };
-    
-    let v2 = {
-        x : rect.x + rect.width,
-        y : rect.y
-    };
-    
-    let v3 = {
-        x : rect.x,
-        y : rect.y + rect.height
-    };
-    
-    let v4 = {
-        x : rect.x + rect.width,
-        y : rect.y + rect.height
-    };
-    
-    vertices.push(v1);
-    vertices.push(v2);
-    vertices.push(v3);
-    vertices.push(v4);
-    
-    return vertices;
 }
 
 function drawSelectionRect(mouseDownEvent, mouseMoveEvent){
@@ -581,8 +549,8 @@ class Game{
     constructor(id="none"){
         this.id = id == "none" ? shortid.generate() : id;
         this.gameObjects = [];
-        this.gameObjects.push(new GameObject(20, 20, 32));
-        this.gameObjects.push(new GameObject(200, 200, 32));
+        this.gameObjects.push(new GameObject(20, 20, 8, 16, 29));
+        this.gameObjects.push(new GameObject(200, 200, 8, 16, 29));
         this.map = new Map();
     }
     update(){
@@ -591,11 +559,11 @@ class Game{
             this.gameObjects[i].update(this.gameObjects, this.map);
         }
     }
-    moveObjects(objects, mouseCoords){
+    moveObjects(objects, mouseCords){
         for(let i = 0; i < this.gameObjects.length; i++){
             for(let j = 0; j < objects.length; j++){
-                if (this.gameObjects[i].id == objects[j].id){
-                    this.gameObjects[i].updateDestination(mouseCoords.x, mouseCoords.y);
+                if (this.gameObjects[i].id === objects[j].id){
+                    this.gameObjects[i].updateDestination(mouseCords.x, mouseCords.y);
                 }
             }
         }
@@ -612,9 +580,13 @@ var RenderComponent = require('./component/RenderComponent.js');
 var State = require('./component/State.js');
 
 class GameObject{
-    constructor(x, y, radius){
+    constructor(x, y, radius, xDisjoint, yDisjoint){
         this.id = shortid.generate();
         this.state = State.IDLE;
+        this.disjoint = {
+            x : xDisjoint,
+            y : yDisjoint
+        };
         this.physicsComponent = new PhysicsComponent(this.id, x, y, radius, 100);
         this.renderComponent = new RenderComponent('images/character.png');
         this.renderComponent.addAnimation(State.IDLE, 2, 4, 32, 32);
@@ -629,7 +601,12 @@ class GameObject{
         this.physicsComponent.update(gameObjects, map);
 
         let point = this.physicsComponent.circle;
-        this.renderComponent.draw(point);
+        let drawPoint = {
+            x : point.x - this.disjoint.x,
+            y : point.y - this.disjoint.y
+        };
+        this.physicsComponent.drawCollisionSize();
+        this.renderComponent.draw(drawPoint);
     }
     updateDestination(x, y){
         this.physicsComponent.updateDestination(x, y);
@@ -864,6 +841,16 @@ class PhysicsComponent {
             }
         }
         return false;
+    }
+    drawCollisionSize(){
+        if (typeof window !== 'undefined' && window.document){
+            let canvas = document.getElementById("game_canvas");
+            let context = canvas .getContext("2d");
+            context.strokeStyle = "#ffdb39";
+            context.beginPath();
+            context.arc(this.circle.x, this.circle.y, this.circle.radius, 0, 2 * Math.PI);
+            context.stroke();
+        }
     }
 }
 

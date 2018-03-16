@@ -96,6 +96,16 @@ class PhysicsComponent {
         }
         return false;
     }
+    drawCollisionSize(){
+        if (typeof window !== 'undefined' && window.document){
+            let canvas = document.getElementById("game_canvas");
+            let context = canvas .getContext("2d");
+            context.strokeStyle = "#ffdb39";
+            context.beginPath();
+            context.arc(this.circle.x, this.circle.y, this.circle.radius, 0, 2 * Math.PI);
+            context.stroke();
+        }
+    }
 }
 
 module.exports = PhysicsComponent;
