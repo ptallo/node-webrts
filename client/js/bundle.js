@@ -599,14 +599,8 @@ class GameObject{
         }
 
         this.physicsComponent.update(gameObjects, map);
-
-        let point = this.physicsComponent.circle;
-        let drawPoint = {
-            x : point.x - this.disjoint.x,
-            y : point.y - this.disjoint.y
-        };
         this.physicsComponent.drawCollisionSize();
-        this.renderComponent.draw(drawPoint);
+        this.renderComponent.draw(this.physicsComponent.circle);
     }
     updateDestination(x, y){
         this.physicsComponent.updateDestination(x, y);
@@ -770,7 +764,7 @@ class Animation {
 
 module.exports = Animation;
 },{}],18:[function(require,module,exports){
-
+var Utility = require('../Util.js');
 
 class PhysicsComponent {
     constructor(id, x, y, radius, speed){
@@ -874,14 +868,19 @@ class PhysicsComponent {
             let context = canvas .getContext("2d");
             context.strokeStyle = "#ffdb39";
             context.beginPath();
-            context.ellipse(this.circle.x, this.circle.y, this.circle.radius, 0.5 * this.circle.radius, 0, 0, 2 * Math.PI);
+            let point = {
+                x : this.circle.x,
+                y : this.circle.y
+            };
+            point = Utility.twoDToIso(point);
+            context.ellipse(point.x, point.y, this.circle.radius, 0.5 * this.circle.radius, 0, 0, 2 * Math.PI);
             context.stroke();
         }
     }
 }
 
 module.exports = PhysicsComponent;
-},{}],19:[function(require,module,exports){
+},{"../Util.js":16}],19:[function(require,module,exports){
 var Animation = require('./Animation.js');
 var State = require('./State.js');
 var Utility = require('../Util.js');

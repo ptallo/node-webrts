@@ -1,4 +1,4 @@
-
+var Utility = require('../Util.js');
 
 class PhysicsComponent {
     constructor(id, x, y, radius, speed){
@@ -102,7 +102,12 @@ class PhysicsComponent {
             let context = canvas .getContext("2d");
             context.strokeStyle = "#ffdb39";
             context.beginPath();
-            context.ellipse(this.circle.x, this.circle.y, this.circle.radius, 0.5 * this.circle.radius, 0, 0, 2 * Math.PI);
+            let point = {
+                x : this.circle.x,
+                y : this.circle.y
+            };
+            point = Utility.twoDToIso(point);
+            context.ellipse(point.x, point.y, this.circle.radius, 0.5 * this.circle.radius, 0, 0, 2 * Math.PI);
             context.stroke();
         }
     }
