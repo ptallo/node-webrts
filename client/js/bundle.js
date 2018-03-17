@@ -208,7 +208,7 @@ socket.on('update game', function(gameJSON){
     }
 });
 
-},{"../../server/Game.js":12,"../../server/GameObject.js":13,"../../server/Map.js":14,"../../server/Tile.js":15,"../../server/component/Animation.js":16,"../../server/component/PhysicsComponent.js":17,"../../server/component/RenderComponent.js":18}],2:[function(require,module,exports){
+},{"../../server/Game.js":12,"../../server/GameObject.js":13,"../../server/Map.js":14,"../../server/Tile.js":15,"../../server/component/Animation.js":17,"../../server/component/PhysicsComponent.js":18,"../../server/component/RenderComponent.js":19}],2:[function(require,module,exports){
 'use strict';
 module.exports = require('./lib/index');
 
@@ -625,8 +625,9 @@ class GameObject{
 }
 
 module.exports = GameObject;
-},{"./component/PhysicsComponent.js":17,"./component/RenderComponent.js":18,"./component/State.js":19,"shortid":2}],14:[function(require,module,exports){
+},{"./component/PhysicsComponent.js":18,"./component/RenderComponent.js":19,"./component/State.js":20,"shortid":2}],14:[function(require,module,exports){
 var Tile = require('./Tile.js');
+var Utility = require('./Util.js');
 
 class Map{
     constructor(){
@@ -655,26 +656,33 @@ class Map{
                 point.y = i * this.tileHeight;
                 let tileType = this.mapDef[i][j];
                 let tile = this.tileDef[tileType];
-                tile.draw(this.twoDToIso(point));
+                tile.draw(point);
             }
         }
     }
-    isoToTwoD(point){
-        let cartoPoint = {};
-        cartoPoint.x = (2 * point.x + point.y) / 2;
-        cartoPoint.y = (2 * point.y - point.y) / 2;
-        return cartoPoint;
-    }
-    twoDToIso(point){
-        let isoPoint = {};
-        isoPoint.x = point.x - point.y;
-        isoPoint.y = (point.x + point.y) / 2;
-        return isoPoint;
+    getTileAtPoint(point){
+        let tile = null;
+        for (let i = 0; i < this.mapDef.length; i++) {
+            for (let j = 0; j < this.mapDef[i].length; j++){
+                let mapPoint = {};
+                mapPoint.x = j * this.tileWidth;
+                mapPoint.y = i * this.tileHeight;
+                
+                if (mapPoint.x < point.x
+                    && mapPoint.x + this.tileWidth > point.x
+                    && mapPoint.y < point.y
+                    && mapPoint.y + this.tileHeight > point.y) {
+                    let tileType = this.mapDef[i][j];
+                    tile = this.tileDef[tileType];
+                }
+            }
+        }
+        return tile;
     }
 }
 
 module.exports = Map;
-},{"./Tile.js":15}],15:[function(require,module,exports){
+},{"./Tile.js":15,"./Util.js":16}],15:[function(require,module,exports){
 var RenderComponent = require('./component/RenderComponent.js');
 
 class Tile {
@@ -689,7 +697,25 @@ class Tile {
 }
 
 module.exports = Tile;
-},{"./component/RenderComponent.js":18}],16:[function(require,module,exports){
+},{"./component/RenderComponent.js":19}],16:[function(require,module,exports){
+
+class Utility {
+    static isoToTwoD(point){
+        let cartoPoint = {};
+        cartoPoint.x = (2 * point.x + point.y) / 2;
+        cartoPoint.y = (2 * point.y - point.y) / 2;
+        return cartoPoint;
+    }
+    static twoDToIso(point){
+        let isoPoint = {};
+        isoPoint.x = point.x - point.y;
+        isoPoint.y = (point.x + point.y) / 2;
+        return isoPoint;
+    }
+}
+
+module.exports = Utility;
+},{}],17:[function(require,module,exports){
 class Animation {
     constructor(url, startFrame, totalFrames, frameWidth, frameHeight){
         this.url = url;
@@ -743,8 +769,8 @@ class Animation {
 }
 
 module.exports = Animation;
-},{}],17:[function(require,module,exports){
-
+},{}],18:[function(require,module,exports){
+var Utility = require('../Util.js');
 
 class PhysicsComponent {
     constructor(id, x, y, radius, speed){
@@ -763,7 +789,15 @@ class PhysicsComponent {
     }
     update(gameObjects, map){
         let newCircle = this.getNewCircle();
-        let collision = this.checkCollision(gameObjects, newCircle);
+        let tile = map.getTileAtPoint(newCircle);
+        
+        let collision = true;
+        if (tile === null || !tile.isMovable) {
+            collision = true;
+        } else {
+            collision = this.checkCollision(gameObjects, newCircle);
+        }
+        
         if (!collision) {
             this.circle = newCircle;
         }
@@ -771,7 +805,7 @@ class PhysicsComponent {
     calculateDeltaTime(){
         let lastTimeStamp = this.timeStamp;
         this.timeStamp = Date.now();
-        var dt = this.timeStamp - lastTimeStamp;
+        let dt = this.timeStamp - lastTimeStamp;
         return dt;
     }
     updateDestination(x, y){
@@ -848,16 +882,22 @@ class PhysicsComponent {
             let context = canvas .getContext("2d");
             context.strokeStyle = "#ffdb39";
             context.beginPath();
-            context.ellipse(this.circle.x, this.circle.y, this.circle.radius, 0.5 * this.circle.radius, 0, 0, 2 * Math.PI);
+            let point = {
+              x : this.circle.x,
+              y : this.circle.y
+            };
+            point = Utility.twoDToIso(point);
+            context.ellipse(point.x, point.y, this.circle.radius, 0.5 * this.circle.radius, 0, 0, 2 * Math.PI);
             context.stroke();
         }
     }
 }
 
 module.exports = PhysicsComponent;
-},{}],18:[function(require,module,exports){
+},{"../Util.js":16}],19:[function(require,module,exports){
 var Animation = require('./Animation.js');
 var State = require('./State.js');
+var Utility = require('../Util.js');
 
 class RenderComponent {
     constructor(url){
@@ -889,6 +929,7 @@ class RenderComponent {
         }
     }
     draw(point){
+        point = Utility.twoDToIso(point);
         if (this.currentAnimation !== null) {
             this.currentAnimation.animate();
         }
@@ -918,7 +959,7 @@ class RenderComponent {
  }
  
  module.exports = RenderComponent;
-},{"./Animation.js":16,"./State.js":19}],19:[function(require,module,exports){
+},{"../Util.js":16,"./Animation.js":17,"./State.js":20}],20:[function(require,module,exports){
 
 var State = {
     IDLE : 'idle',

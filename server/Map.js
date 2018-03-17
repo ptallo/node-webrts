@@ -1,4 +1,5 @@
 var Tile = require('./Tile.js');
+var Utility = require('./Util.js');
 
 class Map{
     constructor(){
@@ -27,21 +28,28 @@ class Map{
                 point.y = i * this.tileHeight;
                 let tileType = this.mapDef[i][j];
                 let tile = this.tileDef[tileType];
-                tile.draw(this.twoDToIso(point));
+                tile.draw(point);
             }
         }
     }
-    isoToTwoD(point){
-        let cartoPoint = {};
-        cartoPoint.x = (2 * point.x + point.y) / 2;
-        cartoPoint.y = (2 * point.y - point.y) / 2;
-        return cartoPoint;
-    }
-    twoDToIso(point){
-        let isoPoint = {};
-        isoPoint.x = point.x - point.y;
-        isoPoint.y = (point.x + point.y) / 2;
-        return isoPoint;
+    getTileAtPoint(point){
+        let tile = null;
+        for (let i = 0; i < this.mapDef.length; i++) {
+            for (let j = 0; j < this.mapDef[i].length; j++){
+                let mapPoint = {};
+                mapPoint.x = j * this.tileWidth;
+                mapPoint.y = i * this.tileHeight;
+                
+                if (mapPoint.x < point.x
+                    && mapPoint.x + this.tileWidth > point.x
+                    && mapPoint.y < point.y
+                    && mapPoint.y + this.tileHeight > point.y) {
+                    let tileType = this.mapDef[i][j];
+                    tile = this.tileDef[tileType];
+                }
+            }
+        }
+        return tile;
     }
 }
 

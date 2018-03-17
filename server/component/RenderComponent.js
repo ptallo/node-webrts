@@ -1,5 +1,6 @@
 var Animation = require('./Animation.js');
 var State = require('./State.js');
+var Utility = require('../Util.js');
 
 class RenderComponent {
     constructor(url){
@@ -31,6 +32,7 @@ class RenderComponent {
         }
     }
     draw(point){
+        point = Utility.twoDToIso(point);
         if (this.currentAnimation !== null) {
             this.currentAnimation.animate();
         }
