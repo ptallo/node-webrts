@@ -770,7 +770,7 @@ class Animation {
 
 module.exports = Animation;
 },{}],18:[function(require,module,exports){
-var Utility = require('../Util.js');
+
 
 class PhysicsComponent {
     constructor(id, x, y, radius, speed){
@@ -789,15 +789,7 @@ class PhysicsComponent {
     }
     update(gameObjects, map){
         let newCircle = this.getNewCircle();
-        let tile = map.getTileAtPoint(newCircle);
-        
-        let collision = true;
-        if (tile === null || !tile.isMovable) {
-            collision = true;
-        } else {
-            collision = this.checkCollision(gameObjects, newCircle);
-        }
-        
+        let collision = this.checkCollision(gameObjects, newCircle);
         if (!collision) {
             this.circle = newCircle;
         }
@@ -805,7 +797,7 @@ class PhysicsComponent {
     calculateDeltaTime(){
         let lastTimeStamp = this.timeStamp;
         this.timeStamp = Date.now();
-        let dt = this.timeStamp - lastTimeStamp;
+        var dt = this.timeStamp - lastTimeStamp;
         return dt;
     }
     updateDestination(x, y){
@@ -882,19 +874,14 @@ class PhysicsComponent {
             let context = canvas .getContext("2d");
             context.strokeStyle = "#ffdb39";
             context.beginPath();
-            let point = {
-              x : this.circle.x,
-              y : this.circle.y
-            };
-            point = Utility.twoDToIso(point);
-            context.ellipse(point.x, point.y, this.circle.radius, 0.5 * this.circle.radius, 0, 0, 2 * Math.PI);
+            context.ellipse(this.circle.x, this.circle.y, this.circle.radius, 0.5 * this.circle.radius, 0, 0, 2 * Math.PI);
             context.stroke();
         }
     }
 }
 
 module.exports = PhysicsComponent;
-},{"../Util.js":16}],19:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 var Animation = require('./Animation.js');
 var State = require('./State.js');
 var Utility = require('../Util.js');
