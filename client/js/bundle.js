@@ -160,7 +160,7 @@ function checkCircleRectCollision(circle, rect){
 function drawSelectionRect(mouseDownEvent, mouseMoveEvent){
     if(mouseDownEvent != null && mouseMoveEvent != null && mouseMoveEvent.which === 1){
         let mouseRect = getMouseSelectionRect(mouseDownEvent, mouseMoveEvent);
-        ctx.fillStyle = "#485157";
+        ctx.strokeStyle = "#485157";
         ctx.strokeRect(mouseRect.x, mouseRect.y, mouseRect.width, mouseRect.height);
     }
 }
@@ -848,8 +848,6 @@ class PhysicsComponent {
             let context = canvas .getContext("2d");
             context.strokeStyle = "#ffdb39";
             context.beginPath();
-            // context.arc(this.circle.x, this.circle.y, this.circle.radius, 0, 2 * Math.PI);
-            //void ctx.ellipse(x, y, radiusX, radiusY, rotation, startAngle, endAngle, anticlockwise);
             context.ellipse(this.circle.x, this.circle.y, this.circle.radius, 0.5 * this.circle.radius, 0, 0, 2 * Math.PI);
             context.stroke();
         }

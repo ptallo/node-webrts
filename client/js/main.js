@@ -159,7 +159,7 @@ function checkCircleRectCollision(circle, rect){
 function drawSelectionRect(mouseDownEvent, mouseMoveEvent){
     if(mouseDownEvent != null && mouseMoveEvent != null && mouseMoveEvent.which === 1){
         let mouseRect = getMouseSelectionRect(mouseDownEvent, mouseMoveEvent);
-        ctx.fillStyle = "#485157";
+        ctx.strokeStyle = "#485157";
         ctx.strokeRect(mouseRect.x, mouseRect.y, mouseRect.width, mouseRect.height);
     }
 }
