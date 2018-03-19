@@ -17,7 +17,8 @@ class PhysicsComponent {
     update(gameObjects, map){
         let newCircle = this.getNewCircle();
         let collision = this.checkCollision(gameObjects, newCircle);
-        if (!collision) {
+        let tile = map.getTileAtPoint(newCircle);
+        if (!collision && tile !== null && tile.isMovable) {
             this.circle = newCircle;
         }
     }
