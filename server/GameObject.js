@@ -25,7 +25,11 @@ class GameObject{
 
         this.physicsComponent.update(gameObjects, map);
         this.physicsComponent.drawCollisionSize();
-        this.renderComponent.draw(this.physicsComponent.circle);
+        let renderPoint = {
+            x : this.physicsComponent.circle.x - this.disjoint.x,
+            y : this.physicsComponent.circle.y - this.disjoint.y
+        };
+        this.renderComponent.draw(renderPoint);
     }
     updateDestination(x, y){
         this.physicsComponent.updateDestination(x, y);

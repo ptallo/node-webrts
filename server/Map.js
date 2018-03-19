@@ -1,5 +1,4 @@
 var Tile = require('./Tile.js');
-var Utility = require('./Util.js');
 
 class Map{
     constructor(){

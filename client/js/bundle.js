@@ -208,7 +208,7 @@ socket.on('update game', function(gameJSON){
     }
 });
 
-},{"../../server/Game.js":12,"../../server/GameObject.js":13,"../../server/Map.js":14,"../../server/Tile.js":15,"../../server/component/Animation.js":17,"../../server/component/PhysicsComponent.js":18,"../../server/component/RenderComponent.js":19}],2:[function(require,module,exports){
+},{"../../server/Game.js":12,"../../server/GameObject.js":13,"../../server/Map.js":14,"../../server/Tile.js":15,"../../server/component/Animation.js":16,"../../server/component/PhysicsComponent.js":17,"../../server/component/RenderComponent.js":18}],2:[function(require,module,exports){
 'use strict';
 module.exports = require('./lib/index');
 
@@ -600,7 +600,11 @@ class GameObject{
 
         this.physicsComponent.update(gameObjects, map);
         this.physicsComponent.drawCollisionSize();
-        this.renderComponent.draw(this.physicsComponent.circle);
+        let renderPoint = {
+            x : this.physicsComponent.circle.x - this.disjoint.x,
+            y : this.physicsComponent.circle.y - this.disjoint.y
+        };
+        this.renderComponent.draw(renderPoint);
     }
     updateDestination(x, y){
         this.physicsComponent.updateDestination(x, y);
@@ -619,9 +623,8 @@ class GameObject{
 }
 
 module.exports = GameObject;
-},{"./component/PhysicsComponent.js":18,"./component/RenderComponent.js":19,"./component/State.js":20,"shortid":2}],14:[function(require,module,exports){
+},{"./component/PhysicsComponent.js":17,"./component/RenderComponent.js":18,"./component/State.js":19,"shortid":2}],14:[function(require,module,exports){
 var Tile = require('./Tile.js');
-var Utility = require('./Util.js');
 
 class Map{
     constructor(){
@@ -676,7 +679,7 @@ class Map{
 }
 
 module.exports = Map;
-},{"./Tile.js":15,"./Util.js":16}],15:[function(require,module,exports){
+},{"./Tile.js":15}],15:[function(require,module,exports){
 var RenderComponent = require('./component/RenderComponent.js');
 
 class Tile {
@@ -691,25 +694,7 @@ class Tile {
 }
 
 module.exports = Tile;
-},{"./component/RenderComponent.js":19}],16:[function(require,module,exports){
-
-class Utility {
-    static isoToTwoD(point){
-        let cartoPoint = {};
-        cartoPoint.x = (2 * point.x + point.y) / 2;
-        cartoPoint.y = (2 * point.y - point.y) / 2;
-        return cartoPoint;
-    }
-    static twoDToIso(point){
-        let isoPoint = {};
-        isoPoint.x = point.x - point.y;
-        isoPoint.y = (point.x + point.y) / 2;
-        return isoPoint;
-    }
-}
-
-module.exports = Utility;
-},{}],17:[function(require,module,exports){
+},{"./component/RenderComponent.js":18}],16:[function(require,module,exports){
 class Animation {
     constructor(url, startFrame, totalFrames, frameWidth, frameHeight){
         this.url = url;
@@ -763,8 +748,7 @@ class Animation {
 }
 
 module.exports = Animation;
-},{}],18:[function(require,module,exports){
-var Utility = require('../Util.js');
+},{}],17:[function(require,module,exports){
 
 class PhysicsComponent {
     constructor(id, x, y, radius, speed){
@@ -784,7 +768,8 @@ class PhysicsComponent {
     update(gameObjects, map){
         let newCircle = this.getNewCircle();
         let collision = this.checkCollision(gameObjects, newCircle);
-        if (!collision) {
+        let tile = map.getTileAtPoint(newCircle);
+        if (!collision && tile !== null && tile.isMovable) {
             this.circle = newCircle;
         }
     }
@@ -872,7 +857,6 @@ class PhysicsComponent {
                 x : this.circle.x,
                 y : this.circle.y
             };
-            point = Utility.twoDToIso(point);
             context.ellipse(point.x, point.y, this.circle.radius, 0.5 * this.circle.radius, 0, 0, 2 * Math.PI);
             context.stroke();
         }
@@ -880,10 +864,9 @@ class PhysicsComponent {
 }
 
 module.exports = PhysicsComponent;
-},{"../Util.js":16}],19:[function(require,module,exports){
+},{}],18:[function(require,module,exports){
 var Animation = require('./Animation.js');
 var State = require('./State.js');
-var Utility = require('../Util.js');
 
 class RenderComponent {
     constructor(url){
@@ -915,7 +898,6 @@ class RenderComponent {
         }
     }
     draw(point){
-        point = Utility.twoDToIso(point);
         if (this.currentAnimation !== null) {
             this.currentAnimation.animate();
         }
@@ -945,7 +927,7 @@ class RenderComponent {
  }
  
  module.exports = RenderComponent;
-},{"../Util.js":16,"./Animation.js":17,"./State.js":20}],20:[function(require,module,exports){
+},{"./Animation.js":16,"./State.js":19}],19:[function(require,module,exports){
 
 var State = {
     IDLE : 'idle',
