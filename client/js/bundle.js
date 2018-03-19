@@ -37,7 +37,9 @@ $(document).ready(function () {
     socket.emit('join io room', game_id);
     setInterval(
         function (){
-            translateCanvas();
+            if (mouseMoveEvent !== null) {
+                translateCanvas();
+            }
             ctx.clearRect(-totalTranslate.x, -totalTranslate.y, canvas.width, canvas.height);
             game.update();
             drawSelectionRect(mouseDownEvent, mouseMoveEvent);
@@ -140,24 +142,25 @@ function translateCanvas(){
 
 function selectUnits(mouseDownEvent, mouseUpEvent){
     let mouseRect = getMouseSelectionRect(mouseDownEvent, mouseUpEvent);
-
-    for(let i = 0; i < game.gameObjects.length; i++){
-        let gameObject = game.gameObjects[i];
-        let x = gameObject.physicsComponent.x;
-        let y = gameObject.physicsComponent.y;
-        let width = gameObject.physicsComponent.width;
-        let height = gameObject.physicsComponent.height;
-        if( x < mouseRect.x + mouseRect.width && x + width  > mouseRect.x &&
-            y < mouseRect.y + mouseRect.height && y + height > mouseRect.y) {
-            selectedGameObjects.push(gameObject);
+    
+    for (let i = 0; i < game.gameObjects.length; i++){
+        if (checkCircleRectCollision(game.gameObjects[i].physicsComponent.circle, mouseRect)){
+            selectedGameObjects.push(game.gameObjects[i]);
         }
     }
+}
+
+function checkCircleRectCollision(circle, rect){
+    let dx = circle.x - Math.max(rect.x, Math.min(circle.x, rect.x + rect.width));
+    let dy = circle.y - Math.max(rect.y, Math.min(circle.y , rect.y + rect.height));
+    let collision = Math.pow(dx, 2) + Math.pow(dy, 2) < Math.pow(circle.radius, 2);
+    return collision;
 }
 
 function drawSelectionRect(mouseDownEvent, mouseMoveEvent){
     if(mouseDownEvent != null && mouseMoveEvent != null && mouseMoveEvent.which === 1){
         let mouseRect = getMouseSelectionRect(mouseDownEvent, mouseMoveEvent);
-        ctx.fillStyle = "#485157";
+        ctx.strokeStyle = "#485157";
         ctx.strokeRect(mouseRect.x, mouseRect.y, mouseRect.width, mouseRect.height);
     }
 }
@@ -546,8 +549,8 @@ class Game{
     constructor(id="none"){
         this.id = id == "none" ? shortid.generate() : id;
         this.gameObjects = [];
-        this.gameObjects.push(new GameObject(20, 20, 64, 64));
-        this.gameObjects.push(new GameObject(200, 200, 32, 32));
+        this.gameObjects.push(new GameObject(20, 20, 8, 16, 29));
+        this.gameObjects.push(new GameObject(200, 200, 8, 16, 29));
         this.map = new Map();
     }
     update(){
@@ -556,11 +559,11 @@ class Game{
             this.gameObjects[i].update(this.gameObjects, this.map);
         }
     }
-    moveObjects(objects, mouseCoords){
+    moveObjects(objects, mouseCords){
         for(let i = 0; i < this.gameObjects.length; i++){
             for(let j = 0; j < objects.length; j++){
-                if (this.gameObjects[i].id == objects[j].id){
-                    this.gameObjects[i].updateDestination(mouseCoords.x, mouseCoords.y);
+                if (this.gameObjects[i].id === objects[j].id){
+                    this.gameObjects[i].updateDestination(mouseCords.x, mouseCords.y);
                 }
             }
         }
@@ -577,10 +580,14 @@ var RenderComponent = require('./component/RenderComponent.js');
 var State = require('./component/State.js');
 
 class GameObject{
-    constructor(x, y, width, height){
+    constructor(x, y, radius, xDisjoint, yDisjoint){
         this.id = shortid.generate();
         this.state = State.IDLE;
-        this.physicsComponent = new PhysicsComponent(this.id, x, y, width, height, 100);
+        this.disjoint = {
+            x : xDisjoint,
+            y : yDisjoint
+        };
+        this.physicsComponent = new PhysicsComponent(this.id, x, y, radius, 100);
         this.renderComponent = new RenderComponent('images/character.png');
         this.renderComponent.addAnimation(State.IDLE, 2, 4, 32, 32);
         this.renderComponent.addAnimation(State.WALKING, 6, 4, 32, 32);
@@ -592,11 +599,12 @@ class GameObject{
         }
 
         this.physicsComponent.update(gameObjects, map);
-
-        let point = {};
-        point.x = this.physicsComponent.x;
-        point.y = this.physicsComponent.y;
-        this.renderComponent.draw(point);
+        this.physicsComponent.drawCollisionSize();
+        let renderPoint = {
+            x : this.physicsComponent.circle.x - this.disjoint.x,
+            y : this.physicsComponent.circle.y - this.disjoint.y
+        };
+        this.renderComponent.draw(renderPoint);
     }
     updateDestination(x, y){
         this.physicsComponent.updateDestination(x, y);
@@ -607,7 +615,7 @@ class GameObject{
     }
     determineState(){
         let state = State.IDLE;
-        if (this.physicsComponent.destX !== this.physicsComponent.x || this.physicsComponent.destY !== this.physicsComponent.y) {
+        if (this.physicsComponent.destPoint.x !== this.physicsComponent.circle.x || this.physicsComponent.destPoint.y !== this.physicsComponent.circle.y) {
             state = State.WALKING;
         }
         return state;
@@ -645,42 +653,28 @@ class Map{
                 point.y = i * this.tileHeight;
                 let tileType = this.mapDef[i][j];
                 let tile = this.tileDef[tileType];
-                tile.draw(this.twoDToIso(point));
+                tile.draw(point);
             }
         }
     }
-    isoToTwoD(point){
-        let cartoPoint = {};
-        cartoPoint.x = (2 * point.x + point.y) / 2;
-        cartoPoint.y = (2 * point.y - point.y) / 2;
-        return cartoPoint;
-    }
-    twoDToIso(point){
-        let isoPoint = {};
-        isoPoint.x = point.x - point.y;
-        isoPoint.y = (point.x + point.y) / 2;
-        return isoPoint;
-    }
-    getTileAtIsoPoint(point){
-        let wIndex = Math.floor(point.x / this.tileWidth);
-        let hIndex = Math.floor(point.y / this.tileHeight);
-        let tile = this.mapDef[hIndex][wIndex];
+    getTileAtPoint(point){
+        let tile = null;
+        for (let i = 0; i < this.mapDef.length; i++) {
+            for (let j = 0; j < this.mapDef[i].length; j++){
+                let mapPoint = {};
+                mapPoint.x = j * this.tileWidth;
+                mapPoint.y = i * this.tileHeight;
+                
+                if (mapPoint.x < point.x
+                    && mapPoint.x + this.tileWidth > point.x
+                    && mapPoint.y < point.y
+                    && mapPoint.y + this.tileHeight > point.y) {
+                    let tileType = this.mapDef[i][j];
+                    tile = this.tileDef[tileType];
+                }
+            }
+        }
         return tile;
-    }
-    getTileAtOrthoPoint(point){
-        let isoPoint = this.twoDToIso(point);
-        return this.getTileAtIsoPoint(isoPoint);
-    }
-    checkMovable(rect){
-        let point = {
-            x : rect.x,
-            y : rect.y
-        };
-
-        let isoPoint = this.twoDToIso(point);
-        let tile = this.getTileAtIsoPoint(isoPoint);
-        
-        return tile.isMovable;
     }
 }
 
@@ -756,24 +750,27 @@ class Animation {
 module.exports = Animation;
 },{}],17:[function(require,module,exports){
 
-
 class PhysicsComponent {
-    constructor(id, x, y, width, height, speed){
+    constructor(id, x, y, radius, speed){
         this.id = id;
-        this.x = x;
-        this.y = y;
-        this.width = width;
-        this.height = height;
-        this.destX = x;
-        this.destY = y;
+        this.circle = {
+            x : x,
+            y : y,
+            radius : radius
+        };
+        this.destPoint = {
+            x : x,
+            y : y
+        };
         this.speed = speed;
         this.timeStamp = null;
     }
     update(gameObjects, map){
-        let newRect = this.getNewRect();
-        let collision = this.checkCollision(gameObjects, newRect);
-        if (!collision) {
-            this.updatePhysics(newRect);
+        let newCircle = this.getNewCircle();
+        let collision = this.checkCollision(gameObjects, newCircle);
+        let tile = map.getTileAtPoint(newCircle);
+        if (!collision && tile !== null && tile.isMovable) {
+            this.circle = newCircle;
         }
     }
     calculateDeltaTime(){
@@ -783,16 +780,18 @@ class PhysicsComponent {
         return dt;
     }
     updateDestination(x, y){
-        this.destX = x;
-        this.destY = y;
+        this.destPoint = {
+            x : x,
+            y : y
+        }
     }
-    getNewRect(){
-        let distance = Math.sqrt(Math.pow(this.destX - this.x, 2) + Math.pow(this.destY - this.y, 2));
-        let xDistance = Math.abs(this.x - this.destX);
-        let yDistance = Math.abs(this.y - this.destY);
-    
-        let cos = xDistance / distance;
-        let sin = yDistance / distance;
+    getNewCircle(){
+        let dx = Math.abs(this.circle.x - this.destPoint.x);
+        let dy = Math.abs(this.circle.y - this.destPoint.y);
+        let distance = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
+
+        let cos = dx / distance;
+        let sin = dy / distance;
 
         let dt = this.calculateDeltaTime();
 
@@ -802,46 +801,45 @@ class PhysicsComponent {
         };
     
         let newX = null;
-        if (this.destX != this.x){
-            let coeff = this.destX < this.x ? -1 : 1;
-            if (Math.abs(this.destX - this.x) < move.x) {
-                newX = this.destX;
+        if (this.destPoint.x !== this.circle.x){
+            let coefficient = this.destPoint.x < this.circle.x ? -1 : 1;
+            if (Math.abs(this.destPoint.x - this.circle.x) < move.x) {
+                newX = this.destPoint.x ;
             } else {
-                newX = this.x + move.x * coeff;
+                newX = this.circle.x + move.x * coefficient;
             }
         } else {
-            newX = this.x;
+            newX = this.circle.x;
         }
     
         let newY = null;
-        if (this.destY != this.y){
-            let coeff = this.destY < this.y ? -1 : 1;
-            if (Math.abs(this.destY - this.y) < move.y){
-                newY = this.destY;
+        if (this.destPoint.y !== this.circle.y){
+            let coefficient = this.destPoint.y < this.circle.y ? -1 : 1;
+            if (Math.abs(this.destPoint.y - this.circle.y) < move.y){
+                newY = this.destPoint.y ;
             } else {
-                newY = this.y + move.y * coeff;
+                newY = this.circle.y + move.y * coefficient;
             }
         } else {
-            newY = this.y;
+            newY = this.circle.y;
         }
     
-        let newPosRect = {
-            width : this.width,
-            height : this.height,
+        let newCircle = {
             x : newX,
-            y : newY
-        }
+            y : newY,
+            radius : this.circle.radius
+        };
         
-        return newPosRect;
+        return newCircle;
     }
-    checkCollision(gameObjects, newRect){
+    checkCollision(gameObjects, newCircle){
         for (let i = 0; i < gameObjects.length; i++){
             let gameObject = gameObjects[i];
-            if (this.id != gameObject.id) {
-                if (newRect.x < gameObject.physicsComponent.x + gameObject.physicsComponent.width &&
-                    newRect.x + newRect.width > gameObject.physicsComponent.x &&
-                    newRect.y < gameObject.physicsComponent.y + gameObject.physicsComponent.height &&
-                    newRect.y + newRect.height  > gameObject.physicsComponent.y) {
+            if (this.id !== gameObject.id) {
+                let dx = gameObject.physicsComponent.circle.x - newCircle.x;
+                let dy = gameObject.physicsComponent.circle.y - newCircle.y;
+                let distance = Math.sqrt(Math.pow(dx,2) + Math.pow(dy, 2));
+                if (distance < newCircle.radius + gameObject.physicsComponent.circle.radius) {
                     // collision detected!
                     return true;
                 }
@@ -849,9 +847,19 @@ class PhysicsComponent {
         }
         return false;
     }
-    updatePhysics(newRect){
-        this.x = newRect.x;
-        this.y = newRect.y;
+    drawCollisionSize(){
+        if (typeof window !== 'undefined' && window.document){
+            let canvas = document.getElementById("game_canvas");
+            let context = canvas .getContext("2d");
+            context.strokeStyle = "#ffdb39";
+            context.beginPath();
+            let point = {
+                x : this.circle.x,
+                y : this.circle.y
+            };
+            context.ellipse(point.x, point.y, this.circle.radius, 0.5 * this.circle.radius, 0, 0, 2 * Math.PI);
+            context.stroke();
+        }
     }
 }
 

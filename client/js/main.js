@@ -36,7 +36,9 @@ $(document).ready(function () {
     socket.emit('join io room', game_id);
     setInterval(
         function (){
-            translateCanvas();
+            if (mouseMoveEvent !== null) {
+                translateCanvas();
+            }
             ctx.clearRect(-totalTranslate.x, -totalTranslate.y, canvas.width, canvas.height);
             game.update();
             drawSelectionRect(mouseDownEvent, mouseMoveEvent);
@@ -139,24 +141,25 @@ function translateCanvas(){
 
 function selectUnits(mouseDownEvent, mouseUpEvent){
     let mouseRect = getMouseSelectionRect(mouseDownEvent, mouseUpEvent);
-
-    for(let i = 0; i < game.gameObjects.length; i++){
-        let gameObject = game.gameObjects[i];
-        let x = gameObject.physicsComponent.x;
-        let y = gameObject.physicsComponent.y;
-        let width = gameObject.physicsComponent.width;
-        let height = gameObject.physicsComponent.height;
-        if( x < mouseRect.x + mouseRect.width && x + width  > mouseRect.x &&
-            y < mouseRect.y + mouseRect.height && y + height > mouseRect.y) {
-            selectedGameObjects.push(gameObject);
+    
+    for (let i = 0; i < game.gameObjects.length; i++){
+        if (checkCircleRectCollision(game.gameObjects[i].physicsComponent.circle, mouseRect)){
+            selectedGameObjects.push(game.gameObjects[i]);
         }
     }
+}
+
+function checkCircleRectCollision(circle, rect){
+    let dx = circle.x - Math.max(rect.x, Math.min(circle.x, rect.x + rect.width));
+    let dy = circle.y - Math.max(rect.y, Math.min(circle.y , rect.y + rect.height));
+    let collision = Math.pow(dx, 2) + Math.pow(dy, 2) < Math.pow(circle.radius, 2);
+    return collision;
 }
 
 function drawSelectionRect(mouseDownEvent, mouseMoveEvent){
     if(mouseDownEvent != null && mouseMoveEvent != null && mouseMoveEvent.which === 1){
         let mouseRect = getMouseSelectionRect(mouseDownEvent, mouseMoveEvent);
-        ctx.fillStyle = "#485157";
+        ctx.strokeStyle = "#485157";
         ctx.strokeRect(mouseRect.x, mouseRect.y, mouseRect.width, mouseRect.height);
     }
 }

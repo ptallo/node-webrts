@@ -5,10 +5,14 @@ var RenderComponent = require('./component/RenderComponent.js');
 var State = require('./component/State.js');
 
 class GameObject{
-    constructor(x, y, width, height){
+    constructor(x, y, radius, xDisjoint, yDisjoint){
         this.id = shortid.generate();
         this.state = State.IDLE;
-        this.physicsComponent = new PhysicsComponent(this.id, x, y, width, height, 100);
+        this.disjoint = {
+            x : xDisjoint,
+            y : yDisjoint
+        };
+        this.physicsComponent = new PhysicsComponent(this.id, x, y, radius, 100);
         this.renderComponent = new RenderComponent('images/character.png');
         this.renderComponent.addAnimation(State.IDLE, 2, 4, 32, 32);
         this.renderComponent.addAnimation(State.WALKING, 6, 4, 32, 32);
@@ -20,11 +24,12 @@ class GameObject{
         }
 
         this.physicsComponent.update(gameObjects, map);
-
-        let point = {};
-        point.x = this.physicsComponent.x;
-        point.y = this.physicsComponent.y;
-        this.renderComponent.draw(point);
+        this.physicsComponent.drawCollisionSize();
+        let renderPoint = {
+            x : this.physicsComponent.circle.x - this.disjoint.x,
+            y : this.physicsComponent.circle.y - this.disjoint.y
+        };
+        this.renderComponent.draw(renderPoint);
     }
     updateDestination(x, y){
         this.physicsComponent.updateDestination(x, y);
@@ -35,7 +40,7 @@ class GameObject{
     }
     determineState(){
         let state = State.IDLE;
-        if (this.physicsComponent.destX !== this.physicsComponent.x || this.physicsComponent.destY !== this.physicsComponent.y) {
+        if (this.physicsComponent.destPoint.x !== this.physicsComponent.circle.x || this.physicsComponent.destPoint.y !== this.physicsComponent.circle.y) {
             state = State.WALKING;
         }
         return state;
