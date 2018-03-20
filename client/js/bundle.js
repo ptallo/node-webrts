@@ -35,12 +35,13 @@ var distanceFromWindow = 50; //mouse distance away from the window that will cau
 
 $(document).ready(function () {
     socket.emit('join io room', game_id);
+    resizeCanvas();
     setInterval(
         function (){
             if (mouseMoveEvent !== null) {
                 translateCanvas();
             }
-            ctx.clearRect(-totalTranslate.x, -totalTranslate.y, canvas.width, canvas.height);
+            clearCanvas();
             game.update();
             drawSelectionRect(mouseDownEvent, mouseMoveEvent);
         },
@@ -84,10 +85,24 @@ var mouseEventHandler = {
     }
 };
 
+window.addEventListener('resize', resizeCanvas, false);
 canvas.onmousedown = mouseEventHandler.mousedown;
 canvas.onmousemove = mouseEventHandler.mousemove;
 canvas.onmouseup = mouseEventHandler.mouseup;
 canvas.oncontextmenu = mouseEventHandler.contextmenu;
+
+function clearCanvas(){
+    ctx.save();
+    ctx.setTransform(1,0,0,1,0,0);
+    ctx.clearRect(0,0,ctx.canvas.width,ctx.canvas.height);
+    ctx.restore();
+}
+
+function resizeCanvas(){
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    ctx.setTransform(1, 0, 0, 1, totalTranslate.x, totalTranslate.y);
+}
 
 function checkTranslateCanvas(e){
     let mouseCoords = getMouseCoords(e);
