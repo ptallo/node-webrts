@@ -16,7 +16,7 @@ var game_id = sessionStorage.getItem('game_id');
 
 var game = new Game(game_id);
 
-var totalTranslate = {
+var transform = {
     x : 0,
     y : 0
 };
@@ -41,7 +41,7 @@ $(document).ready(function () {
                 translateCanvas();
             }
             clearCanvas();
-            game.update();
+            game.update(transform);
             drawSelectionRect(mouseDownEvent, mouseMoveEvent);
         },
         0
@@ -100,7 +100,7 @@ function clearCanvas(){
 function resizeCanvas(){
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
-    ctx.setTransform(1, 0, 0, 1, totalTranslate.x, totalTranslate.y);
+    ctx.setTransform(1, 0, 0, 1, transform.x, transform.y);
 }
 
 function checkTranslateCanvas(e){
@@ -111,13 +111,13 @@ function checkTranslateCanvas(e){
         y: false
     };
 
-    if(mouseCoords.x < distanceFromWindow - totalTranslate.x || mouseCoords.x> canvas.width - distanceFromWindow - totalTranslate.x){
+    if(mouseCoords.x < distanceFromWindow - transform.x || mouseCoords.x> canvas.width - distanceFromWindow - transform.x){
         translate.x = true;
     } else {
         translate.x = false;
     }
 
-    if(mouseCoords.y < distanceFromWindow - totalTranslate.y || mouseCoords.y > canvas.height - distanceFromWindow - totalTranslate.y){
+    if(mouseCoords.y < distanceFromWindow - transform.y || mouseCoords.y > canvas.height - distanceFromWindow - transform.y){
         translate.y = true;
     } else {
         translate.y = false;
@@ -133,25 +133,25 @@ function translateCanvas(){
         y : 0
     };
 
-    if(mouseCoords.x < distanceFromWindow - totalTranslate.x){
+    if(mouseCoords.x < distanceFromWindow - transform.x){
         translate.x = 1;
-    } else if (mouseCoords.x> canvas.width - distanceFromWindow - totalTranslate.x) {
+    } else if (mouseCoords.x> canvas.width - distanceFromWindow - transform.x) {
         translate.x = -1;
     } else {
         translate.x = 0;
     }
 
-    if(mouseCoords.y < distanceFromWindow - totalTranslate.y){
+    if(mouseCoords.y < distanceFromWindow - transform.y){
         translate.y = 1;
-    } else if (mouseCoords.y > canvas.height - distanceFromWindow - totalTranslate.y) {
+    } else if (mouseCoords.y > canvas.height - distanceFromWindow - transform.y) {
         translate.y = -1;
     } else {
         translate.y = 0;
     }
 
     ctx.translate(translate.x, translate.y);
-    totalTranslate.x += translate.x;
-    totalTranslate.y += translate.y;
+    transform.x += translate.x;
+    transform.y += translate.y;
 }
 
 function selectUnits(mouseDownEvent, mouseUpEvent){
@@ -196,8 +196,8 @@ function getMouseSelectionRect(mouseDownEvent, mouseUpEvent){
 function getMouseCoords(mouseEvent){
     let rect = canvas.getBoundingClientRect();
     let mouseCoords = {
-        x : mouseEvent.pageX - rect.left - totalTranslate.x,
-        y : mouseEvent.pageY - rect.top - totalTranslate.y
+        x : mouseEvent.pageX - rect.left - transform.x,
+        y : mouseEvent.pageY - rect.top - transform.y
     };
     return mouseCoords;
 }

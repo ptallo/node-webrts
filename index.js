@@ -110,7 +110,7 @@ io.on('connection', function(socket){
                     games.push(game);
                     io.to(gameLobby.id).emit('start game', game.id, JSON.stringify(game_rooms[i]));
                     setInterval(function(){
-                            game.update(SERVER_TICKRATE);
+                            game.update(null);
                             io.to(game.id).emit('update game', JSON.stringify(game));
                         },
                         SERVER_TICKRATE

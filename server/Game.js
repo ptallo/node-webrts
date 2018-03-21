@@ -2,7 +2,7 @@
 var shortid = require('shortid');
 var GameObject = require('./GameObject.js');
 var Map = require('./Map.js');
-var Tile = require('./Tile.js');
+var Gui = require('./Gui/Gui.js');
 
 class Game{
     constructor(id="none"){
@@ -11,11 +11,15 @@ class Game{
         this.gameObjects.push(new GameObject(20, 20, 8, 16, 29));
         this.gameObjects.push(new GameObject(200, 200, 8, 16, 29));
         this.map = new Map();
+        this.gui = new Gui();
     }
-    update(){
+    update(transform){
         this.map.drawMap();
         for (let i = 0; i < this.gameObjects.length; i++) {
             this.gameObjects[i].update(this.gameObjects, this.map);
+        }
+        if (transform !== null) {
+            this.gui.draw(transform);
         }
     }
     moveObjects(objects, mouseCords){

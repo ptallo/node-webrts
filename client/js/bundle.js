@@ -17,7 +17,7 @@ var game_id = sessionStorage.getItem('game_id');
 
 var game = new Game(game_id);
 
-var totalTranslate = {
+var transform = {
     x : 0,
     y : 0
 };
@@ -42,7 +42,7 @@ $(document).ready(function () {
                 translateCanvas();
             }
             clearCanvas();
-            game.update();
+            game.update(transform);
             drawSelectionRect(mouseDownEvent, mouseMoveEvent);
         },
         0
@@ -101,7 +101,7 @@ function clearCanvas(){
 function resizeCanvas(){
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
-    ctx.setTransform(1, 0, 0, 1, totalTranslate.x, totalTranslate.y);
+    ctx.setTransform(1, 0, 0, 1, transform.x, transform.y);
 }
 
 function checkTranslateCanvas(e){
@@ -112,13 +112,13 @@ function checkTranslateCanvas(e){
         y: false
     };
 
-    if(mouseCoords.x < distanceFromWindow - totalTranslate.x || mouseCoords.x> canvas.width - distanceFromWindow - totalTranslate.x){
+    if(mouseCoords.x < distanceFromWindow - transform.x || mouseCoords.x> canvas.width - distanceFromWindow - transform.x){
         translate.x = true;
     } else {
         translate.x = false;
     }
 
-    if(mouseCoords.y < distanceFromWindow - totalTranslate.y || mouseCoords.y > canvas.height - distanceFromWindow - totalTranslate.y){
+    if(mouseCoords.y < distanceFromWindow - transform.y || mouseCoords.y > canvas.height - distanceFromWindow - transform.y){
         translate.y = true;
     } else {
         translate.y = false;
@@ -134,25 +134,25 @@ function translateCanvas(){
         y : 0
     };
 
-    if(mouseCoords.x < distanceFromWindow - totalTranslate.x){
+    if(mouseCoords.x < distanceFromWindow - transform.x){
         translate.x = 1;
-    } else if (mouseCoords.x> canvas.width - distanceFromWindow - totalTranslate.x) {
+    } else if (mouseCoords.x> canvas.width - distanceFromWindow - transform.x) {
         translate.x = -1;
     } else {
         translate.x = 0;
     }
 
-    if(mouseCoords.y < distanceFromWindow - totalTranslate.y){
+    if(mouseCoords.y < distanceFromWindow - transform.y){
         translate.y = 1;
-    } else if (mouseCoords.y > canvas.height - distanceFromWindow - totalTranslate.y) {
+    } else if (mouseCoords.y > canvas.height - distanceFromWindow - transform.y) {
         translate.y = -1;
     } else {
         translate.y = 0;
     }
 
     ctx.translate(translate.x, translate.y);
-    totalTranslate.x += translate.x;
-    totalTranslate.y += translate.y;
+    transform.x += translate.x;
+    transform.y += translate.y;
 }
 
 function selectUnits(mouseDownEvent, mouseUpEvent){
@@ -197,8 +197,8 @@ function getMouseSelectionRect(mouseDownEvent, mouseUpEvent){
 function getMouseCoords(mouseEvent){
     let rect = canvas.getBoundingClientRect();
     let mouseCoords = {
-        x : mouseEvent.pageX - rect.left - totalTranslate.x,
-        y : mouseEvent.pageY - rect.top - totalTranslate.y
+        x : mouseEvent.pageX - rect.left - transform.x,
+        y : mouseEvent.pageY - rect.top - transform.y
     };
     return mouseCoords;
 }
@@ -223,7 +223,7 @@ socket.on('update game', function(gameJSON){
     }
 });
 
-},{"../../server/Game.js":12,"../../server/GameObject.js":13,"../../server/Map.js":14,"../../server/Tile.js":15,"../../server/component/Animation.js":16,"../../server/component/PhysicsComponent.js":17,"../../server/component/RenderComponent.js":18}],2:[function(require,module,exports){
+},{"../../server/Game.js":12,"../../server/GameObject.js":13,"../../server/Map.js":16,"../../server/Tile.js":17,"../../server/component/Animation.js":18,"../../server/component/PhysicsComponent.js":19,"../../server/component/RenderComponent.js":20}],2:[function(require,module,exports){
 'use strict';
 module.exports = require('./lib/index');
 
@@ -558,7 +558,7 @@ module.exports = 0;
 var shortid = require('shortid');
 var GameObject = require('./GameObject.js');
 var Map = require('./Map.js');
-var Tile = require('./Tile.js');
+var Gui = require('./Gui/Gui.js');
 
 class Game{
     constructor(id="none"){
@@ -567,11 +567,15 @@ class Game{
         this.gameObjects.push(new GameObject(20, 20, 8, 16, 29));
         this.gameObjects.push(new GameObject(200, 200, 8, 16, 29));
         this.map = new Map();
+        this.gui = new Gui();
     }
-    update(){
+    update(transform){
         this.map.drawMap();
         for (let i = 0; i < this.gameObjects.length; i++) {
             this.gameObjects[i].update(this.gameObjects, this.map);
+        }
+        if (transform !== null) {
+            this.gui.draw(transform);
         }
     }
     moveObjects(objects, mouseCords){
@@ -587,7 +591,7 @@ class Game{
 
 module.exports = Game;
 
-},{"./GameObject.js":13,"./Map.js":14,"./Tile.js":15,"shortid":2}],13:[function(require,module,exports){
+},{"./GameObject.js":13,"./Gui/Gui.js":14,"./Map.js":16,"shortid":2}],13:[function(require,module,exports){
 'use strict';
 var shortid = require('shortid');
 var PhysicsComponent = require('./component/PhysicsComponent.js');
@@ -638,7 +642,75 @@ class GameObject{
 }
 
 module.exports = GameObject;
-},{"./component/PhysicsComponent.js":17,"./component/RenderComponent.js":18,"./component/State.js":19,"shortid":2}],14:[function(require,module,exports){
+},{"./component/PhysicsComponent.js":19,"./component/RenderComponent.js":20,"./component/State.js":21,"shortid":2}],14:[function(require,module,exports){
+var Section = require('./Section.js');
+
+class Gui {
+    constructor(){
+        this.sections = [];
+        this.rect = {
+            x : 0,
+            y : 0,
+            width : 0,
+            height : 0
+        };
+    }
+    draw(transform){
+        if (typeof window !== 'undefined' && window.document) {
+            let canvas = document.getElementById('game_canvas');
+            let context = canvas.getContext('2d');
+            
+            this.rect.x = transform.x;
+            this.rect.y = transform.y + (canvas.width * 0.80);
+            this.rect.width = canvas.width;
+            this.rect.height = (canvas.height * 0.20);
+            
+            console.log('drawing: ' + JSON.stringify(this.rect));
+            context.strokeStyle = "#35384d";
+            context.rect(this.rect.x, this.rect.y, this.rect.width, this.rect.height);
+            
+            // for (let i = 0; i < this.sections.length; i++) {
+            //     this.sections[i].draw(transform, this.sections.length);
+            // }
+        }
+        
+    }
+}
+
+module.exports = Gui;
+},{"./Section.js":15}],15:[function(require,module,exports){
+
+class Section{
+    constructor(){
+        this.items = [];
+        this.rect = {
+            x : 0,
+            y : 0,
+            width : 0,
+            height : 0
+        };
+    }
+    draw(point, numberOfSections){
+        //Draw the items for the section then on top of that draw each item
+        let canvas = document.getElementById('game_canvas');
+        let context = canvas.getContext('2d');
+        
+        this.rect.x = point.x;
+        this.rect.y = point.y;
+        this.rect.width = canvas.width / numberOfSections;
+        this.rect.height = canvas.height * 0.18;
+    
+        context.strokeStyle = "#5589a2";
+        context.rect(this.rect.x, this.rect.y, this.rect.width, this.rect.height);
+        
+        for (let i = 0; i < this.items.length; i++) {
+            this.items[i].draw(point);
+        }
+    }
+}
+
+module.exports = Section;
+},{}],16:[function(require,module,exports){
 var Tile = require('./Tile.js');
 
 class Map{
@@ -694,7 +766,7 @@ class Map{
 }
 
 module.exports = Map;
-},{"./Tile.js":15}],15:[function(require,module,exports){
+},{"./Tile.js":17}],17:[function(require,module,exports){
 var RenderComponent = require('./component/RenderComponent.js');
 
 class Tile {
@@ -709,7 +781,7 @@ class Tile {
 }
 
 module.exports = Tile;
-},{"./component/RenderComponent.js":18}],16:[function(require,module,exports){
+},{"./component/RenderComponent.js":20}],18:[function(require,module,exports){
 class Animation {
     constructor(url, startFrame, totalFrames, frameWidth, frameHeight){
         this.url = url;
@@ -763,7 +835,7 @@ class Animation {
 }
 
 module.exports = Animation;
-},{}],17:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 
 class PhysicsComponent {
     constructor(id, x, y, radius, speed){
@@ -879,7 +951,7 @@ class PhysicsComponent {
 }
 
 module.exports = PhysicsComponent;
-},{}],18:[function(require,module,exports){
+},{}],20:[function(require,module,exports){
 var Animation = require('./Animation.js');
 var State = require('./State.js');
 
@@ -942,7 +1014,7 @@ class RenderComponent {
  }
  
  module.exports = RenderComponent;
-},{"./Animation.js":16,"./State.js":19}],19:[function(require,module,exports){
+},{"./Animation.js":18,"./State.js":21}],21:[function(require,module,exports){
 
 var State = {
     IDLE : 'idle',
