@@ -8,6 +8,7 @@ var RenderComponent = require('../../server/component/RenderComponent.js');
 var Animation = require('../../server/component/Animation.js');
 var Map = require('../../server/Map.js');
 var Tile = require('../../server/Tile.js');
+var Gui = require('./Gui/Gui.js');
 
 //Other global variables which need to be expressed
 var canvas = document.getElementById("game_canvas");
@@ -15,6 +16,7 @@ var ctx = canvas.getContext("2d");
 var game_id = sessionStorage.getItem('game_id');
 
 var game = new Game(game_id);
+var gui = new Gui();
 
 var transform = {
     x : 0,
@@ -41,8 +43,9 @@ $(document).ready(function () {
                 translateCanvas();
             }
             clearCanvas();
-            game.update(transform);
+            game.update();
             drawSelectionRect(mouseDownEvent, mouseMoveEvent);
+            gui.draw(transform);
         },
         0
     );
@@ -71,7 +74,6 @@ var mouseEventHandler = {
     },
     mousemove : e => {
         mouseMoveEvent = e;
-        checkTranslateCanvas(mouseMoveEvent);
     },
     mouseup : e => {
         if(mouseDownEvent != null){
@@ -103,29 +105,6 @@ function resizeCanvas(){
     ctx.setTransform(1, 0, 0, 1, transform.x, transform.y);
 }
 
-function checkTranslateCanvas(e){
-    let mouseCoords = getMouseCoords(e);
-
-    let translate = {
-        x : false,
-        y: false
-    };
-
-    if(mouseCoords.x < distanceFromWindow - transform.x || mouseCoords.x> canvas.width - distanceFromWindow - transform.x){
-        translate.x = true;
-    } else {
-        translate.x = false;
-    }
-
-    if(mouseCoords.y < distanceFromWindow - transform.y || mouseCoords.y > canvas.height - distanceFromWindow - transform.y){
-        translate.y = true;
-    } else {
-        translate.y = false;
-    }
-
-    translateOn = translate;
-}
-
 function translateCanvas(){
     let mouseCoords = getMouseCoords(mouseMoveEvent);
     let translate = {
@@ -143,11 +122,15 @@ function translateCanvas(){
 
     if(mouseCoords.y < distanceFromWindow - transform.y){
         translate.y = 1;
-    } else if (mouseCoords.y > canvas.height - distanceFromWindow - transform.y) {
+    } else if (mouseCoords.y > canvas.height - distanceFromWindow - transform.y - gui.rect.height && mouseCoords.y < canvas.height - gui.rect.height - transform.y) {
         translate.y = -1;
     } else {
         translate.y = 0;
     }
+    console.log('mouseCoords.y: ' + mouseCoords.y);
+    console.log('distance above gui: ' + (canvas.height - distanceFromWindow - transform.y - gui.rect.height));
+    console.log('distance below gui: ' + (canvas.height - transform.y - gui.rect.height));
+
 
     ctx.translate(translate.x, translate.y);
     transform.x += translate.x;

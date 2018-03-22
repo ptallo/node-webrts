@@ -1,4 +1,71 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
+var Section = require('./Section.js');
+
+class Gui {
+    constructor(){
+        this.sections = [];
+        this.rect = {
+            x : 0,
+            y : 0,
+            width : 0,
+            height : 0
+        };
+    }
+    draw(transform){
+        if (typeof window !== 'undefined' && window.document) {
+            let canvas = document.getElementById('game_canvas');
+            let context = canvas.getContext('2d');
+            
+            this.rect.x = -transform.x;
+            this.rect.y = -transform.y + (canvas.height * 0.75);
+            this.rect.width = canvas.width;
+            this.rect.height = (canvas.height * 0.25);
+            
+            context.fillStyle = "#f500e5";
+            context.fillRect(this.rect.x, this.rect.y, this.rect.width, this.rect.height);
+            
+            // for (let i = 0; i < this.sections.length; i++) {
+            //     this.sections[i].draw(transform, this.sections.length);
+            // }
+        }
+        
+    }
+}
+
+module.exports = Gui;
+},{"./Section.js":2}],2:[function(require,module,exports){
+
+class Section{
+    constructor(){
+        this.items = [];
+        this.rect = {
+            x : 0,
+            y : 0,
+            width : 0,
+            height : 0
+        };
+    }
+    draw(point, numberOfSections){
+        //Draw the items for the section then on top of that draw each item
+        let canvas = document.getElementById('game_canvas');
+        let context = canvas.getContext('2d');
+        
+        this.rect.x = point.x;
+        this.rect.y = point.y;
+        this.rect.width = canvas.width / numberOfSections;
+        this.rect.height = canvas.height * 0.18;
+    
+        context.strokeStyle = "#5589a2";
+        context.rect(this.rect.x, this.rect.y, this.rect.width, this.rect.height);
+        
+        for (let i = 0; i < this.items.length; i++) {
+            this.items[i].draw(point);
+        }
+    }
+}
+
+module.exports = Section;
+},{}],3:[function(require,module,exports){
 'use strict';
 // browserify main.js -o bundle.js - game logic require
 var socket = io();
@@ -9,6 +76,7 @@ var RenderComponent = require('../../server/component/RenderComponent.js');
 var Animation = require('../../server/component/Animation.js');
 var Map = require('../../server/Map.js');
 var Tile = require('../../server/Tile.js');
+var Gui = require('./Gui/Gui.js');
 
 //Other global variables which need to be expressed
 var canvas = document.getElementById("game_canvas");
@@ -16,6 +84,7 @@ var ctx = canvas.getContext("2d");
 var game_id = sessionStorage.getItem('game_id');
 
 var game = new Game(game_id);
+var gui = new Gui();
 
 var transform = {
     x : 0,
@@ -42,8 +111,9 @@ $(document).ready(function () {
                 translateCanvas();
             }
             clearCanvas();
-            game.update(transform);
+            game.update();
             drawSelectionRect(mouseDownEvent, mouseMoveEvent);
+            gui.draw(transform);
         },
         0
     );
@@ -72,7 +142,6 @@ var mouseEventHandler = {
     },
     mousemove : e => {
         mouseMoveEvent = e;
-        checkTranslateCanvas(mouseMoveEvent);
     },
     mouseup : e => {
         if(mouseDownEvent != null){
@@ -104,29 +173,6 @@ function resizeCanvas(){
     ctx.setTransform(1, 0, 0, 1, transform.x, transform.y);
 }
 
-function checkTranslateCanvas(e){
-    let mouseCoords = getMouseCoords(e);
-
-    let translate = {
-        x : false,
-        y: false
-    };
-
-    if(mouseCoords.x < distanceFromWindow - transform.x || mouseCoords.x> canvas.width - distanceFromWindow - transform.x){
-        translate.x = true;
-    } else {
-        translate.x = false;
-    }
-
-    if(mouseCoords.y < distanceFromWindow - transform.y || mouseCoords.y > canvas.height - distanceFromWindow - transform.y){
-        translate.y = true;
-    } else {
-        translate.y = false;
-    }
-
-    translateOn = translate;
-}
-
 function translateCanvas(){
     let mouseCoords = getMouseCoords(mouseMoveEvent);
     let translate = {
@@ -144,11 +190,15 @@ function translateCanvas(){
 
     if(mouseCoords.y < distanceFromWindow - transform.y){
         translate.y = 1;
-    } else if (mouseCoords.y > canvas.height - distanceFromWindow - transform.y) {
+    } else if (mouseCoords.y > canvas.height - distanceFromWindow - transform.y - gui.rect.height && mouseCoords.y < canvas.height - gui.rect.height - transform.y) {
         translate.y = -1;
     } else {
         translate.y = 0;
     }
+    console.log('mouseCoords.y: ' + mouseCoords.y);
+    console.log('distance above gui: ' + (canvas.height - distanceFromWindow - transform.y - gui.rect.height));
+    console.log('distance below gui: ' + (canvas.height - transform.y - gui.rect.height));
+
 
     ctx.translate(translate.x, translate.y);
     transform.x += translate.x;
@@ -223,11 +273,11 @@ socket.on('update game', function(gameJSON){
     }
 });
 
-},{"../../server/Game.js":12,"../../server/GameObject.js":13,"../../server/Map.js":16,"../../server/Tile.js":17,"../../server/component/Animation.js":18,"../../server/component/PhysicsComponent.js":19,"../../server/component/RenderComponent.js":20}],2:[function(require,module,exports){
+},{"../../server/Game.js":14,"../../server/GameObject.js":15,"../../server/Map.js":16,"../../server/Tile.js":17,"../../server/component/Animation.js":18,"../../server/component/PhysicsComponent.js":19,"../../server/component/RenderComponent.js":20,"./Gui/Gui.js":1}],4:[function(require,module,exports){
 'use strict';
 module.exports = require('./lib/index');
 
-},{"./lib/index":7}],3:[function(require,module,exports){
+},{"./lib/index":9}],5:[function(require,module,exports){
 'use strict';
 
 var randomFromSeed = require('./random/random-from-seed');
@@ -327,7 +377,7 @@ module.exports = {
     shuffled: getShuffled
 };
 
-},{"./random/random-from-seed":10}],4:[function(require,module,exports){
+},{"./random/random-from-seed":12}],6:[function(require,module,exports){
 'use strict';
 
 var encode = require('./encode');
@@ -377,7 +427,7 @@ function build(clusterWorkerId) {
 
 module.exports = build;
 
-},{"./alphabet":3,"./encode":6}],5:[function(require,module,exports){
+},{"./alphabet":5,"./encode":8}],7:[function(require,module,exports){
 'use strict';
 var alphabet = require('./alphabet');
 
@@ -396,7 +446,7 @@ function decode(id) {
 
 module.exports = decode;
 
-},{"./alphabet":3}],6:[function(require,module,exports){
+},{"./alphabet":5}],8:[function(require,module,exports){
 'use strict';
 
 var randomByte = require('./random/random-byte');
@@ -417,7 +467,7 @@ function encode(lookup, number) {
 
 module.exports = encode;
 
-},{"./random/random-byte":9}],7:[function(require,module,exports){
+},{"./random/random-byte":11}],9:[function(require,module,exports){
 'use strict';
 
 var alphabet = require('./alphabet');
@@ -484,7 +534,7 @@ module.exports.characters = characters;
 module.exports.decode = decode;
 module.exports.isValid = isValid;
 
-},{"./alphabet":3,"./build":4,"./decode":5,"./encode":6,"./is-valid":8,"./util/cluster-worker-id":11}],8:[function(require,module,exports){
+},{"./alphabet":5,"./build":6,"./decode":7,"./encode":8,"./is-valid":10,"./util/cluster-worker-id":13}],10:[function(require,module,exports){
 'use strict';
 var alphabet = require('./alphabet');
 
@@ -505,7 +555,7 @@ function isShortId(id) {
 
 module.exports = isShortId;
 
-},{"./alphabet":3}],9:[function(require,module,exports){
+},{"./alphabet":5}],11:[function(require,module,exports){
 'use strict';
 
 var crypto = typeof window === 'object' && (window.crypto || window.msCrypto); // IE 11 uses window.msCrypto
@@ -521,7 +571,7 @@ function randomByte() {
 
 module.exports = randomByte;
 
-},{}],10:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 'use strict';
 
 // Found this seed-based random generator somewhere
@@ -548,17 +598,16 @@ module.exports = {
     seed: setSeed
 };
 
-},{}],11:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 'use strict';
 
 module.exports = 0;
 
-},{}],12:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 'use strict';
 var shortid = require('shortid');
 var GameObject = require('./GameObject.js');
 var Map = require('./Map.js');
-var Gui = require('./Gui/Gui.js');
 
 class Game{
     constructor(id="none"){
@@ -567,15 +616,11 @@ class Game{
         this.gameObjects.push(new GameObject(20, 20, 8, 16, 29));
         this.gameObjects.push(new GameObject(200, 200, 8, 16, 29));
         this.map = new Map();
-        this.gui = new Gui();
     }
-    update(transform){
+    update(){
         this.map.drawMap();
         for (let i = 0; i < this.gameObjects.length; i++) {
             this.gameObjects[i].update(this.gameObjects, this.map);
-        }
-        if (transform !== null) {
-            this.gui.draw(transform);
         }
     }
     moveObjects(objects, mouseCords){
@@ -591,7 +636,7 @@ class Game{
 
 module.exports = Game;
 
-},{"./GameObject.js":13,"./Gui/Gui.js":14,"./Map.js":16,"shortid":2}],13:[function(require,module,exports){
+},{"./GameObject.js":15,"./Map.js":16,"shortid":4}],15:[function(require,module,exports){
 'use strict';
 var shortid = require('shortid');
 var PhysicsComponent = require('./component/PhysicsComponent.js');
@@ -642,75 +687,7 @@ class GameObject{
 }
 
 module.exports = GameObject;
-},{"./component/PhysicsComponent.js":19,"./component/RenderComponent.js":20,"./component/State.js":21,"shortid":2}],14:[function(require,module,exports){
-var Section = require('./Section.js');
-
-class Gui {
-    constructor(){
-        this.sections = [];
-        this.rect = {
-            x : 0,
-            y : 0,
-            width : 0,
-            height : 0
-        };
-    }
-    draw(transform){
-        if (typeof window !== 'undefined' && window.document) {
-            let canvas = document.getElementById('game_canvas');
-            let context = canvas.getContext('2d');
-            
-            this.rect.x = transform.x;
-            this.rect.y = transform.y + (canvas.width * 0.80);
-            this.rect.width = canvas.width;
-            this.rect.height = (canvas.height * 0.20);
-            
-            console.log('drawing: ' + JSON.stringify(this.rect));
-            context.strokeStyle = "#35384d";
-            context.rect(this.rect.x, this.rect.y, this.rect.width, this.rect.height);
-            
-            // for (let i = 0; i < this.sections.length; i++) {
-            //     this.sections[i].draw(transform, this.sections.length);
-            // }
-        }
-        
-    }
-}
-
-module.exports = Gui;
-},{"./Section.js":15}],15:[function(require,module,exports){
-
-class Section{
-    constructor(){
-        this.items = [];
-        this.rect = {
-            x : 0,
-            y : 0,
-            width : 0,
-            height : 0
-        };
-    }
-    draw(point, numberOfSections){
-        //Draw the items for the section then on top of that draw each item
-        let canvas = document.getElementById('game_canvas');
-        let context = canvas.getContext('2d');
-        
-        this.rect.x = point.x;
-        this.rect.y = point.y;
-        this.rect.width = canvas.width / numberOfSections;
-        this.rect.height = canvas.height * 0.18;
-    
-        context.strokeStyle = "#5589a2";
-        context.rect(this.rect.x, this.rect.y, this.rect.width, this.rect.height);
-        
-        for (let i = 0; i < this.items.length; i++) {
-            this.items[i].draw(point);
-        }
-    }
-}
-
-module.exports = Section;
-},{}],16:[function(require,module,exports){
+},{"./component/PhysicsComponent.js":19,"./component/RenderComponent.js":20,"./component/State.js":21,"shortid":4}],16:[function(require,module,exports){
 var Tile = require('./Tile.js');
 
 class Map{
@@ -1022,4 +999,4 @@ var State = {
 };
 
 module.exports = State;
-},{}]},{},[1]);
+},{}]},{},[3]);

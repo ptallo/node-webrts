@@ -15,14 +15,13 @@ class Gui {
             let canvas = document.getElementById('game_canvas');
             let context = canvas.getContext('2d');
             
-            this.rect.x = transform.x;
-            this.rect.y = transform.y + (canvas.width * 0.80);
+            this.rect.x = -transform.x;
+            this.rect.y = -transform.y + (canvas.height * 0.75);
             this.rect.width = canvas.width;
-            this.rect.height = (canvas.height * 0.20);
+            this.rect.height = (canvas.height * 0.25);
             
-            console.log('drawing: ' + JSON.stringify(this.rect));
-            context.strokeStyle = "#35384d";
-            context.rect(this.rect.x, this.rect.y, this.rect.width, this.rect.height);
+            context.fillStyle = "#f500e5";
+            context.fillRect(this.rect.x, this.rect.y, this.rect.width, this.rect.height);
             
             // for (let i = 0; i < this.sections.length; i++) {
             //     this.sections[i].draw(transform, this.sections.length);
