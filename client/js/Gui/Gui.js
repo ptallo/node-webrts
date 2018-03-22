@@ -9,6 +9,9 @@ class Gui {
             width : 0,
             height : 0
         };
+        this.sections.push(new Section());
+        this.sections.push(new Section());
+        this.sections.push(new Section());
     }
     draw(transform){
         if (typeof window !== 'undefined' && window.document) {
@@ -23,11 +26,10 @@ class Gui {
             context.fillStyle = "#f500e5";
             context.fillRect(this.rect.x, this.rect.y, this.rect.width, this.rect.height);
             
-            // for (let i = 0; i < this.sections.length; i++) {
-            //     this.sections[i].draw(transform, this.sections.length);
-            // }
+            for (let i = 0; i < this.sections.length; i++) {
+                this.sections[i].draw(this.rect, this.sections.length, i);
+            }
         }
-        
     }
 }
 

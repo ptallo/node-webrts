@@ -112,7 +112,7 @@ function translateCanvas(){
         y : 0
     };
 
-    if(mouseCoords.x < distanceFromWindow - transform.x){
+    if (mouseCoords.x < distanceFromWindow - transform.x){
         translate.x = 1;
     } else if (mouseCoords.x> canvas.width - distanceFromWindow - transform.x) {
         translate.x = -1;
@@ -120,17 +120,13 @@ function translateCanvas(){
         translate.x = 0;
     }
 
-    if(mouseCoords.y < distanceFromWindow - transform.y){
+    if (mouseCoords.y < distanceFromWindow - transform.y){
         translate.y = 1;
     } else if (mouseCoords.y > canvas.height - distanceFromWindow - transform.y - gui.rect.height && mouseCoords.y < canvas.height - gui.rect.height - transform.y) {
         translate.y = -1;
     } else {
         translate.y = 0;
     }
-    console.log('mouseCoords.y: ' + mouseCoords.y);
-    console.log('distance above gui: ' + (canvas.height - distanceFromWindow - transform.y - gui.rect.height));
-    console.log('distance below gui: ' + (canvas.height - transform.y - gui.rect.height));
-
 
     ctx.translate(translate.x, translate.y);
     transform.x += translate.x;

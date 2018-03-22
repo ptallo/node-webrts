@@ -9,22 +9,25 @@ class Section{
             height : 0
         };
     }
-    draw(point, numberOfSections){
-        //Draw the items for the section then on top of that draw each item
+    draw(guiRect, numberOfSections, sectionNumber){
         let canvas = document.getElementById('game_canvas');
         let context = canvas.getContext('2d');
+
+        this.rect.width = guiRect.width * 0.95 / numberOfSections;
+        this.rect.height = guiRect.height * 0.90;
+        this.rect.x = guiRect.x + (guiRect.width / numberOfSections * sectionNumber) + (guiRect.width * 0.025 / numberOfSections);
+        this.rect.y = guiRect.y + (guiRect.height * 0.05);
+        console.log(sectionNumber + ": " + JSON.stringify(this.rect));
+
+        context.fillStyle = "#7b31a2";
+        context.fillRect(this.rect.x, this.rect.y, this.rect.width, this.rect.height);
         
-        this.rect.x = point.x;
-        this.rect.y = point.y;
-        this.rect.width = canvas.width / numberOfSections;
-        this.rect.height = canvas.height * 0.18;
-    
-        context.strokeStyle = "#5589a2";
-        context.rect(this.rect.x, this.rect.y, this.rect.width, this.rect.height);
-        
-        for (let i = 0; i < this.items.length; i++) {
-            this.items[i].draw(point);
-        }
+        // for (let i = 0; i < this.items.length; i++) {
+        //     this.items[i].draw(point);
+        // }
+    }
+    addItem(item){
+        this.items.push(item);
     }
 }
 
