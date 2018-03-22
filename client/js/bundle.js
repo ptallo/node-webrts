@@ -1,5 +1,6 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 var Section = require('./Section.js');
+var GuiItem = require('./GuiItem.js');
 
 class Gui {
     constructor(){
@@ -10,7 +11,11 @@ class Gui {
             width : 0,
             height : 0
         };
-        this.sections.push(new Section());
+        let section = new Section();
+        for(let i = 0; i < 18; i++){
+            section.addItem(new GuiItem());
+        }
+        this.sections.push(section);
         this.sections.push(new Section());
         this.sections.push(new Section());
     }
@@ -35,7 +40,43 @@ class Gui {
 }
 
 module.exports = Gui;
-},{"./Section.js":2}],2:[function(require,module,exports){
+},{"./GuiItem.js":2,"./Section.js":3}],2:[function(require,module,exports){
+
+class GuiItem{
+    constructor(){
+        this.rect = {
+            x : 0,
+            y : 0,
+            width : 0,
+            height : 0
+        };
+        this.active = false;
+    }
+    draw(sectionRect, itemNumber){
+        let canvas = document.getElementById('game_canvas');
+        let context = canvas.getContext('2d');
+
+        if (itemNumber <= 25) {
+            let xNumber = itemNumber % 5;
+            let yNumber = Math.floor(itemNumber / 5);
+
+            this.rect.width = sectionRect.width * 0.18;
+            this.rect.height = sectionRect.height * 0.18;
+            this.rect.x = sectionRect.x + (sectionRect.width * xNumber / 5) + (sectionRect.width * 0.05 / 5);
+            this.rect.y = sectionRect.y + (sectionRect.height * yNumber / 5) + (sectionRect.height * 0.05 / 5);
+
+            context.fillStyle = "#1b15ee";
+            context.fillRect(this.rect.x, this.rect.y, this.rect.width, this.rect.height);
+
+            this.active = true;
+        } else {
+            this.active = false;
+        }
+    }
+}
+
+module.exports = GuiItem;
+},{}],3:[function(require,module,exports){
 
 class Section{
     constructor(){
@@ -53,16 +94,15 @@ class Section{
 
         this.rect.width = guiRect.width * 0.95 / numberOfSections;
         this.rect.height = guiRect.height * 0.90;
-        this.rect.x = guiRect.x + (guiRect.width / numberOfSections * sectionNumber) + (guiRect.width * 0.025 / numberOfSections);
+        this.rect.x = guiRect.x + (guiRect.width * sectionNumber / numberOfSections) + (guiRect.width * 0.025 / numberOfSections);
         this.rect.y = guiRect.y + (guiRect.height * 0.05);
-        console.log(sectionNumber + ": " + JSON.stringify(this.rect));
 
         context.fillStyle = "#7b31a2";
         context.fillRect(this.rect.x, this.rect.y, this.rect.width, this.rect.height);
         
-        // for (let i = 0; i < this.items.length; i++) {
-        //     this.items[i].draw(point);
-        // }
+        for (let i = 0; i < this.items.length; i++) {
+            this.items[i].draw(this.rect, i);
+        }
     }
     addItem(item){
         this.items.push(item);
@@ -70,7 +110,7 @@ class Section{
 }
 
 module.exports = Section;
-},{}],3:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 'use strict';
 // browserify main.js -o bundle.js - game logic require
 var socket = io();
@@ -274,11 +314,11 @@ socket.on('update game', function(gameJSON){
     }
 });
 
-},{"../../server/Game.js":14,"../../server/GameObject.js":15,"../../server/Map.js":16,"../../server/Tile.js":17,"../../server/component/Animation.js":18,"../../server/component/PhysicsComponent.js":19,"../../server/component/RenderComponent.js":20,"./Gui/Gui.js":1}],4:[function(require,module,exports){
+},{"../../server/Game.js":15,"../../server/GameObject.js":16,"../../server/Map.js":17,"../../server/Tile.js":18,"../../server/component/Animation.js":19,"../../server/component/PhysicsComponent.js":20,"../../server/component/RenderComponent.js":21,"./Gui/Gui.js":1}],5:[function(require,module,exports){
 'use strict';
 module.exports = require('./lib/index');
 
-},{"./lib/index":9}],5:[function(require,module,exports){
+},{"./lib/index":10}],6:[function(require,module,exports){
 'use strict';
 
 var randomFromSeed = require('./random/random-from-seed');
@@ -378,7 +418,7 @@ module.exports = {
     shuffled: getShuffled
 };
 
-},{"./random/random-from-seed":12}],6:[function(require,module,exports){
+},{"./random/random-from-seed":13}],7:[function(require,module,exports){
 'use strict';
 
 var encode = require('./encode');
@@ -428,7 +468,7 @@ function build(clusterWorkerId) {
 
 module.exports = build;
 
-},{"./alphabet":5,"./encode":8}],7:[function(require,module,exports){
+},{"./alphabet":6,"./encode":9}],8:[function(require,module,exports){
 'use strict';
 var alphabet = require('./alphabet');
 
@@ -447,7 +487,7 @@ function decode(id) {
 
 module.exports = decode;
 
-},{"./alphabet":5}],8:[function(require,module,exports){
+},{"./alphabet":6}],9:[function(require,module,exports){
 'use strict';
 
 var randomByte = require('./random/random-byte');
@@ -468,7 +508,7 @@ function encode(lookup, number) {
 
 module.exports = encode;
 
-},{"./random/random-byte":11}],9:[function(require,module,exports){
+},{"./random/random-byte":12}],10:[function(require,module,exports){
 'use strict';
 
 var alphabet = require('./alphabet');
@@ -535,7 +575,7 @@ module.exports.characters = characters;
 module.exports.decode = decode;
 module.exports.isValid = isValid;
 
-},{"./alphabet":5,"./build":6,"./decode":7,"./encode":8,"./is-valid":10,"./util/cluster-worker-id":13}],10:[function(require,module,exports){
+},{"./alphabet":6,"./build":7,"./decode":8,"./encode":9,"./is-valid":11,"./util/cluster-worker-id":14}],11:[function(require,module,exports){
 'use strict';
 var alphabet = require('./alphabet');
 
@@ -556,7 +596,7 @@ function isShortId(id) {
 
 module.exports = isShortId;
 
-},{"./alphabet":5}],11:[function(require,module,exports){
+},{"./alphabet":6}],12:[function(require,module,exports){
 'use strict';
 
 var crypto = typeof window === 'object' && (window.crypto || window.msCrypto); // IE 11 uses window.msCrypto
@@ -572,7 +612,7 @@ function randomByte() {
 
 module.exports = randomByte;
 
-},{}],12:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 'use strict';
 
 // Found this seed-based random generator somewhere
@@ -599,12 +639,12 @@ module.exports = {
     seed: setSeed
 };
 
-},{}],13:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 'use strict';
 
 module.exports = 0;
 
-},{}],14:[function(require,module,exports){
+},{}],15:[function(require,module,exports){
 'use strict';
 var shortid = require('shortid');
 var GameObject = require('./GameObject.js');
@@ -637,7 +677,7 @@ class Game{
 
 module.exports = Game;
 
-},{"./GameObject.js":15,"./Map.js":16,"shortid":4}],15:[function(require,module,exports){
+},{"./GameObject.js":16,"./Map.js":17,"shortid":5}],16:[function(require,module,exports){
 'use strict';
 var shortid = require('shortid');
 var PhysicsComponent = require('./component/PhysicsComponent.js');
@@ -688,7 +728,7 @@ class GameObject{
 }
 
 module.exports = GameObject;
-},{"./component/PhysicsComponent.js":19,"./component/RenderComponent.js":20,"./component/State.js":21,"shortid":4}],16:[function(require,module,exports){
+},{"./component/PhysicsComponent.js":20,"./component/RenderComponent.js":21,"./component/State.js":22,"shortid":5}],17:[function(require,module,exports){
 var Tile = require('./Tile.js');
 
 class Map{
@@ -744,7 +784,7 @@ class Map{
 }
 
 module.exports = Map;
-},{"./Tile.js":17}],17:[function(require,module,exports){
+},{"./Tile.js":18}],18:[function(require,module,exports){
 var RenderComponent = require('./component/RenderComponent.js');
 
 class Tile {
@@ -759,7 +799,7 @@ class Tile {
 }
 
 module.exports = Tile;
-},{"./component/RenderComponent.js":20}],18:[function(require,module,exports){
+},{"./component/RenderComponent.js":21}],19:[function(require,module,exports){
 class Animation {
     constructor(url, startFrame, totalFrames, frameWidth, frameHeight){
         this.url = url;
@@ -813,7 +853,7 @@ class Animation {
 }
 
 module.exports = Animation;
-},{}],19:[function(require,module,exports){
+},{}],20:[function(require,module,exports){
 
 class PhysicsComponent {
     constructor(id, x, y, radius, speed){
@@ -929,7 +969,7 @@ class PhysicsComponent {
 }
 
 module.exports = PhysicsComponent;
-},{}],20:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
 var Animation = require('./Animation.js');
 var State = require('./State.js');
 
@@ -992,7 +1032,7 @@ class RenderComponent {
  }
  
  module.exports = RenderComponent;
-},{"./Animation.js":18,"./State.js":21}],21:[function(require,module,exports){
+},{"./Animation.js":19,"./State.js":22}],22:[function(require,module,exports){
 
 var State = {
     IDLE : 'idle',
@@ -1000,4 +1040,4 @@ var State = {
 };
 
 module.exports = State;
-},{}]},{},[3]);
+},{}]},{},[4]);

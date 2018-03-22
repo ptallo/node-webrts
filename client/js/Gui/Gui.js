@@ -1,4 +1,5 @@
 var Section = require('./Section.js');
+var GuiItem = require('./GuiItem.js');
 
 class Gui {
     constructor(){
@@ -9,7 +10,11 @@ class Gui {
             width : 0,
             height : 0
         };
-        this.sections.push(new Section());
+        let section = new Section();
+        for(let i = 0; i < 18; i++){
+            section.addItem(new GuiItem());
+        }
+        this.sections.push(section);
         this.sections.push(new Section());
         this.sections.push(new Section());
     }
