@@ -112,9 +112,13 @@ function translateCanvas(){
         y : 0
     };
 
-    if (mouseCoords.x < distanceFromWindow - transform.x){
+    let aboveGui = mouseCoords.y < canvas.height - transform.y - gui.rect.height;
+    ctx.fillStyle = "#000000";
+    ctx.fillText(JSON.stringify(aboveGui), 10 - transform.x, 10 - transform.x);
+    
+    if (mouseCoords.x < distanceFromWindow - transform.x && aboveGui){
         translate.x = 1;
-    } else if (mouseCoords.x> canvas.width - distanceFromWindow - transform.x) {
+    } else if (mouseCoords.x> canvas.width - distanceFromWindow - transform.x && aboveGui) {
         translate.x = -1;
     } else {
         translate.x = 0;

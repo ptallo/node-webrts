@@ -12,7 +12,7 @@ class Gui {
         };
         let section = new Section();
         for(let i = 0; i < 18; i++){
-            section.addItem(new GuiItem());
+            section.addItem(new GuiItem(30, 30, 0.10, 0.10));
         }
         this.sections.push(section);
         this.sections.push(new Section());
