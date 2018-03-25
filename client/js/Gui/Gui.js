@@ -10,13 +10,13 @@ class Gui {
             width : 0,
             height : 0
         };
-        let section = new Section();
+        let section = new Section(0.05, 0.1);
         for(let i = 0; i < 18; i++){
             section.addItem(new GuiItem(30, 30, 0.10, 0.10));
         }
         this.sections.push(section);
-        this.sections.push(new Section());
-        this.sections.push(new Section());
+        this.sections.push(new Section(0, 0));
+        this.sections.push(new Section(0.05, 0.1));
     }
     draw(transform){
         if (typeof window !== 'undefined' && window.document) {
@@ -34,6 +34,11 @@ class Gui {
             for (let i = 0; i < this.sections.length; i++) {
                 this.sections[i].draw(this.rect, this.sections.length, i);
             }
+        }
+    }
+    activate(){
+        for (let i = 0; i < this.sections.length; i++){
+            this.sections[i].activate();
         }
     }
 }

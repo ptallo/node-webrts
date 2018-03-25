@@ -11,13 +11,13 @@ class Gui {
             width : 0,
             height : 0
         };
-        let section = new Section();
+        let section = new Section(0.05, 0.1);
         for(let i = 0; i < 18; i++){
             section.addItem(new GuiItem(30, 30, 0.10, 0.10));
         }
         this.sections.push(section);
-        this.sections.push(new Section());
-        this.sections.push(new Section());
+        this.sections.push(new Section(0, 0));
+        this.sections.push(new Section(0.05, 0.1));
     }
     draw(transform){
         if (typeof window !== 'undefined' && window.document) {
@@ -35,6 +35,11 @@ class Gui {
             for (let i = 0; i < this.sections.length; i++) {
                 this.sections[i].draw(this.rect, this.sections.length, i);
             }
+        }
+    }
+    activate(){
+        for (let i = 0; i < this.sections.length; i++){
+            this.sections[i].activate();
         }
     }
 }
@@ -60,15 +65,21 @@ class GuiItem{
         let context = canvas.getContext('2d');
         
         let numberItemsX = Math.floor(sectionRect.width / this.rect.outerWidth);
+        let numberItemsY = Math.floor(sectionRect.height / this.rect.outerHeight);
         
-        let xPos = itemNumber % numberItemsX;
-        let yPos = Math.floor(itemNumber / numberItemsX);
-        
-        this.rect.x = sectionRect.x + (xPos * this.rect.outerWidth) + (this.rect.width * this.xBuffer);
-        this.rect.y = sectionRect.y + (yPos * this.rect.outerHeight) + (this.rect.height * this.yBuffer);
+        if (itemNumber < numberItemsX * numberItemsY) {
+            let xPos = itemNumber % numberItemsX;
+            let yPos = Math.floor(itemNumber / numberItemsX);
     
-        context.fillStyle = "#1b15ee";
-        context.fillRect(this.rect.x, this.rect.y, this.rect.width, this.rect.height);
+            this.rect.x = sectionRect.x + (xPos * this.rect.outerWidth) + (this.rect.width * this.xBuffer);
+            this.rect.y = sectionRect.y + (yPos * this.rect.outerHeight) + (this.rect.height * this.yBuffer);
+    
+            context.fillStyle = "#1b15ee";
+            context.fillRect(this.rect.x, this.rect.y, this.rect.width, this.rect.height);
+        }
+    }
+    activate(){
+    
     }
 }
 
@@ -76,7 +87,7 @@ module.exports = GuiItem;
 },{}],3:[function(require,module,exports){
 
 class Section{
-    constructor(){
+    constructor(xBuffer, yBuffer){
         this.items = [];
         this.rect = {
             x : 0,
@@ -84,15 +95,17 @@ class Section{
             width : 0,
             height : 0
         };
+        this.xBuffer = xBuffer;
+        this.yBuffer = yBuffer;
     }
     draw(guiRect, numberOfSections, sectionNumber){
         let canvas = document.getElementById('game_canvas');
         let context = canvas.getContext('2d');
 
-        this.rect.width = guiRect.width * 0.95 / numberOfSections;
-        this.rect.height = guiRect.height * 0.90;
-        this.rect.x = guiRect.x + (guiRect.width * sectionNumber / numberOfSections) + (guiRect.width * 0.025 / numberOfSections);
-        this.rect.y = guiRect.y + (guiRect.height * 0.05);
+        this.rect.width = guiRect.width * (1 - this.xBuffer) / numberOfSections;
+        this.rect.height = guiRect.height * (1 - this.yBuffer);
+        this.rect.x = guiRect.x + (guiRect.width * sectionNumber / numberOfSections) + (guiRect.width * this.xBuffer / 2 / numberOfSections);
+        this.rect.y = guiRect.y + (guiRect.height * this.yBuffer / 2);
 
         context.fillStyle = "#7b31a2";
         context.fillRect(this.rect.x, this.rect.y, this.rect.width, this.rect.height);
@@ -103,6 +116,11 @@ class Section{
     }
     addItem(item){
         this.items.push(item);
+    }
+    activate(){
+        for (let i = 0; i < this.items.length; i++) {
+            this.items[i].activate();
+        }
     }
 }
 

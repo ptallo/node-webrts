@@ -17,15 +17,21 @@ class GuiItem{
         let context = canvas.getContext('2d');
         
         let numberItemsX = Math.floor(sectionRect.width / this.rect.outerWidth);
+        let numberItemsY = Math.floor(sectionRect.height / this.rect.outerHeight);
         
-        let xPos = itemNumber % numberItemsX;
-        let yPos = Math.floor(itemNumber / numberItemsX);
-        
-        this.rect.x = sectionRect.x + (xPos * this.rect.outerWidth) + (this.rect.width * this.xBuffer);
-        this.rect.y = sectionRect.y + (yPos * this.rect.outerHeight) + (this.rect.height * this.yBuffer);
+        if (itemNumber < numberItemsX * numberItemsY) {
+            let xPos = itemNumber % numberItemsX;
+            let yPos = Math.floor(itemNumber / numberItemsX);
     
-        context.fillStyle = "#1b15ee";
-        context.fillRect(this.rect.x, this.rect.y, this.rect.width, this.rect.height);
+            this.rect.x = sectionRect.x + (xPos * this.rect.outerWidth) + (this.rect.width * this.xBuffer);
+            this.rect.y = sectionRect.y + (yPos * this.rect.outerHeight) + (this.rect.height * this.yBuffer);
+    
+            context.fillStyle = "#1b15ee";
+            context.fillRect(this.rect.x, this.rect.y, this.rect.width, this.rect.height);
+        }
+    }
+    activate(){
+    
     }
 }
 
