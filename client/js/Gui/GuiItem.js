@@ -37,10 +37,10 @@ class GuiItem{
             mouseDownCoords.y > this.rect.y &&
             mouseDownCoords.y < this.rect.y + this.rect.height){
             this.fillStyle = "#FF0000";
-        } else {
-            this.fillStyle = "#1b15ee";
         }
     }
+    deactivate(){
+        this.fillStyle = "#1b15ee";    }
 }
 
 module.exports = GuiItem;

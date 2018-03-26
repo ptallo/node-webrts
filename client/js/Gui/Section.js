@@ -35,6 +35,11 @@ class Section{
             this.items[i].activate(mouseDownCoords);
         }
     }
+    deactivate(){
+        for (let i = 0; i < this.items.length; i++){
+           this.items[i].deactivate();
+        }
+    }
 }
 
 module.exports = Section;

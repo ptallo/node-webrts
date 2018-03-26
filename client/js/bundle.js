@@ -42,6 +42,11 @@ class Gui {
             this.sections[i].activate(mouseDownCoords);
         }
     }
+    deactivate(){
+        for (let i = 0; i < this.sections.length; i++) {
+            this.sections[i].deactivate();
+        }
+    }
 }
 
 module.exports = Gui;
@@ -85,10 +90,10 @@ class GuiItem{
             mouseDownCoords.y > this.rect.y &&
             mouseDownCoords.y < this.rect.y + this.rect.height){
             this.fillStyle = "#FF0000";
-        } else {
-            this.fillStyle = "#1b15ee";
         }
     }
+    deactivate(){
+        this.fillStyle = "#1b15ee";    }
 }
 
 module.exports = GuiItem;
@@ -128,6 +133,11 @@ class Section{
     activate(mouseDownCoords){
         for (let i = 0; i < this.items.length; i++) {
             this.items[i].activate(mouseDownCoords);
+        }
+    }
+    deactivate(){
+        for (let i = 0; i < this.items.length; i++){
+           this.items[i].deactivate();
         }
     }
 }
@@ -217,6 +227,7 @@ var mouseEventHandler = {
             selectUnits(mouseDownEvent, e);
         }
         mouseDownEvent = null;
+        gui.deactivate();
     },
     contextmenu : e => {
         return false;

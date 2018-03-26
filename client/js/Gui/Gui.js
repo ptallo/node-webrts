@@ -41,6 +41,11 @@ class Gui {
             this.sections[i].activate(mouseDownCoords);
         }
     }
+    deactivate(){
+        for (let i = 0; i < this.sections.length; i++) {
+            this.sections[i].deactivate();
+        }
+    }
 }
 
 module.exports = Gui;

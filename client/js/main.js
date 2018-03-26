@@ -81,6 +81,7 @@ var mouseEventHandler = {
             selectUnits(mouseDownEvent, e);
         }
         mouseDownEvent = null;
+        gui.deactivate();
     },
     contextmenu : e => {
         return false;
