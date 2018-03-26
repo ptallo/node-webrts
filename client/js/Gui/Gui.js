@@ -36,9 +36,9 @@ class Gui {
             }
         }
     }
-    activate(){
+    activate(mouseDownCoords){
         for (let i = 0; i < this.sections.length; i++){
-            this.sections[i].activate();
+            this.sections[i].activate(mouseDownCoords);
         }
     }
 }

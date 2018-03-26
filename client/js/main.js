@@ -71,6 +71,7 @@ var mouseEventHandler = {
                 JSON.stringify(selectedGameObjects)
             );
         }
+        gui.activate(mouseDown);
     },
     mousemove : e => {
         mouseMoveEvent = e;

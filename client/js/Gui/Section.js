@@ -30,9 +30,9 @@ class Section{
     addItem(item){
         this.items.push(item);
     }
-    activate(){
+    activate(mouseDownCoords){
         for (let i = 0; i < this.items.length; i++) {
-            this.items[i].activate();
+            this.items[i].activate(mouseDownCoords);
         }
     }
 }

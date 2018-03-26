@@ -37,9 +37,9 @@ class Gui {
             }
         }
     }
-    activate(){
+    activate(mouseDownCoords){
         for (let i = 0; i < this.sections.length; i++){
-            this.sections[i].activate();
+            this.sections[i].activate(mouseDownCoords);
         }
     }
 }
@@ -59,6 +59,7 @@ class GuiItem{
         };
         this.xBuffer = xBuffer;
         this.yBuffer = yBuffer;
+        this.fillStyle = "#1b15ee";
     }
     draw(sectionRect, itemNumber) {
         let canvas = document.getElementById('game_canvas');
@@ -74,12 +75,19 @@ class GuiItem{
             this.rect.x = sectionRect.x + (xPos * this.rect.outerWidth) + (this.rect.width * this.xBuffer);
             this.rect.y = sectionRect.y + (yPos * this.rect.outerHeight) + (this.rect.height * this.yBuffer);
     
-            context.fillStyle = "#1b15ee";
+            context.fillStyle = this.fillStyle;
             context.fillRect(this.rect.x, this.rect.y, this.rect.width, this.rect.height);
         }
     }
-    activate(){
-    
+    activate(mouseDownCoords){
+        if (mouseDownCoords.x > this.rect.x &&
+            mouseDownCoords.x < this.rect.x + this.rect.width &&
+            mouseDownCoords.y > this.rect.y &&
+            mouseDownCoords.y < this.rect.y + this.rect.height){
+            this.fillStyle = "#FF0000";
+        } else {
+            this.fillStyle = "#1b15ee";
+        }
     }
 }
 
@@ -117,9 +125,9 @@ class Section{
     addItem(item){
         this.items.push(item);
     }
-    activate(){
+    activate(mouseDownCoords){
         for (let i = 0; i < this.items.length; i++) {
-            this.items[i].activate();
+            this.items[i].activate(mouseDownCoords);
         }
     }
 }
@@ -199,6 +207,7 @@ var mouseEventHandler = {
                 JSON.stringify(selectedGameObjects)
             );
         }
+        gui.activate(mouseDown);
     },
     mousemove : e => {
         mouseMoveEvent = e;
