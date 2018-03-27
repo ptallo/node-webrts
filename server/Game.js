@@ -2,7 +2,6 @@
 var shortid = require('shortid');
 var GameObject = require('./GameObject.js');
 var Map = require('./Map.js');
-var Tile = require('./Tile.js');
 
 class Game{
     constructor(id="none"){
