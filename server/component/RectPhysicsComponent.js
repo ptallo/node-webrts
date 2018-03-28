@@ -1,32 +1,29 @@
 var Utility = require('../Utility.js');
 
-class CirclePhysicsComponent {
-    constructor(id, x, y, radius, speed){
+class RectPhysicsComponent {
+    constructor(id, x, y, width, height, speed){
         this.id = id;
-        this.circle = {
-            x : x,
-            y : y,
-            radius : radius
-        };
-        this.destPoint = {
-            x : x,
-            y : y
-        };
         this.speed = speed;
         this.timeStamp = null;
+        this.rect = {
+            x : x,
+            y : y,
+            width : width,
+            height : height
+        };
     }
     update(gameObjects, map){
-        let newCircle = this.getNewCircle();
-        let collision = this.checkCollision(gameObjects, newCircle);
+        let newRect = this.getNewRect();
+        let collision = this.checkCollision(gameObjects, newRect);
         let rectList = map.getUnmovableMapRects();
         for (let i = 0; i < rectList.length; i++){
-            let tempCollision = Utility.checkCircleRectCollision(rectList[i], newCircle);
-            if (tempCollision) {
+            let tempCollision = Utility.checkRectRectCollision(rectList[i], newRect);
+            if (tempCollision){
                 collision = true;
             }
         }
-        if (!collision) {
-            this.circle = newCircle;
+        if (!collision){
+            this.rect = newRect;
         }
     }
     calculateDeltaTime(){
@@ -43,16 +40,16 @@ class CirclePhysicsComponent {
             }
         }
     }
-    getNewCircle(){
+    getNewRect(){
         let dx = Math.abs(this.circle.x - this.destPoint.x);
         let dy = Math.abs(this.circle.y - this.destPoint.y);
         let distance = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
-
+    
         let cos = dx / distance;
         let sin = dy / distance;
-
+    
         let dt = this.calculateDeltaTime();
-
+    
         let move = {
             x : this.speed * cos * (1/1000 * dt),
             y : this.speed * sin * (1/1000 * dt)
@@ -81,23 +78,24 @@ class CirclePhysicsComponent {
         } else {
             newY = this.circle.y;
         }
-    
-        let newCircle = {
+        
+        let newRect = {
             x : newX,
             y : newY,
-            radius : this.circle.radius
+            width: this.rect.width,
+            height : this.rect.height
         };
         
-        return newCircle;
+        return newRect;
     }
-    checkCollision(gameObjects, newCircle){
-        for (let i = 0; i < gameObjects.length; i++){
+    checkCollision(gameObjects, newRect){
+        for (let i = 0; i < gameObjects.length; i++) {
             let gameObject = gameObjects[i];
-            if (this.id !== gameObject.id) {
+            if (gameObject.id !== this.id){
                 if (typeof(gameObject.physicsComponent.circle) !== 'undefined') {
-                    return Utility.checkCircleCircleCollision(gameObject.physicsComponent.circle, newCircle);
+                    return Utility.checkCircleRectCollision(newRect, gameObject.circle);
                 } else {
-                    return Utility.checkCircleRectCollision(gameObject.rect, newCircle);
+                    return Utility.checkRectRectCollision(gameObject.rect, newRect);
                 }
             }
         }
@@ -108,15 +106,9 @@ class CirclePhysicsComponent {
             let canvas = document.getElementById("game_canvas");
             let context = canvas .getContext("2d");
             context.strokeStyle = "#ffdb39";
-            context.beginPath();
-            let point = {
-                x : this.circle.x,
-                y : this.circle.y
-            };
-            context.ellipse(point.x, point.y, this.circle.radius, 0.5 * this.circle.radius, 0, 0, 2 * Math.PI);
-            context.stroke();
+            context.strokeRect(this.rect.x, this.rect.y, this.rect.width, this.rect.height);
         }
     }
 }
 
-module.exports = CirclePhysicsComponent;
+module.exports = RectPhysicsComponent;

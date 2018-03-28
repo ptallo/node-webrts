@@ -353,7 +353,7 @@ socket.on('update game', function(gameJSON){
     }
 });
 
-},{"../../server/Game.js":15,"../../server/GameObject.js":16,"../../server/Map.js":17,"../../server/Tile.js":18,"../../server/component/Animation.js":19,"../../server/component/CirclePhysicsComponent.js":20,"../../server/component/RenderComponent.js":21,"./Gui/Gui.js":1}],5:[function(require,module,exports){
+},{"../../server/Game.js":15,"../../server/GameObject.js":16,"../../server/Map.js":17,"../../server/Tile.js":18,"../../server/component/Animation.js":20,"../../server/component/CirclePhysicsComponent.js":21,"../../server/component/RenderComponent.js":22,"./Gui/Gui.js":1}],5:[function(require,module,exports){
 'use strict';
 module.exports = require('./lib/index');
 
@@ -767,7 +767,7 @@ class GameObject{
 }
 
 module.exports = GameObject;
-},{"./component/CirclePhysicsComponent.js":20,"./component/RenderComponent.js":21,"./component/State.js":22,"shortid":5}],17:[function(require,module,exports){
+},{"./component/CirclePhysicsComponent.js":21,"./component/RenderComponent.js":22,"./component/State.js":23,"shortid":5}],17:[function(require,module,exports){
 var Tile = require('./Tile.js');
 
 class Map{
@@ -801,25 +801,26 @@ class Map{
             }
         }
     }
-    getTileAtPoint(point){
-        let tile = null;
+    getUnmovableMapRects(){
+        let rectList = [];
         for (let i = 0; i < this.mapDef.length; i++) {
             for (let j = 0; j < this.mapDef[i].length; j++){
-                let mapPoint = {};
-                mapPoint.x = j * this.tileWidth;
-                mapPoint.y = i * this.tileHeight;
-                
-                if (mapPoint.x < point.x
-                    && mapPoint.x + this.tileWidth > point.x
-                    && mapPoint.y < point.y
-                    && mapPoint.y + this.tileHeight > point.y) {
-                    let tileType = this.mapDef[i][j];
-                    tile = this.tileDef[tileType];
+                let tileType = this.mapDef[i][j];
+                let tile = this.tileDef[tileType];
+                if (!tile.isMovable) {
+                    let tileRect = {
+                        x : j * this.tileWidth,
+                        y : i * this.tileHeight,
+                        width : this.tileWidth,
+                        height : this.tileHeight
+                    };
+                    rectList.push(tileRect);
                 }
             }
         }
-        return tile;
+        return rectList;
     }
+
 }
 
 module.exports = Map;
@@ -838,7 +839,28 @@ class Tile {
 }
 
 module.exports = Tile;
-},{"./component/RenderComponent.js":21}],19:[function(require,module,exports){
+},{"./component/RenderComponent.js":22}],19:[function(require,module,exports){
+
+class Utility {
+    static checkRectRectCollision(rect1, rect2){
+        return rect1.x < rect2.x + rect2.width && rect1.x + rect1.width > rect2.x &&
+            rect1.y < rect2.y + rect2.height && rect1.height + rect1.y > rect2.y;
+    }
+    static checkCircleRectCollision(rect, circle){
+        let DeltaX = circle.x - Math.max(rect.x, Math.min(circle.x, rect.x + rect.width));
+        let DeltaY = circle.y - Math.max(rect.y, Math.min(circle.y, rect.y + rect.height));
+        return (DeltaX * DeltaX + DeltaY * DeltaY) < (circle.radius * circle.radius);
+    }
+    static checkCircleCircleCollision(circle1, circle2) {
+        let dx = circle1.x - circle2.x;
+        let dy = circle1.y - circle2.y;
+        let distance = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
+        return distance < circle1.radius + circle2.radius;
+    }
+}
+
+module.exports = Utility;
+},{}],20:[function(require,module,exports){
 class Animation {
     constructor(url, startFrame, totalFrames, frameWidth, frameHeight){
         this.url = url;
@@ -892,9 +914,10 @@ class Animation {
 }
 
 module.exports = Animation;
-},{}],20:[function(require,module,exports){
+},{}],21:[function(require,module,exports){
+var Utility = require('../Utility.js');
 
-class CircePhysicsComponent {
+class CirclePhysicsComponent {
     constructor(id, x, y, radius, speed){
         this.id = id;
         this.circle = {
@@ -912,8 +935,14 @@ class CircePhysicsComponent {
     update(gameObjects, map){
         let newCircle = this.getNewCircle();
         let collision = this.checkCollision(gameObjects, newCircle);
-        let tile = map.getTileAtPoint(newCircle);
-        if (!collision && tile !== null && tile.isMovable) {
+        let rectList = map.getUnmovableMapRects();
+        for (let i = 0; i < rectList.length; i++){
+            let tempCollision = Utility.checkCircleRectCollision(rectList[i], newCircle);
+            if (tempCollision) {
+                collision = true;
+            }
+        }
+        if (!collision) {
             this.circle = newCircle;
         }
     }
@@ -924,9 +953,11 @@ class CircePhysicsComponent {
         return dt;
     }
     updateDestination(x, y){
-        this.destPoint = {
-            x : x,
-            y : y
+        if (this.speed > 0) {
+            this.destPoint = {
+                x: x,
+                y: y
+            }
         }
     }
     getNewCircle(){
@@ -980,12 +1011,10 @@ class CircePhysicsComponent {
         for (let i = 0; i < gameObjects.length; i++){
             let gameObject = gameObjects[i];
             if (this.id !== gameObject.id) {
-                let dx = gameObject.physicsComponent.circle.x - newCircle.x;
-                let dy = gameObject.physicsComponent.circle.y - newCircle.y;
-                let distance = Math.sqrt(Math.pow(dx,2) + Math.pow(dy, 2));
-                if (distance < newCircle.radius + gameObject.physicsComponent.circle.radius) {
-                    // collision detected!
-                    return true;
+                if (typeof(gameObject.physicsComponent.circle) !== 'undefined') {
+                    return Utility.checkCircleCircleCollision(gameObject.physicsComponent.circle, newCircle);
+                } else {
+                    return Utility.checkCircleRectCollision(gameObject.rect, newCircle);
                 }
             }
         }
@@ -1007,8 +1036,8 @@ class CircePhysicsComponent {
     }
 }
 
-module.exports = CircePhysicsComponent;
-},{}],21:[function(require,module,exports){
+module.exports = CirclePhysicsComponent;
+},{"../Utility.js":19}],22:[function(require,module,exports){
 var Animation = require('./Animation.js');
 var State = require('./State.js');
 
@@ -1071,7 +1100,7 @@ class RenderComponent {
  }
  
  module.exports = RenderComponent;
-},{"./Animation.js":19,"./State.js":22}],22:[function(require,module,exports){
+},{"./Animation.js":20,"./State.js":23}],23:[function(require,module,exports){
 
 var State = {
     IDLE : 'idle',

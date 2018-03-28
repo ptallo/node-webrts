@@ -31,25 +31,26 @@ class Map{
             }
         }
     }
-    getTileAtPoint(point){
-        let tile = null;
+    getUnmovableMapRects(){
+        let rectList = [];
         for (let i = 0; i < this.mapDef.length; i++) {
             for (let j = 0; j < this.mapDef[i].length; j++){
-                let mapPoint = {};
-                mapPoint.x = j * this.tileWidth;
-                mapPoint.y = i * this.tileHeight;
-                
-                if (mapPoint.x < point.x
-                    && mapPoint.x + this.tileWidth > point.x
-                    && mapPoint.y < point.y
-                    && mapPoint.y + this.tileHeight > point.y) {
-                    let tileType = this.mapDef[i][j];
-                    tile = this.tileDef[tileType];
+                let tileType = this.mapDef[i][j];
+                let tile = this.tileDef[tileType];
+                if (!tile.isMovable) {
+                    let tileRect = {
+                        x : j * this.tileWidth,
+                        y : i * this.tileHeight,
+                        width : this.tileWidth,
+                        height : this.tileHeight
+                    };
+                    rectList.push(tileRect);
                 }
             }
         }
-        return tile;
+        return rectList;
     }
+
 }
 
 module.exports = Map;
