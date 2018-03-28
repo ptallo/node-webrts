@@ -1,5 +1,5 @@
 
-class PhysicsComponent {
+class CircePhysicsComponent {
     constructor(id, x, y, radius, speed){
         this.id = id;
         this.circle = {
@@ -112,4 +112,4 @@ class PhysicsComponent {
     }
 }
 
-module.exports = PhysicsComponent;
+module.exports = CircePhysicsComponent;

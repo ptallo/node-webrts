@@ -1,6 +1,6 @@
 'use strict';
 var shortid = require('shortid');
-var PhysicsComponent = require('./component/PhysicsComponent.js');
+var CirclePhysicsComponent = require('./component/CirclePhysicsComponent.js');
 var RenderComponent = require('./component/RenderComponent.js');
 var State = require('./component/State.js');
 
@@ -12,7 +12,7 @@ class GameObject{
             x : xDisjoint,
             y : yDisjoint
         };
-        this.physicsComponent = new PhysicsComponent(this.id, x, y, radius, 100);
+        this.physicsComponent = new CirclePhysicsComponent(this.id, x, y, radius, 100);
         this.renderComponent = new RenderComponent(url);
         this.renderComponent.addAnimation(State.IDLE, 2, 4, 32, 32);
         this.renderComponent.addAnimation(State.WALKING, 6, 4, 32, 32);

@@ -3,7 +3,7 @@
 var socket = io();
 var Game = require("../../server/Game.js");
 var GameObject = require('../../server/GameObject.js');
-var PhysicsComponent = require('../../server/component/PhysicsComponent.js');
+var CirclePhysicsComponent = require('../../server/component/CirclePhysicsComponent.js');
 var RenderComponent = require('../../server/component/RenderComponent.js');
 var Animation = require('../../server/component/Animation.js');
 var Map = require('../../server/Map.js');
@@ -192,7 +192,7 @@ socket.on('update game', function(gameJSON){
     game.gameObjects = [];
     for(let i = 0; i < serverGame.gameObjects.length; i++) {
         let object = Object.assign(new GameObject, serverGame.gameObjects[i]);
-        object.physicsComponent = Object.assign(new PhysicsComponent, object.physicsComponent);
+        object.physicsComponent = Object.assign(new CirclePhysicsComponent, object.physicsComponent);
         object.renderComponent = Object.assign(new RenderComponent, object.renderComponent);
         for (let animation in object.renderComponent.animations){
             object.renderComponent.animations = Object.assign(new Animation, animation);

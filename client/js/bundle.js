@@ -149,7 +149,7 @@ module.exports = Section;
 var socket = io();
 var Game = require("../../server/Game.js");
 var GameObject = require('../../server/GameObject.js');
-var PhysicsComponent = require('../../server/component/PhysicsComponent.js');
+var CirclePhysicsComponent = require('../../server/component/CirclePhysicsComponent.js');
 var RenderComponent = require('../../server/component/RenderComponent.js');
 var Animation = require('../../server/component/Animation.js');
 var Map = require('../../server/Map.js');
@@ -338,7 +338,7 @@ socket.on('update game', function(gameJSON){
     game.gameObjects = [];
     for(let i = 0; i < serverGame.gameObjects.length; i++) {
         let object = Object.assign(new GameObject, serverGame.gameObjects[i]);
-        object.physicsComponent = Object.assign(new PhysicsComponent, object.physicsComponent);
+        object.physicsComponent = Object.assign(new CirclePhysicsComponent, object.physicsComponent);
         object.renderComponent = Object.assign(new RenderComponent, object.renderComponent);
         for (let animation in object.renderComponent.animations){
             object.renderComponent.animations = Object.assign(new Animation, animation);
@@ -353,7 +353,7 @@ socket.on('update game', function(gameJSON){
     }
 });
 
-},{"../../server/Game.js":15,"../../server/GameObject.js":16,"../../server/Map.js":17,"../../server/Tile.js":18,"../../server/component/Animation.js":19,"../../server/component/PhysicsComponent.js":20,"../../server/component/RenderComponent.js":21,"./Gui/Gui.js":1}],5:[function(require,module,exports){
+},{"../../server/Game.js":15,"../../server/GameObject.js":16,"../../server/Map.js":17,"../../server/Tile.js":18,"../../server/component/Animation.js":19,"../../server/component/CirclePhysicsComponent.js":20,"../../server/component/RenderComponent.js":21,"./Gui/Gui.js":1}],5:[function(require,module,exports){
 'use strict';
 module.exports = require('./lib/index');
 
@@ -719,7 +719,7 @@ module.exports = Game;
 },{"./GameObject.js":16,"./Map.js":17,"shortid":5}],16:[function(require,module,exports){
 'use strict';
 var shortid = require('shortid');
-var PhysicsComponent = require('./component/PhysicsComponent.js');
+var CirclePhysicsComponent = require('./component/CirclePhysicsComponent.js');
 var RenderComponent = require('./component/RenderComponent.js');
 var State = require('./component/State.js');
 
@@ -731,7 +731,7 @@ class GameObject{
             x : xDisjoint,
             y : yDisjoint
         };
-        this.physicsComponent = new PhysicsComponent(this.id, x, y, radius, 100);
+        this.physicsComponent = new CirclePhysicsComponent(this.id, x, y, radius, 100);
         this.renderComponent = new RenderComponent(url);
         this.renderComponent.addAnimation(State.IDLE, 2, 4, 32, 32);
         this.renderComponent.addAnimation(State.WALKING, 6, 4, 32, 32);
@@ -767,7 +767,7 @@ class GameObject{
 }
 
 module.exports = GameObject;
-},{"./component/PhysicsComponent.js":20,"./component/RenderComponent.js":21,"./component/State.js":22,"shortid":5}],17:[function(require,module,exports){
+},{"./component/CirclePhysicsComponent.js":20,"./component/RenderComponent.js":21,"./component/State.js":22,"shortid":5}],17:[function(require,module,exports){
 var Tile = require('./Tile.js');
 
 class Map{
@@ -894,7 +894,7 @@ class Animation {
 module.exports = Animation;
 },{}],20:[function(require,module,exports){
 
-class PhysicsComponent {
+class CircePhysicsComponent {
     constructor(id, x, y, radius, speed){
         this.id = id;
         this.circle = {
@@ -1007,7 +1007,7 @@ class PhysicsComponent {
     }
 }
 
-module.exports = PhysicsComponent;
+module.exports = CircePhysicsComponent;
 },{}],21:[function(require,module,exports){
 var Animation = require('./Animation.js');
 var State = require('./State.js');
