@@ -1,7 +1,7 @@
 
 class Action{
     constructor(){
-    
+        this.type = "Action";
     }
 }
 

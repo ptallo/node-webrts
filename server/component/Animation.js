@@ -1,5 +1,6 @@
 class Animation {
     constructor(url, startFrame, totalFrames, frameWidth, frameHeight){
+        this.type = "Animation";
         this.url = url;
         this.image = null;
         this.startFrame = startFrame - 1;

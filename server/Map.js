@@ -2,6 +2,7 @@ var Tile = require('./Tile.js');
 
 class Map{
     constructor(){
+        this.type = "Map";
         this.tileHeight = 64;
         this.tileWidth = 64;
         this.mapDef = [

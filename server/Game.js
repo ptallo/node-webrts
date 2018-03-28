@@ -6,6 +6,7 @@ var Map = require('./Map.js');
 
 class Game{
     constructor(id="none"){
+        this.type = "Game";
         this.id = id == "none" ? shortid.generate() : id;
         this.gameObjects = [];
         this.gameObjects.push(new GameObject(20, 200, 8, 16, 29, 'images/character.png'));

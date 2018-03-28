@@ -5,6 +5,7 @@ var State = require('./component/State.js');
 
 class GameObject{
     constructor(x, y, radius, xDisjoint, yDisjoint, url){
+        this.type = "GameObject";
         this.id = shortid.generate();
         this.state = State.IDLE;
         this.disjoint = {

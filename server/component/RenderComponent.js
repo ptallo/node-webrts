@@ -3,6 +3,7 @@ var State = require('./State.js');
 
 class RenderComponent {
     constructor(url){
+        this.type = "RenderComponent";
         this.image = null;
         this.url = url;
         this.animations = [];

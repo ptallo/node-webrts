@@ -2,6 +2,7 @@ var Utility = require('../Utility.js');
 
 class RectPhysicsComponent {
     constructor(id, x, y, width, height, speed){
+        this.type = "RectPhysicsComponent";
         this.id = id;
         this.speed = speed;
         this.timeStamp = null;

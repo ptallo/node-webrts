@@ -5,6 +5,7 @@ var RectPhysicsComponent = require('../component/RectPhysicsComponent.js');
 
 class Building {
     constructor(x, y, width, height, url){
+        this.type = "Building";
         this.id = shortid.generate();
         this.renderComponent = new RenderComponent(url);
         this.physicsComponent = new RectPhysicsComponent(this.id, x, y, width, height, 0);

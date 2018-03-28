@@ -2,6 +2,7 @@ var Utility = require('../Utility.js');
 
 class CirclePhysicsComponent {
     constructor(id, x, y, radius, speed){
+        this.type = "CirclePhysicsComponent";
         this.id = id;
         this.circle = {
             x : x,
