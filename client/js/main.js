@@ -3,11 +3,23 @@
 var socket = io();
 var Game = require("../../server/Game.js");
 var GameObject = require('../../server/GameObject.js');
+var Building = require('../../server/gameObjects/Building.js');
+
+//Component requirements
+var RectPhysicsComponent = require('../../server/component/RectPhysicsComponent.js');
 var CirclePhysicsComponent = require('../../server/component/CirclePhysicsComponent.js');
 var RenderComponent = require('../../server/component/RenderComponent.js');
 var Animation = require('../../server/component/Animation.js');
+var ActionComponent = require('../../server/component/ActionComponent.js');
+var Action = require('../../server/component/Action.js');
+
+var possibleClasses = [GameObject, Building, RectPhysicsComponent, CirclePhysicsComponent, RenderComponent, Animation, ActionComponent, Action];
+
+//Map Requirements
 var Map = require('../../server/Map.js');
 var Tile = require('../../server/Tile.js');
+
+//Gui Requirements
 var Gui = require('./Gui/Gui.js');
 
 //Other global variables which need to be expressed
@@ -191,14 +203,8 @@ socket.on('update game', function(gameJSON){
     let serverGame = JSON.parse(gameJSON);
     game.gameObjects = [];
     for(let i = 0; i < serverGame.gameObjects.length; i++) {
-        let object = Object.assign(new GameObject, serverGame.gameObjects[i]);
-        object.physicsComponent = Object.assign(new CirclePhysicsComponent, object.physicsComponent);
-        object.renderComponent = Object.assign(new RenderComponent, object.renderComponent);
-        for (let animation in object.renderComponent.animations){
-            object.renderComponent.animations = Object.assign(new Animation, animation);
-        }
-        object.renderComponent.currentAnimation = Object.assign(new Animation, object.renderComponent.currentAnimation);
-        game.gameObjects.push(object);
+        assignObject(serverGame.gameObjects[i]);
+        game.gameObjects.push(serverGame.gameObjects[i]);
     }
     game.map = Object.assign(new Map, game.map);
     let keysList = Object.keys(game.map.tileDef);
@@ -206,3 +212,14 @@ socket.on('update game', function(gameJSON){
         game.map.tileDef[keysList[i]] = Object.assign(new Tile, game.map.tileDef[keysList[i]]);
     }
 });
+
+function assignObject(object){
+    for (let possibleClass in possibleClasses){
+        if (object.constructor === possibleClass.constructor) {
+            object = Object.assign(new possibleClass, object);
+        }
+        for (let property in object){
+            assignObject(property);
+        }
+    }
+}

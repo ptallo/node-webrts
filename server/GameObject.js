@@ -1,4 +1,3 @@
-'use strict';
 var shortid = require('shortid');
 var CirclePhysicsComponent = require('./component/CirclePhysicsComponent.js');
 var RenderComponent = require('./component/RenderComponent.js');
