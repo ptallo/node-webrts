@@ -13,14 +13,14 @@ var Animation = require('../../server/component/Animation.js');
 var ActionComponent = require('../../server/component/ActionComponent.js');
 var Action = require('../../server/component/Action.js');
 
-var possibleClasses = [GameObject, Building, RectPhysicsComponent, CirclePhysicsComponent, RenderComponent, Animation, ActionComponent, Action];
-
 //Map Requirements
 var Map = require('../../server/Map.js');
 var Tile = require('../../server/Tile.js');
 
 //Gui Requirements
 var Gui = require('./Gui/Gui.js');
+
+var Utility = require('../../server/Utility.js');
 
 //Other global variables which need to be expressed
 var canvas = document.getElementById("game_canvas");
@@ -155,7 +155,13 @@ function selectUnits(mouseDownEvent, mouseUpEvent){
     let mouseRect = getMouseSelectionRect(mouseDownEvent, mouseUpEvent);
     
     for (let i = 0; i < game.gameObjects.length; i++){
-        if (checkCircleRectCollision(game.gameObjects[i].physicsComponent.circle, mouseRect)){
+        let collision = false;
+        if (typeof(game.gameObjects[i].physicsComponent.circle) !== 'undefined') {
+            collision = Utility.checkCircleRectCollision(mouseRect, game.gameObjects[i].physicsComponent.circle);
+        } else {
+            collision = Utility.checkRectRectCollision(game.gameObjects[i].physicsComponent.rect, mouseRect);
+        }
+        if (collision){
             selectedGameObjects.push(game.gameObjects[i]);
         }
     }
@@ -204,10 +210,9 @@ socket.on('update game', function(gameJSON){
     game.gameObjects = [];
     for (let i = 0; i < serverGame.gameObjects.length; i++){
         let gameObject = assignObject(serverGame.gameObjects[i]);
-        if (gameObject !== null){
-            let keys = Object.keys(gameObject);
-            for (let component in keys) {
-                gameObject[component] = assignObject(gameObject[component]);
+        for (let property in gameObject){
+            if (property.includes("Component")){
+                gameObject[property] = assignObject(gameObject[property]);
             }
         }
         game.gameObjects.push(gameObject);
@@ -229,18 +234,16 @@ function assignObject(object){
             return Object.assign(new RectPhysicsComponent, object);
         } else if (object.type === "RenderComponent"){
            for (let i = 0; i < object.animations.length; i++){
-               object.animation[i] = Object.assign(new Animation, object.animations[i]);
+               object.animations[i].value = Object.assign(new Animation, object.animations[i].value);
            }
-           object.currentAnimation = Object.assign(new Animation, object.currentAnimation);
+           if (object.currentAnimation !== null){
+               object.currentAnimation = Object.assign(new Animation, object.currentAnimation);
+           }
            return Object.assign(new RenderComponent, object);
-        } else if (object.type === "Game"){
-            return Object.assign(new Game, object);
         } else if (object.type === "GameObject"){
             return Object.assign(new GameObject, object);
-        } else if (object.type === "Map"){
-            return Object.assign(new Map, object);
-        } else if (object.type === "Tile"){
-            return Object.assign(new Tile, object);
+        } else {
+            return object;
         }
     }
 }

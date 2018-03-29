@@ -159,14 +159,14 @@ var Animation = require('../../server/component/Animation.js');
 var ActionComponent = require('../../server/component/ActionComponent.js');
 var Action = require('../../server/component/Action.js');
 
-var possibleClasses = [GameObject, Building, RectPhysicsComponent, CirclePhysicsComponent, RenderComponent, Animation, ActionComponent, Action];
-
 //Map Requirements
 var Map = require('../../server/Map.js');
 var Tile = require('../../server/Tile.js');
 
 //Gui Requirements
 var Gui = require('./Gui/Gui.js');
+
+var Utility = require('../../server/Utility.js');
 
 //Other global variables which need to be expressed
 var canvas = document.getElementById("game_canvas");
@@ -301,7 +301,13 @@ function selectUnits(mouseDownEvent, mouseUpEvent){
     let mouseRect = getMouseSelectionRect(mouseDownEvent, mouseUpEvent);
     
     for (let i = 0; i < game.gameObjects.length; i++){
-        if (checkCircleRectCollision(game.gameObjects[i].physicsComponent.circle, mouseRect)){
+        let collision = false;
+        if (typeof(game.gameObjects[i].physicsComponent.circle) !== 'undefined') {
+            collision = Utility.checkCircleRectCollision(mouseRect, game.gameObjects[i].physicsComponent.circle);
+        } else {
+            collision = Utility.checkRectRectCollision(game.gameObjects[i].physicsComponent.rect, mouseRect);
+        }
+        if (collision){
             selectedGameObjects.push(game.gameObjects[i]);
         }
     }
@@ -350,10 +356,9 @@ socket.on('update game', function(gameJSON){
     game.gameObjects = [];
     for (let i = 0; i < serverGame.gameObjects.length; i++){
         let gameObject = assignObject(serverGame.gameObjects[i]);
-        if (gameObject !== null){
-            let keys = Object.keys(gameObject);
-            for (let component in keys) {
-                gameObject[component] = assignObject(gameObject[component]);
+        for (let property in gameObject){
+            if (property.includes("Component")){
+                gameObject[property] = assignObject(gameObject[property]);
             }
         }
         game.gameObjects.push(gameObject);
@@ -375,23 +380,21 @@ function assignObject(object){
             return Object.assign(new RectPhysicsComponent, object);
         } else if (object.type === "RenderComponent"){
            for (let i = 0; i < object.animations.length; i++){
-               object.animation[i] = Object.assign(new Animation, object.animations[i]);
+               object.animations[i].value = Object.assign(new Animation, object.animations[i].value);
            }
-           object.currentAnimation = Object.assign(new Animation, object.currentAnimation);
+           if (object.currentAnimation !== null){
+               object.currentAnimation = Object.assign(new Animation, object.currentAnimation);
+           }
            return Object.assign(new RenderComponent, object);
-        } else if (object.type === "Game"){
-            return Object.assign(new Game, object);
         } else if (object.type === "GameObject"){
             return Object.assign(new GameObject, object);
-        } else if (object.type === "Map"){
-            return Object.assign(new Map, object);
-        } else if (object.type === "Tile"){
-            return Object.assign(new Tile, object);
+        } else {
+            return object;
         }
     }
 }
 
-},{"../../server/Game.js":15,"../../server/GameObject.js":16,"../../server/Map.js":17,"../../server/Tile.js":18,"../../server/component/Action.js":20,"../../server/component/ActionComponent.js":21,"../../server/component/Animation.js":22,"../../server/component/CirclePhysicsComponent.js":23,"../../server/component/RectPhysicsComponent.js":24,"../../server/component/RenderComponent.js":25,"../../server/gameObjects/Building.js":27,"./Gui/Gui.js":1}],5:[function(require,module,exports){
+},{"../../server/Game.js":15,"../../server/GameObject.js":16,"../../server/Map.js":17,"../../server/Tile.js":18,"../../server/Utility.js":19,"../../server/component/Action.js":20,"../../server/component/ActionComponent.js":21,"../../server/component/Animation.js":22,"../../server/component/CirclePhysicsComponent.js":23,"../../server/component/RectPhysicsComponent.js":24,"../../server/component/RenderComponent.js":25,"../../server/gameObjects/Building.js":27,"./Gui/Gui.js":1}],5:[function(require,module,exports){
 'use strict';
 module.exports = require('./lib/index');
 
@@ -942,9 +945,7 @@ class Animation {
     }
     draw(point){
         if (typeof window !== 'undefined' && window.document){
-            if (this.image === null){
-                this.loadImage();
-            }
+            this.loadImage();
             let canvas = document.getElementById('game_canvas');
             let context = canvas.getContext('2d');
             context.drawImage(
@@ -1078,11 +1079,12 @@ class CirclePhysicsComponent {
     checkCollision(gameObjects, newCircle){
         for (let i = 0; i < gameObjects.length; i++){
             let gameObject = gameObjects[i];
+            console.log(gameObject.type);
             if (this.id !== gameObject.id) {
                 if (typeof(gameObject.physicsComponent.circle) !== 'undefined') {
                     return Utility.checkCircleCircleCollision(gameObject.physicsComponent.circle, newCircle);
                 } else {
-                    return Utility.checkCircleRectCollision(gameObject.rect, newCircle);
+                    let collision = Utility.checkCircleRectCollision(gameObject.physicsComponent.rect, newCircle);
                 }
             }
         }
@@ -1202,9 +1204,9 @@ class RectPhysicsComponent {
             let gameObject = gameObjects[i];
             if (gameObject.id !== this.id){
                 if (typeof(gameObject.physicsComponent.circle) !== 'undefined') {
-                    return Utility.checkCircleRectCollision(newRect, gameObject.circle);
+                    return Utility.checkCircleRectCollision(newRect, gameObject.physicsComponent.circle);
                 } else {
-                    return Utility.checkRectRectCollision(gameObject.rect, newRect);
+                    return Utility.checkRectRectCollision(gameObject.physicsComponent.rect, newRect);
                 }
             }
         }
@@ -1261,15 +1263,13 @@ class RenderComponent {
         }
         if (typeof window !== 'undefined' && window.document) {
             if (this.currentAnimation === null) {
+                this.loadImage();
                 let canvas = document.getElementById('game_canvas');
                 let context = canvas.getContext('2d');
-                this.loadImage();
                 context.drawImage(
                     this.image,
                     point.x,
-                    point.y,
-                    this.image.width,
-                    this.image.height
+                    point.y
                 );
             } else {
                 this.currentAnimation.draw(point);
@@ -1277,10 +1277,8 @@ class RenderComponent {
         }
     }
     loadImage(){
-        if (this.image === null) {
-            this.image = new Image();
-            this.image.src = this.url;
-        }
+        this.image = new Image();
+        this.image.src = this.url;
     }
  }
  

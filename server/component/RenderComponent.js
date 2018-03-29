@@ -37,15 +37,13 @@ class RenderComponent {
         }
         if (typeof window !== 'undefined' && window.document) {
             if (this.currentAnimation === null) {
+                this.loadImage();
                 let canvas = document.getElementById('game_canvas');
                 let context = canvas.getContext('2d');
-                this.loadImage();
                 context.drawImage(
                     this.image,
                     point.x,
-                    point.y,
-                    this.image.width,
-                    this.image.height
+                    point.y
                 );
             } else {
                 this.currentAnimation.draw(point);
@@ -53,10 +51,8 @@ class RenderComponent {
         }
     }
     loadImage(){
-        if (this.image === null) {
-            this.image = new Image();
-            this.image.src = this.url;
-        }
+        this.image = new Image();
+        this.image.src = this.url;
     }
  }
  

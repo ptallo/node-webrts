@@ -13,9 +13,7 @@ class Animation {
     }
     draw(point){
         if (typeof window !== 'undefined' && window.document){
-            if (this.image === null){
-                this.loadImage();
-            }
+            this.loadImage();
             let canvas = document.getElementById('game_canvas');
             let context = canvas.getContext('2d');
             context.drawImage(

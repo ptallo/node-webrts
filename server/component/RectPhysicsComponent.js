@@ -94,9 +94,9 @@ class RectPhysicsComponent {
             let gameObject = gameObjects[i];
             if (gameObject.id !== this.id){
                 if (typeof(gameObject.physicsComponent.circle) !== 'undefined') {
-                    return Utility.checkCircleRectCollision(newRect, gameObject.circle);
+                    return Utility.checkCircleRectCollision(newRect, gameObject.physicsComponent.circle);
                 } else {
-                    return Utility.checkRectRectCollision(gameObject.rect, newRect);
+                    return Utility.checkRectRectCollision(gameObject.physicsComponent.rect, newRect);
                 }
             }
         }

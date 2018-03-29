@@ -98,7 +98,7 @@ class CirclePhysicsComponent {
                 if (typeof(gameObject.physicsComponent.circle) !== 'undefined') {
                     return Utility.checkCircleCircleCollision(gameObject.physicsComponent.circle, newCircle);
                 } else {
-                    return Utility.checkCircleRectCollision(gameObject.rect, newCircle);
+                    return Utility.checkCircleRectCollision(gameObject.physicsComponent.rect, newCircle);
                 }
             }
         }
