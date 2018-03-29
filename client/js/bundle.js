@@ -159,6 +159,8 @@ var Animation = require('../../server/component/Animation.js');
 var ActionComponent = require('../../server/component/ActionComponent.js');
 var Action = require('../../server/component/Action.js');
 
+var possibleClasses = [GameObject, Building, RectPhysicsComponent, CirclePhysicsComponent, RenderComponent, Animation, ActionComponent, Action];
+
 //Map Requirements
 var Map = require('../../server/Map.js');
 var Tile = require('../../server/Tile.js');
@@ -346,26 +348,48 @@ function getMouseCoords(mouseEvent){
 socket.on('update game', function(gameJSON){
     let serverGame = JSON.parse(gameJSON);
     game.gameObjects = [];
-    for(let i = 0; i < serverGame.gameObjects.length; i++) {
-        let object = Object.assign(new GameObject, serverGame.gameObjects[i]);
-        // if (object.physicsComponent.constructor === CirclePhysicsComponent.constructor) {
-        //     object.physicsComponent = Object.assign(new CirclePhysicsComponent, object.physicsComponent);
-        // } else {
-        //     object.physicsComponent = Object.assign(new RectPhysicsComponent, object.physicsComponent);
-        // }
-        // object.renderComponent = Object.assign(new RenderComponent, object.renderComponent);
-        // for (let animation in object.renderComponent.animations){
-        //     object.renderComponent.animations = Object.assign(new Animation, animation);
-        // }
-        // object.renderComponent.currentAnimation = Object.assign(new Animation, object.renderComponent.currentAnimation);
-        game.gameObjects.push(object);
-    }
-    game.map = Object.assign(new Map, game.map);
-    let keysList = Object.keys(game.map.tileDef);
-    for(let i = 0; i < keysList.length; i++){
-        game.map.tileDef[keysList[i]] = Object.assign(new Tile, game.map.tileDef[keysList[i]]);
+    for (let i = 0; i < serverGame.gameObjects.length; i++){
+        let gameObject = assignObject(serverGame.gameObjects[i]);
+        if (gameObject !== null){
+            let keys = Object.keys(gameObject);
+            for (let component in keys) {
+                gameObject[component] = assignObject(gameObject[component]);
+            }
+        }
+        game.gameObjects.push(gameObject);
     }
 });
+
+function assignObject(object){
+    if (Object.keys(object).indexOf("type") > -1) {
+       if (object.type === "ActionComponent"){
+            for (let i = 0; i < object.actions.length; i++) {
+                object.actions[i] = Object.assign(new Action, object.actions[i]);
+            }
+            return Object.assign(new ActionComponent, object);
+        } else if (object.type === "Building"){
+            return Object.assign(new Building, object);
+        } else if (object.type === "CirclePhysicsComponent"){
+            return Object.assign(new CirclePhysicsComponent, object);
+        } else if (object.type === "RectPhysicsComponent"){
+            return Object.assign(new RectPhysicsComponent, object);
+        } else if (object.type === "RenderComponent"){
+           for (let i = 0; i < object.animations.length; i++){
+               object.animation[i] = Object.assign(new Animation, object.animations[i]);
+           }
+           object.currentAnimation = Object.assign(new Animation, object.currentAnimation);
+           return Object.assign(new RenderComponent, object);
+        } else if (object.type === "Game"){
+            return Object.assign(new Game, object);
+        } else if (object.type === "GameObject"){
+            return Object.assign(new GameObject, object);
+        } else if (object.type === "Map"){
+            return Object.assign(new Map, object);
+        } else if (object.type === "Tile"){
+            return Object.assign(new Tile, object);
+        }
+    }
+}
 
 },{"../../server/Game.js":15,"../../server/GameObject.js":16,"../../server/Map.js":17,"../../server/Tile.js":18,"../../server/component/Action.js":20,"../../server/component/ActionComponent.js":21,"../../server/component/Animation.js":22,"../../server/component/CirclePhysicsComponent.js":23,"../../server/component/RectPhysicsComponent.js":24,"../../server/component/RenderComponent.js":25,"../../server/gameObjects/Building.js":27,"./Gui/Gui.js":1}],5:[function(require,module,exports){
 'use strict';
@@ -706,6 +730,7 @@ var Map = require('./Map.js');
 
 class Game{
     constructor(id="none"){
+        this.type = "Game";
         this.id = id == "none" ? shortid.generate() : id;
         this.gameObjects = [];
         this.gameObjects.push(new GameObject(20, 200, 8, 16, 29, 'images/character.png'));
@@ -740,6 +765,7 @@ var State = require('./component/State.js');
 
 class GameObject{
     constructor(x, y, radius, xDisjoint, yDisjoint, url){
+        this.type = "GameObject";
         this.id = shortid.generate();
         this.state = State.IDLE;
         this.disjoint = {
@@ -787,6 +813,7 @@ var Tile = require('./Tile.js');
 
 class Map{
     constructor(){
+        this.type = "Map";
         this.tileHeight = 64;
         this.tileWidth = 64;
         this.mapDef = [
@@ -844,6 +871,7 @@ var RenderComponent = require('./component/RenderComponent.js');
 
 class Tile {
     constructor(url, movable, buildable){
+        this.type = "Tile";
         this.renderComponent = new RenderComponent(url);
         this.isMovable = movable;
         this.isBuildable = buildable;
@@ -879,7 +907,7 @@ module.exports = Utility;
 
 class Action{
     constructor(){
-    
+        this.type = "Action";
     }
 }
 
@@ -889,6 +917,7 @@ var Action = require('./Action.js');
 
 class ActionComponent {
     constructor(){
+        this.type = "ActionComponent";
         this.actions = [];
     }
     addAction(action){
@@ -900,6 +929,7 @@ module.exports = ActionComponent;
 },{"./Action.js":20}],22:[function(require,module,exports){
 class Animation {
     constructor(url, startFrame, totalFrames, frameWidth, frameHeight){
+        this.type = "Animation";
         this.url = url;
         this.image = null;
         this.startFrame = startFrame - 1;
@@ -956,6 +986,7 @@ var Utility = require('../Utility.js');
 
 class CirclePhysicsComponent {
     constructor(id, x, y, radius, speed){
+        this.type = "CirclePhysicsComponent";
         this.id = id;
         this.circle = {
             x : x,
@@ -1079,6 +1110,7 @@ var Utility = require('../Utility.js');
 
 class RectPhysicsComponent {
     constructor(id, x, y, width, height, speed){
+        this.type = "RectPhysicsComponent";
         this.id = id;
         this.speed = speed;
         this.timeStamp = null;
@@ -1195,6 +1227,7 @@ var State = require('./State.js');
 
 class RenderComponent {
     constructor(url){
+        this.type = "RenderComponent";
         this.image = null;
         this.url = url;
         this.animations = [];
@@ -1268,6 +1301,7 @@ var RectPhysicsComponent = require('../component/RectPhysicsComponent.js');
 
 class Building {
     constructor(x, y, width, height, url){
+        this.type = "Building";
         this.id = shortid.generate();
         this.renderComponent = new RenderComponent(url);
         this.physicsComponent = new RectPhysicsComponent(this.id, x, y, width, height, 0);

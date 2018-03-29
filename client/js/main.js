@@ -202,24 +202,45 @@ function getMouseCoords(mouseEvent){
 socket.on('update game', function(gameJSON){
     let serverGame = JSON.parse(gameJSON);
     game.gameObjects = [];
-    for(let i = 0; i < serverGame.gameObjects.length; i++) {
-        assignObject(serverGame.gameObjects[i]);
-        game.gameObjects.push(serverGame.gameObjects[i]);
-    }
-    game.map = Object.assign(new Map, game.map);
-    let keysList = Object.keys(game.map.tileDef);
-    for(let i = 0; i < keysList.length; i++){
-        game.map.tileDef[keysList[i]] = Object.assign(new Tile, game.map.tileDef[keysList[i]]);
+    for (let i = 0; i < serverGame.gameObjects.length; i++){
+        let gameObject = assignObject(serverGame.gameObjects[i]);
+        if (gameObject !== null){
+            let keys = Object.keys(gameObject);
+            for (let component in keys) {
+                gameObject[component] = assignObject(gameObject[component]);
+            }
+        }
+        game.gameObjects.push(gameObject);
     }
 });
 
 function assignObject(object){
-    for (let possibleClass in possibleClasses){
-        if (object.constructor === possibleClass.constructor) {
-            object = Object.assign(new possibleClass, object);
-        }
-        for (let property in object){
-            assignObject(property);
+    if (Object.keys(object).indexOf("type") > -1) {
+       if (object.type === "ActionComponent"){
+            for (let i = 0; i < object.actions.length; i++) {
+                object.actions[i] = Object.assign(new Action, object.actions[i]);
+            }
+            return Object.assign(new ActionComponent, object);
+        } else if (object.type === "Building"){
+            return Object.assign(new Building, object);
+        } else if (object.type === "CirclePhysicsComponent"){
+            return Object.assign(new CirclePhysicsComponent, object);
+        } else if (object.type === "RectPhysicsComponent"){
+            return Object.assign(new RectPhysicsComponent, object);
+        } else if (object.type === "RenderComponent"){
+           for (let i = 0; i < object.animations.length; i++){
+               object.animation[i] = Object.assign(new Animation, object.animations[i]);
+           }
+           object.currentAnimation = Object.assign(new Animation, object.currentAnimation);
+           return Object.assign(new RenderComponent, object);
+        } else if (object.type === "Game"){
+            return Object.assign(new Game, object);
+        } else if (object.type === "GameObject"){
+            return Object.assign(new GameObject, object);
+        } else if (object.type === "Map"){
+            return Object.assign(new Map, object);
+        } else if (object.type === "Tile"){
+            return Object.assign(new Tile, object);
         }
     }
 }
