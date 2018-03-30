@@ -1,6 +1,6 @@
 'use strict';
 var shortid = require('shortid');
-var GameObject = require('./gameObjects/GameObject.js');
+var Unit = require('./gameObjects/Unit.js');
 var Building = require('./gameObjects/Building.js');
 var Map = require('./Map.js');
 
@@ -9,9 +9,9 @@ class Game{
         this.type = "Game";
         this.id = id == "none" ? shortid.generate() : id;
         this.gameObjects = [];
-        this.gameObjects.push(new GameObject(20, 200, 8, 16, 29, 'images/character.png'));
+        this.gameObjects.push(new Unit(20, 200, 8, 16, 29, 'images/character.png'));
         this.gameObjects.push(new Building(0, 0, 128, 128, 'images/building.png'));
-        this.gameObjects.push(new GameObject(200, 200, 8, 16, 29, 'images/character.png'));
+        this.gameObjects.push(new Unit(200, 200, 8, 16, 29, 'images/character.png'));
         this.map = new Map();
     }
     update(){

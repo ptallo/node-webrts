@@ -148,7 +148,7 @@ module.exports = Section;
 // browserify main.js -o bundle.js - game logic require
 var socket = io();
 var Game = require("../../server/Game.js");
-var GameObject = require('../../server/gameObjects/GameObject.js');
+var Unit = require('../../server/gameObjects/Unit.js');
 var Building = require('../../server/gameObjects/Building.js');
 
 //Component requirements
@@ -249,14 +249,12 @@ let mouseEventHandler = {
 
 let keyboardEventHandler = {
     onkeypress : e => {
-        //call game.activate() with relevant gameObject selected
+        if (priorityGameObject !== null){
+            game.activate(e, priorityGameObject);
+        } else {
+            //activate default game actions
+        }
     },
-    onkeydown : e => {
-    
-    },
-    onkeyup : e => {
-    
-    }
 };
 
 window.addEventListener('resize', resizeCanvas, false);
@@ -314,6 +312,7 @@ function translateCanvas(){
 function selectUnits(mouseDownEvent, mouseUpEvent){
     let mouseRect = getMouseSelectionRect(mouseDownEvent, mouseUpEvent);
     
+    let newSelectedObjects = [];
     for (let i = 0; i < game.gameObjects.length; i++){
         let collision = false;
         if (Object.keys(game.gameObjects[i].physicsComponent).indexOf("circle") > -1) {
@@ -322,8 +321,12 @@ function selectUnits(mouseDownEvent, mouseUpEvent){
             collision = Utility.checkRectRectCollision(game.gameObjects[i].physicsComponent.rect, mouseRect);
         }
         if (collision){
-            selectedGameObjects.push(game.gameObjects[i]);
+            newSelectedObjects.push(game.gameObjects[i]);
         }
+    }
+    
+    for (let i = 0; i < newSelectedObjects.length; i++){
+    
     }
 }
 
@@ -394,14 +397,14 @@ function assignObject(object){
            }
            return Object.assign(new RenderComponent, object);
         } else if (object.type === "GameObject"){
-            return Object.assign(new GameObject, object);
+            return Object.assign(new Unit, object);
         } else {
             return object;
         }
     }
 }
 
-},{"../../server/Game.js":15,"../../server/Map.js":16,"../../server/Tile.js":17,"../../server/Utility.js":18,"../../server/component/Action.js":19,"../../server/component/ActionComponent.js":20,"../../server/component/Animation.js":21,"../../server/component/CirclePhysicsComponent.js":22,"../../server/component/RectPhysicsComponent.js":23,"../../server/component/RenderComponent.js":24,"../../server/gameObjects/Building.js":26,"../../server/gameObjects/GameObject.js":27,"./Gui/Gui.js":1}],5:[function(require,module,exports){
+},{"../../server/Game.js":15,"../../server/Map.js":16,"../../server/Tile.js":17,"../../server/Utility.js":18,"../../server/component/Action.js":19,"../../server/component/ActionComponent.js":20,"../../server/component/Animation.js":21,"../../server/component/CirclePhysicsComponent.js":22,"../../server/component/RectPhysicsComponent.js":23,"../../server/component/RenderComponent.js":24,"../../server/gameObjects/Building.js":26,"../../server/gameObjects/Unit.js":27,"./Gui/Gui.js":1}],5:[function(require,module,exports){
 'use strict';
 module.exports = require('./lib/index');
 
@@ -734,7 +737,7 @@ module.exports = 0;
 },{}],15:[function(require,module,exports){
 'use strict';
 var shortid = require('shortid');
-var GameObject = require('./gameObjects/GameObject.js');
+var Unit = require('./gameObjects/Unit.js');
 var Building = require('./gameObjects/Building.js');
 var Map = require('./Map.js');
 
@@ -743,9 +746,9 @@ class Game{
         this.type = "Game";
         this.id = id == "none" ? shortid.generate() : id;
         this.gameObjects = [];
-        this.gameObjects.push(new GameObject(20, 200, 8, 16, 29, 'images/character.png'));
+        this.gameObjects.push(new Unit(20, 200, 8, 16, 29, 'images/character.png'));
         this.gameObjects.push(new Building(0, 0, 128, 128, 'images/building.png'));
-        this.gameObjects.push(new GameObject(200, 200, 8, 16, 29, 'images/character.png'));
+        this.gameObjects.push(new Unit(200, 200, 8, 16, 29, 'images/character.png'));
         this.map = new Map();
     }
     update(){
@@ -800,7 +803,7 @@ class Game{
 
 module.exports = Game;
 
-},{"./Map.js":16,"./gameObjects/Building.js":26,"./gameObjects/GameObject.js":27,"shortid":5}],16:[function(require,module,exports){
+},{"./Map.js":16,"./gameObjects/Building.js":26,"./gameObjects/Unit.js":27,"shortid":5}],16:[function(require,module,exports){
 var Tile = require('./Tile.js');
 
 class Map{
@@ -1366,11 +1369,11 @@ class GameObject{
         };
         this.renderComponent.draw(renderPoint);
     }
-    getCoords(){
-        return this.physicsComponent.circle;
-    }
     updateDestination(x, y){
         this.physicsComponent.updateDestination(x, y);
+    }
+    getCoords(){
+        return this.physicsComponent.circle;
     }
     setState(state){
         this.state = state;

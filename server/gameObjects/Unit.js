@@ -31,11 +31,11 @@ class GameObject{
         };
         this.renderComponent.draw(renderPoint);
     }
-    getCoords(){
-        return this.physicsComponent.circle;
-    }
     updateDestination(x, y){
         this.physicsComponent.updateDestination(x, y);
+    }
+    getCoords(){
+        return this.physicsComponent.circle;
     }
     setState(state){
         this.state = state;
