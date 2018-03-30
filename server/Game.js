@@ -1,6 +1,6 @@
 'use strict';
 var shortid = require('shortid');
-var GameObject = require('./GameObject.js');
+var GameObject = require('./gameObjects/GameObject.js');
 var Building = require('./gameObjects/Building.js');
 var Map = require('./Map.js');
 

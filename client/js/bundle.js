@@ -148,7 +148,7 @@ module.exports = Section;
 // browserify main.js -o bundle.js - game logic require
 var socket = io();
 var Game = require("../../server/Game.js");
-var GameObject = require('../../server/GameObject.js');
+var GameObject = require('../../server/gameObjects/GameObject.js');
 var Building = require('../../server/gameObjects/Building.js');
 
 //Component requirements
@@ -387,7 +387,7 @@ function assignObject(object){
     }
 }
 
-},{"../../server/Game.js":15,"../../server/GameObject.js":16,"../../server/Map.js":17,"../../server/Tile.js":18,"../../server/Utility.js":19,"../../server/component/Action.js":20,"../../server/component/ActionComponent.js":21,"../../server/component/Animation.js":22,"../../server/component/CirclePhysicsComponent.js":23,"../../server/component/RectPhysicsComponent.js":24,"../../server/component/RenderComponent.js":25,"../../server/gameObjects/Building.js":27,"./Gui/Gui.js":1}],5:[function(require,module,exports){
+},{"../../server/Game.js":15,"../../server/Map.js":16,"../../server/Tile.js":17,"../../server/Utility.js":18,"../../server/component/Action.js":19,"../../server/component/ActionComponent.js":20,"../../server/component/Animation.js":21,"../../server/component/CirclePhysicsComponent.js":22,"../../server/component/RectPhysicsComponent.js":23,"../../server/component/RenderComponent.js":24,"../../server/gameObjects/Building.js":26,"../../server/gameObjects/GameObject.js":27,"./Gui/Gui.js":1}],5:[function(require,module,exports){
 'use strict';
 module.exports = require('./lib/index');
 
@@ -720,7 +720,7 @@ module.exports = 0;
 },{}],15:[function(require,module,exports){
 'use strict';
 var shortid = require('shortid');
-var GameObject = require('./GameObject.js');
+var GameObject = require('./gameObjects/GameObject.js');
 var Building = require('./gameObjects/Building.js');
 var Map = require('./Map.js');
 
@@ -753,58 +753,7 @@ class Game{
 
 module.exports = Game;
 
-},{"./GameObject.js":16,"./Map.js":17,"./gameObjects/Building.js":27,"shortid":5}],16:[function(require,module,exports){
-var shortid = require('shortid');
-var CirclePhysicsComponent = require('./component/CirclePhysicsComponent.js');
-var RenderComponent = require('./component/RenderComponent.js');
-var State = require('./component/State.js');
-
-class GameObject{
-    constructor(x, y, radius, xDisjoint, yDisjoint, url){
-        this.type = "GameObject";
-        this.id = shortid.generate();
-        this.state = State.IDLE;
-        this.disjoint = {
-            x : xDisjoint,
-            y : yDisjoint
-        };
-        this.physicsComponent = new CirclePhysicsComponent(this.id, x, y, radius, 100);
-        this.renderComponent = new RenderComponent(url);
-        this.renderComponent.addAnimation(State.IDLE, 2, 4, 32, 32);
-        this.renderComponent.addAnimation(State.WALKING, 6, 4, 32, 32);
-    }
-    update(gameObjects, map){
-        let newState = this.determineState();
-        if (this.state !== newState){
-            this.setState(newState);
-        }
-
-        this.physicsComponent.update(gameObjects, map);
-        this.physicsComponent.drawCollisionSize();
-        let renderPoint = {
-            x : this.physicsComponent.circle.x - this.disjoint.x,
-            y : this.physicsComponent.circle.y - this.disjoint.y
-        };
-        this.renderComponent.draw(renderPoint);
-    }
-    updateDestination(x, y){
-        this.physicsComponent.updateDestination(x, y);
-    }
-    setState(state){
-        this.state = state;
-        this.renderComponent.changeState(state);
-    }
-    determineState(){
-        let state = State.IDLE;
-        if (this.physicsComponent.destPoint.x !== this.physicsComponent.circle.x || this.physicsComponent.destPoint.y !== this.physicsComponent.circle.y) {
-            state = State.WALKING;
-        }
-        return state;
-    }
-}
-
-module.exports = GameObject;
-},{"./component/CirclePhysicsComponent.js":23,"./component/RenderComponent.js":25,"./component/State.js":26,"shortid":5}],17:[function(require,module,exports){
+},{"./Map.js":16,"./gameObjects/Building.js":26,"./gameObjects/GameObject.js":27,"shortid":5}],16:[function(require,module,exports){
 var Tile = require('./Tile.js');
 
 class Map{
@@ -862,7 +811,7 @@ class Map{
 }
 
 module.exports = Map;
-},{"./Tile.js":18}],18:[function(require,module,exports){
+},{"./Tile.js":17}],17:[function(require,module,exports){
 var RenderComponent = require('./component/RenderComponent.js');
 
 class Tile {
@@ -878,7 +827,7 @@ class Tile {
 }
 
 module.exports = Tile;
-},{"./component/RenderComponent.js":25}],19:[function(require,module,exports){
+},{"./component/RenderComponent.js":24}],18:[function(require,module,exports){
 
 class Utility {
     static checkRectRectCollision(rect1, rect2){
@@ -899,7 +848,7 @@ class Utility {
 }
 
 module.exports = Utility;
-},{}],20:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 
 class Action{
     constructor(){
@@ -908,7 +857,7 @@ class Action{
 }
 
 module.exports = Action;
-},{}],21:[function(require,module,exports){
+},{}],20:[function(require,module,exports){
 var Action = require('./Action.js');
 
 class ActionComponent {
@@ -922,7 +871,7 @@ class ActionComponent {
 }
 
 module.exports = ActionComponent;
-},{"./Action.js":20}],22:[function(require,module,exports){
+},{"./Action.js":19}],21:[function(require,module,exports){
 class Animation {
     constructor(url, startFrame, totalFrames, frameWidth, frameHeight){
         this.type = "Animation";
@@ -975,7 +924,7 @@ class Animation {
 }
 
 module.exports = Animation;
-},{}],23:[function(require,module,exports){
+},{}],22:[function(require,module,exports){
 var Utility = require('../Utility.js');
 
 class CirclePhysicsComponent {
@@ -1103,7 +1052,7 @@ class CirclePhysicsComponent {
 }
 
 module.exports = CirclePhysicsComponent;
-},{"../Utility.js":19}],24:[function(require,module,exports){
+},{"../Utility.js":18}],23:[function(require,module,exports){
 var Utility = require('../Utility.js');
 
 class RectPhysicsComponent {
@@ -1223,7 +1172,7 @@ class RectPhysicsComponent {
 }
 
 module.exports = RectPhysicsComponent;
-},{"../Utility.js":19}],25:[function(require,module,exports){
+},{"../Utility.js":18}],24:[function(require,module,exports){
 var Animation = require('./Animation.js');
 var State = require('./State.js');
 
@@ -1283,7 +1232,7 @@ class RenderComponent {
  }
  
  module.exports = RenderComponent;
-},{"./Animation.js":22,"./State.js":26}],26:[function(require,module,exports){
+},{"./Animation.js":21,"./State.js":25}],25:[function(require,module,exports){
 
 var State = {
     IDLE : 'idle',
@@ -1291,7 +1240,7 @@ var State = {
 };
 
 module.exports = State;
-},{}],27:[function(require,module,exports){
+},{}],26:[function(require,module,exports){
 var shortid = require('shortid');
 var RenderComponent = require('../component/RenderComponent.js');
 var ActionComponent = require('../component/ActionComponent.js');
@@ -1315,4 +1264,55 @@ class Building {
 }
 
 module.exports = Building;
-},{"../component/ActionComponent.js":21,"../component/RectPhysicsComponent.js":24,"../component/RenderComponent.js":25,"shortid":5}]},{},[4]);
+},{"../component/ActionComponent.js":20,"../component/RectPhysicsComponent.js":23,"../component/RenderComponent.js":24,"shortid":5}],27:[function(require,module,exports){
+var shortid = require('shortid');
+var CirclePhysicsComponent = require('../component/CirclePhysicsComponent.js');
+var RenderComponent = require('../component/RenderComponent.js');
+var State = require('../component/State.js');
+
+class GameObject{
+    constructor(x, y, radius, xDisjoint, yDisjoint, url){
+        this.type = "GameObject";
+        this.id = shortid.generate();
+        this.state = State.IDLE;
+        this.disjoint = {
+            x : xDisjoint,
+            y : yDisjoint
+        };
+        this.physicsComponent = new CirclePhysicsComponent(this.id, x, y, radius, 100);
+        this.renderComponent = new RenderComponent(url);
+        this.renderComponent.addAnimation(State.IDLE, 2, 4, 32, 32);
+        this.renderComponent.addAnimation(State.WALKING, 6, 4, 32, 32);
+    }
+    update(gameObjects, map){
+        let newState = this.determineState();
+        if (this.state !== newState){
+            this.setState(newState);
+        }
+
+        this.physicsComponent.update(gameObjects, map);
+        this.physicsComponent.drawCollisionSize();
+        let renderPoint = {
+            x : this.physicsComponent.circle.x - this.disjoint.x,
+            y : this.physicsComponent.circle.y - this.disjoint.y
+        };
+        this.renderComponent.draw(renderPoint);
+    }
+    updateDestination(x, y){
+        this.physicsComponent.updateDestination(x, y);
+    }
+    setState(state){
+        this.state = state;
+        this.renderComponent.changeState(state);
+    }
+    determineState(){
+        let state = State.IDLE;
+        if (this.physicsComponent.destPoint.x !== this.physicsComponent.circle.x || this.physicsComponent.destPoint.y !== this.physicsComponent.circle.y) {
+            state = State.WALKING;
+        }
+        return state;
+    }
+}
+
+module.exports = GameObject;
+},{"../component/CirclePhysicsComponent.js":22,"../component/RenderComponent.js":24,"../component/State.js":25,"shortid":5}]},{},[4]);

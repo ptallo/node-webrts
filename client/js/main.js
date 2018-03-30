@@ -2,7 +2,7 @@
 // browserify main.js -o bundle.js - game logic require
 var socket = io();
 var Game = require("../../server/Game.js");
-var GameObject = require('../../server/GameObject.js');
+var GameObject = require('../../server/gameObjects/GameObject.js');
 var Building = require('../../server/gameObjects/Building.js');
 
 //Component requirements

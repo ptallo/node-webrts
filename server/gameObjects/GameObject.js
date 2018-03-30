@@ -1,7 +1,7 @@
 var shortid = require('shortid');
-var CirclePhysicsComponent = require('./component/CirclePhysicsComponent.js');
-var RenderComponent = require('./component/RenderComponent.js');
-var State = require('./component/State.js');
+var CirclePhysicsComponent = require('../component/CirclePhysicsComponent.js');
+var RenderComponent = require('../component/RenderComponent.js');
+var State = require('../component/State.js');
 
 class GameObject{
     constructor(x, y, radius, xDisjoint, yDisjoint, url){
