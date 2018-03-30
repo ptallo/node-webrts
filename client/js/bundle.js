@@ -313,13 +313,6 @@ function selectUnits(mouseDownEvent, mouseUpEvent){
     }
 }
 
-function checkCircleRectCollision(circle, rect){
-    let dx = circle.x - Math.max(rect.x, Math.min(circle.x, rect.x + rect.width));
-    let dy = circle.y - Math.max(rect.y, Math.min(circle.y , rect.y + rect.height));
-    let collision = Math.pow(dx, 2) + Math.pow(dy, 2) < Math.pow(circle.radius, 2);
-    return collision;
-}
-
 function drawSelectionRect(mouseDownEvent, mouseMoveEvent){
     if(mouseDownEvent != null && mouseMoveEvent != null && mouseMoveEvent.which === 1){
         let mouseRect = getMouseSelectionRect(mouseDownEvent, mouseMoveEvent);
