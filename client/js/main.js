@@ -43,6 +43,7 @@ var translateOn = {
 var mouseDownEvent = null;
 var mouseMoveEvent = null;
 var selectedGameObjects = [];
+var priorityGameObject = null;
 
 var distanceFromWindow = 50; //mouse distance away from the window that will cause the window to move
 
@@ -63,7 +64,7 @@ $(document).ready(function () {
     );
 });
 
-var mouseEventHandler = {
+let mouseEventHandler = {
     mousedown : e => {
         mouseDownEvent = e;
         let mouseDown = getMouseCoords(mouseDownEvent);
@@ -100,7 +101,20 @@ var mouseEventHandler = {
     }
 };
 
+let keyboardEventHandler = {
+    onkeypress : e => {
+        //call game.activate() with relevant gameObject selected
+    },
+    onkeydown : e => {
+    
+    },
+    onkeyup : e => {
+    
+    }
+};
+
 window.addEventListener('resize', resizeCanvas, false);
+document.onkeypress = keyboardEventHandler.onkeypress;
 canvas.onmousedown = mouseEventHandler.mousedown;
 canvas.onmousemove = mouseEventHandler.mousemove;
 canvas.onmouseup = mouseEventHandler.mouseup;

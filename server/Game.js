@@ -29,6 +29,13 @@ class Game{
             }
         }
     }
+    activate(keyEvent, gameObject){
+        for (let i = 0; i < gameObjects.length; i++){
+            if (gameObjects[i].id = gameObject.id && Object.keys(gameObjects[i]).indexOf('actionComponent') > -1){
+                gameObjects[i].actionComponent.activate(keyEvent);
+            }
+        }
+    }
 }
 
 module.exports = Game;

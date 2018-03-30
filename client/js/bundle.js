@@ -189,6 +189,7 @@ var translateOn = {
 var mouseDownEvent = null;
 var mouseMoveEvent = null;
 var selectedGameObjects = [];
+var priorityGameObject = null;
 
 var distanceFromWindow = 50; //mouse distance away from the window that will cause the window to move
 
@@ -209,7 +210,7 @@ $(document).ready(function () {
     );
 });
 
-var mouseEventHandler = {
+let mouseEventHandler = {
     mousedown : e => {
         mouseDownEvent = e;
         let mouseDown = getMouseCoords(mouseDownEvent);
@@ -246,7 +247,20 @@ var mouseEventHandler = {
     }
 };
 
+let keyboardEventHandler = {
+    onkeypress : e => {
+        //call game.activate() with relevant gameObject selected
+    },
+    onkeydown : e => {
+    
+    },
+    onkeyup : e => {
+    
+    }
+};
+
 window.addEventListener('resize', resizeCanvas, false);
+document.onkeypress = keyboardEventHandler.onkeypress;
 canvas.onmousedown = mouseEventHandler.mousedown;
 canvas.onmousemove = mouseEventHandler.mousemove;
 canvas.onmouseup = mouseEventHandler.mouseup;
@@ -749,6 +763,13 @@ class Game{
             }
         }
     }
+    activate(keyEvent, gameObject){
+        for (let i = 0; i < gameObjects.length; i++){
+            if (gameObjects[i].id = gameObject.id && Object.keys(gameObjects[i]).indexOf('actionComponent') > -1){
+                gameObjects[i].actionComponent.activate(keyEvent);
+            }
+        }
+    }
 }
 
 module.exports = Game;
@@ -851,8 +872,13 @@ module.exports = Utility;
 },{}],19:[function(require,module,exports){
 
 class Action{
-    constructor(){
+    constructor(activationFunction, key){
         this.type = "Action";
+        this.activationFunction = activationFunction;
+        this.key = key;
+    }
+    activate(){
+        this.activationFunction();
     }
 }
 
@@ -864,9 +890,22 @@ class ActionComponent {
     constructor(){
         this.type = "ActionComponent";
         this.actions = [];
+        this.keys = ['q', 'w', 'e', 'r', 't', 'y', 'a', 's', 'd', 'f', 'g', 'z', 'x', 'c', 'v', 'b'];
     }
-    addAction(action){
+    addAction(activationFunction){
+        let key = this.keys[this.actions.length];
+        let action = new Action(activationFunction, key);
         this.actions.push(action);
+    }
+    getActions(){
+        return this.actions;
+    }
+    activate(keyEvent){
+        let index = this.keys.indexOf(keyEvent.key);
+        if (index > -1){
+            let action = this.actions[index];
+            action.activate();
+        }
     }
 }
 
