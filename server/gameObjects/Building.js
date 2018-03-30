@@ -18,6 +18,9 @@ class Building {
     updateDestination(x, y){
         this.physicsComponent.updateDestination(x, y);
     }
+    getCoords(){
+        return this.physicsComponent.rect;
+    }
 }
 
 module.exports = Building;

@@ -16,6 +16,7 @@ class Game{
     }
     update(){
         this.map.drawMap();
+        this.gameObjects = this.mergeSortGameObjects(this.gameObjects);
         for (let i = 0; i < this.gameObjects.length; i++) {
             this.gameObjects[i].update(this.gameObjects, this.map);
         }
@@ -35,6 +36,31 @@ class Game{
                 gameObjects[i].actionComponent.activate(keyEvent);
             }
         }
+    }
+    mergeSortGameObjects(gameObjects){
+        if (gameObjects.length < 2) {
+            return gameObjects;
+        }
+        let mid = Math.floor(gameObjects.length / 2);
+        let left = gameObjects.slice(0, mid);
+        let right = gameObjects.slice(mid);
+        
+        return this.mergeObjects(this.mergeSortGameObjects(left), this.mergeSortGameObjects(right));
+    }
+    mergeObjects(left, right){
+        let results = [],
+            l = 0,
+            r = 0;
+        while (l < left.length && r < right.length){
+            if (left[l].getCoords().y < right[r].getCoords().y) {
+                results.push(left[l]);
+                l++;
+            } else {
+                results.push(right[r]);
+                r++;
+            }
+        }
+        return results.concat(left.slice(l)).concat(right.slice(r));
     }
 }
 

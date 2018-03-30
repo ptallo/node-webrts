@@ -31,6 +31,9 @@ class GameObject{
         };
         this.renderComponent.draw(renderPoint);
     }
+    getCoords(){
+        return this.physicsComponent.circle;
+    }
     updateDestination(x, y){
         this.physicsComponent.updateDestination(x, y);
     }
