@@ -156,7 +156,7 @@ function selectUnits(mouseDownEvent, mouseUpEvent){
     
     for (let i = 0; i < game.gameObjects.length; i++){
         let collision = false;
-        if (typeof(game.gameObjects[i].physicsComponent.circle) !== 'undefined') {
+        if (Object.keys(game.gameObjects[i].physicsComponent).indexOf("circle") > -1) {
             collision = Utility.checkCircleRectCollision(mouseRect, game.gameObjects[i].physicsComponent.circle);
         } else {
             collision = Utility.checkRectRectCollision(game.gameObjects[i].physicsComponent.rect, mouseRect);

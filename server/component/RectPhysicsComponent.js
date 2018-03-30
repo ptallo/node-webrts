@@ -91,12 +91,16 @@ class RectPhysicsComponent {
     }
     checkCollision(gameObjects, newRect){
         for (let i = 0; i < gameObjects.length; i++) {
-            let gameObject = gameObjects[i];
-            if (gameObject.id !== this.id){
-                if (typeof(gameObject.physicsComponent.circle) !== 'undefined') {
-                    return Utility.checkCircleRectCollision(newRect, gameObject.physicsComponent.circle);
-                } else {
-                    return Utility.checkRectRectCollision(gameObject.physicsComponent.rect, newRect);
+            if (gameObjects[i].id !== this.id){
+                let collision = false;
+                if (Object.keys(gameObjects[i].physicsComponent).indexOf("circle") > -1) {
+                    collision = Utility.checkCircleRectCollision(newRect, gameObjects[i].physicsComponent.circle);
+                } else if (Object.keys(gameObjects[i].physicsComponent).indexOf('rect') > -1){
+                    collision = Utility.checkRectRectCollision(gameObjects[i].physicsComponent.rect, newRect);
+                }
+                
+                if (collision){
+                    return collision;
                 }
             }
         }

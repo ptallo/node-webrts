@@ -93,12 +93,16 @@ class CirclePhysicsComponent {
     }
     checkCollision(gameObjects, newCircle){
         for (let i = 0; i < gameObjects.length; i++){
-            let gameObject = gameObjects[i];
-            if (this.id !== gameObject.id) {
-                if (typeof(gameObject.physicsComponent.circle) !== 'undefined') {
-                    return Utility.checkCircleCircleCollision(gameObject.physicsComponent.circle, newCircle);
-                } else {
-                    return Utility.checkCircleRectCollision(gameObject.physicsComponent.rect, newCircle);
+            if (this.id !== gameObjects[i].id) {
+                let collision = false;
+                if (Object.keys(gameObjects[i].physicsComponent).indexOf('circle') > -1){
+                     collision = Utility.checkCircleCircleCollision(gameObjects[i].physicsComponent.circle, newCircle);
+                } else if (Object.keys(gameObjects[i].physicsComponent).indexOf('rect') > -1){
+                    collision = Utility.checkCircleRectCollision(gameObjects[i].physicsComponent.rect, newCircle);
+                }
+                
+                if (collision){
+                    return collision;
                 }
             }
         }
