@@ -90,8 +90,9 @@ let mouseEventHandler = {
         mouseMoveEvent = e;
     },
     mouseup : e => {
-        if(mouseDownEvent != null){
-            selectUnits(mouseDownEvent, e);
+        if(mouseDownEvent !== null){
+            selectGameObjects(mouseDownEvent, e);
+            gui.populate(selectedGameObjects);
         }
         mouseDownEvent = null;
         gui.deactivate();
@@ -163,10 +164,9 @@ function translateCanvas(){
     transform.y += translate.y;
 }
 
-function selectUnits(mouseDownEvent, mouseUpEvent){
+function selectGameObjects(mouseDownEvent, mouseUpEvent){
     let mouseRect = getMouseSelectionRect(mouseDownEvent, mouseUpEvent);
     
-    let newSelectedObjects = [];
     for (let i = 0; i < game.gameObjects.length; i++){
         let collision = false;
         if (Object.keys(game.gameObjects[i].physicsComponent).indexOf("circle") > -1) {
@@ -175,12 +175,8 @@ function selectUnits(mouseDownEvent, mouseUpEvent){
             collision = Utility.checkRectRectCollision(game.gameObjects[i].physicsComponent.rect, mouseRect);
         }
         if (collision){
-            newSelectedObjects.push(game.gameObjects[i]);
+            selectedGameObjects.push(game.gameObjects[i]);
         }
-    }
-    
-    for (let i = 0; i < newSelectedObjects.length; i++){
-    
     }
 }
 
@@ -250,7 +246,7 @@ function assignObject(object){
                object.currentAnimation = Object.assign(new Animation, object.currentAnimation);
            }
            return Object.assign(new RenderComponent, object);
-        } else if (object.type === "GameObject"){
+        } else if (object.type === "Unit"){
             return Object.assign(new Unit, object);
         } else {
             return object;

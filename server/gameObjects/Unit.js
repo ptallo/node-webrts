@@ -3,9 +3,9 @@ var CirclePhysicsComponent = require('../component/CirclePhysicsComponent.js');
 var RenderComponent = require('../component/RenderComponent.js');
 var State = require('../component/State.js');
 
-class GameObject{
+class Unit{
     constructor(x, y, radius, xDisjoint, yDisjoint, url){
-        this.type = "GameObject";
+        this.type = "Unit";
         this.id = shortid.generate();
         this.state = State.IDLE;
         this.disjoint = {
@@ -50,4 +50,4 @@ class GameObject{
     }
 }
 
-module.exports = GameObject;
+module.exports = Unit;
