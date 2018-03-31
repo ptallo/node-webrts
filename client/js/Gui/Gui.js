@@ -1,5 +1,4 @@
 var Section = require('./Section.js');
-var ActionSection = require('./ActionSection.js');
 
 var Unit = require('../../../server/gameObjects/Unit.js');
 var Building = require('../../../server/gameObjects/Building.js');
@@ -15,7 +14,7 @@ class Gui {
             width : 0,
             height : 0
         };
-        this.actionSection = new ActionSection(0.05, 0.1);
+        this.actionSection = new Section(0.05, 0.1);
         this.sections.push(this.actionSection);
         
         this.objectSection = new Section(0, 0);
@@ -53,24 +52,13 @@ class Gui {
         }
     }
     populate(gameObjects){
-        let actionObjects = this.getActionObjects(gameObjects);
-        this.actionSection.removeItems();
-        if (actionObjects.length === 0){
+        if (gameObjects.length === 0){
         
         } else {
-            this.actionSection.addItem(actionObjects[0]);
+            //populate actionSection with available actions on selected unit
             //populate objectSection with gameObjects list
             //populate mini map with gameObjects list
         }
-    }
-    getActionObjects(gameObjects){
-        let actionObjects = [];
-        for (let i = 0; i < gameObjects.length; i++){
-            if (Object.keys(gameObjects[i]).indexOf('actionComponent') > -1){
-                actionObjects.push(gameObjects[i]);
-            }
-        }
-        return actionObjects;
     }
 }
 

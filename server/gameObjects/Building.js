@@ -1,6 +1,5 @@
 var shortid = require('shortid');
 var RenderComponent = require('../component/RenderComponent.js');
-var ActionComponent = require('../component/ActionComponent.js');
 var RectPhysicsComponent = require('../component/RectPhysicsComponent.js');
 
 class Building {
@@ -9,13 +8,6 @@ class Building {
         this.id = shortid.generate();
         this.renderComponent = new RenderComponent(url);
         this.physicsComponent = new RectPhysicsComponent(this.id, x, y, width, height, 0);
-        this.actionComponent = new ActionComponent();
-        this.actionComponent.addAction(function(){
-            console.log("action 1");
-        });
-        this.actionComponent.addAction(function(){
-            console.log("action 2");
-        });
     }
     update(gameObjects, map){
         this.renderComponent.draw(this.physicsComponent.rect);

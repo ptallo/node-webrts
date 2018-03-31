@@ -10,8 +10,6 @@ var RectPhysicsComponent = require('../../server/component/RectPhysicsComponent.
 var CirclePhysicsComponent = require('../../server/component/CirclePhysicsComponent.js');
 var RenderComponent = require('../../server/component/RenderComponent.js');
 var Animation = require('../../server/component/Animation.js');
-var ActionComponent = require('../../server/component/ActionComponent.js');
-var Action = require('../../server/component/Action.js');
 
 //Map Requirements
 var Map = require('../../server/Map.js');
@@ -227,18 +225,13 @@ socket.on('update game', function(gameJSON){
 
 function assignObject(object){
     if (Object.keys(object).indexOf("type") > -1) {
-       if (object.type === "ActionComponent"){
-            for (let i = 0; i < object.actions.length; i++) {
-                object.actions[i] = Object.assign(new Action, object.actions[i]);
-            }
-            return Object.assign(new ActionComponent, object);
-        } else if (object.type === "Building"){
-            return Object.assign(new Building, object);
-        } else if (object.type === "CirclePhysicsComponent"){
-            return Object.assign(new CirclePhysicsComponent, object);
-        } else if (object.type === "RectPhysicsComponent"){
-            return Object.assign(new RectPhysicsComponent, object);
-        } else if (object.type === "RenderComponent"){
+       if (object.type === "Building"){
+           return Object.assign(new Building, object);
+       } else if (object.type === "CirclePhysicsComponent"){
+           return Object.assign(new CirclePhysicsComponent, object);
+       } else if (object.type === "RectPhysicsComponent"){
+           return Object.assign(new RectPhysicsComponent, object);
+       } else if (object.type === "RenderComponent"){
            for (let i = 0; i < object.animations.length; i++){
                object.animations[i].value = Object.assign(new Animation, object.animations[i].value);
            }
@@ -246,10 +239,10 @@ function assignObject(object){
                object.currentAnimation = Object.assign(new Animation, object.currentAnimation);
            }
            return Object.assign(new RenderComponent, object);
-        } else if (object.type === "Unit"){
-            return Object.assign(new Unit, object);
-        } else {
-            return object;
-        }
+       } else if (object.type === "Unit"){
+           return Object.assign(new Unit, object);
+       } else {
+           return object;
+       }
     }
 }

@@ -26,7 +26,12 @@ class CirclePhysicsComponent {
                 collision = true;
             }
         }
-        if (!collision) {
+        let inMap = newCircle.x > map.rect.x &&
+            newCircle.x < map.rect.x + map.rect.width &&
+            newCircle.y > map.rect.y &&
+            newCircle.y < map.rect.y + map.rect.height;
+        
+        if (!collision && inMap) {
             this.circle = newCircle;
         }
     }

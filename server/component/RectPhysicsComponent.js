@@ -23,7 +23,17 @@ class RectPhysicsComponent {
                 collision = true;
             }
         }
-        if (!collision){
+        
+        let point = {
+            x : this.rect.x + this.rect.width / 2,
+            y : this.rect.y + this.rect.height / 2
+        };
+        let inMap = point.x > map.rect.x &&
+            point.x < map.rect.x + map.rect.width &&
+            point.y > map.rect.y &&
+            point.y < map.rect.y + map.rect.height;
+        
+        if (!collision && inMap){
             this.rect = newRect;
         }
     }
