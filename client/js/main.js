@@ -6,7 +6,6 @@ var Unit = require('../../server/gameObjects/Unit.js');
 var Building = require('../../server/gameObjects/Building.js');
 
 //Component requirements
-var ActionComponent = require('../../server/component/ActionComponent.js');
 var RectPhysicsComponent = require('../../server/component/RectPhysicsComponent.js');
 var CirclePhysicsComponent = require('../../server/component/CirclePhysicsComponent.js');
 var RenderComponent = require('../../server/component/RenderComponent.js');
@@ -32,11 +31,6 @@ var gui = new Gui();
 var transform = {
     x : 0,
     y : 0
-};
-
-var translateOn = {
-    x : false,
-    y : false
 };
 
 var mouseDownEvent = null;
@@ -231,9 +225,7 @@ socket.on('update game', function(gameJSON){
 
 function assignObject(object){
     if (Object.keys(object).indexOf("type") > -1) {
-       if (object.type === "ActionComponent") {
-           return Object.assign(new ActionComponent, object);
-       } else if (object.type === "Building"){
+       if (object.type === "Building"){
            return Object.assign(new Building, object);
        } else if (object.type === "CirclePhysicsComponent"){
            return Object.assign(new CirclePhysicsComponent, object);

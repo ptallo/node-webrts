@@ -33,7 +33,7 @@ class Game{
     activate(keyEvent, gameObjects){
         for (let i = 0; i < this.gameObjects.length; i++){
             for (let j = 0; j < gameObjects.length; j++){
-                if (this.gameObjects[i].id === gameObjects[j].id && typeof this.gameObjects[i].activate === 'function'){
+                if (this.gameObjects[i].id === gameObjects[j].id){
                     this.gameObjects[i].activate(keyEvent);
                 }
             }

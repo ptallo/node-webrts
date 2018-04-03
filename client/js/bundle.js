@@ -64,7 +64,7 @@ class Gui {
 }
 
 module.exports = Gui;
-},{"../../../server/gameObjects/Building.js":24,"../../../server/gameObjects/Unit.js":25,"./Section.js":2}],2:[function(require,module,exports){
+},{"../../../server/gameObjects/Building.js":23,"../../../server/gameObjects/Unit.js":24,"./Section.js":2}],2:[function(require,module,exports){
 
 class Section{
     constructor(xBuffer, yBuffer){
@@ -125,7 +125,6 @@ var Unit = require('../../server/gameObjects/Unit.js');
 var Building = require('../../server/gameObjects/Building.js');
 
 //Component requirements
-var ActionComponent = require('../../server/component/ActionComponent.js');
 var RectPhysicsComponent = require('../../server/component/RectPhysicsComponent.js');
 var CirclePhysicsComponent = require('../../server/component/CirclePhysicsComponent.js');
 var RenderComponent = require('../../server/component/RenderComponent.js');
@@ -151,11 +150,6 @@ var gui = new Gui();
 var transform = {
     x : 0,
     y : 0
-};
-
-var translateOn = {
-    x : false,
-    y : false
 };
 
 var mouseDownEvent = null;
@@ -350,9 +344,7 @@ socket.on('update game', function(gameJSON){
 
 function assignObject(object){
     if (Object.keys(object).indexOf("type") > -1) {
-       if (object.type === "ActionComponent") {
-           return Object.assign(new ActionComponent, object);
-       } else if (object.type === "Building"){
+       if (object.type === "Building"){
            return Object.assign(new Building, object);
        } else if (object.type === "CirclePhysicsComponent"){
            return Object.assign(new CirclePhysicsComponent, object);
@@ -374,7 +366,7 @@ function assignObject(object){
     }
 }
 
-},{"../../server/Game.js":14,"../../server/Map.js":15,"../../server/Tile.js":16,"../../server/Utility.js":17,"../../server/component/ActionComponent.js":18,"../../server/component/Animation.js":19,"../../server/component/CirclePhysicsComponent.js":20,"../../server/component/RectPhysicsComponent.js":21,"../../server/component/RenderComponent.js":22,"../../server/gameObjects/Building.js":24,"../../server/gameObjects/Unit.js":25,"./Gui/Gui.js":1}],4:[function(require,module,exports){
+},{"../../server/Game.js":14,"../../server/Map.js":15,"../../server/Tile.js":16,"../../server/Utility.js":17,"../../server/component/Animation.js":18,"../../server/component/CirclePhysicsComponent.js":19,"../../server/component/RectPhysicsComponent.js":20,"../../server/component/RenderComponent.js":21,"../../server/gameObjects/Building.js":23,"../../server/gameObjects/Unit.js":24,"./Gui/Gui.js":1}],4:[function(require,module,exports){
 'use strict';
 module.exports = require('./lib/index');
 
@@ -740,7 +732,7 @@ class Game{
     activate(keyEvent, gameObjects){
         for (let i = 0; i < this.gameObjects.length; i++){
             for (let j = 0; j < gameObjects.length; j++){
-                if (this.gameObjects[i].id === gameObjects[j].id && typeof this.gameObjects[i].activate === 'function'){
+                if (this.gameObjects[i].id === gameObjects[j].id){
                     this.gameObjects[i].activate(keyEvent);
                 }
             }
@@ -775,7 +767,7 @@ class Game{
 
 module.exports = Game;
 
-},{"./Map.js":15,"./gameObjects/Building.js":24,"./gameObjects/Unit.js":25,"shortid":4}],15:[function(require,module,exports){
+},{"./Map.js":15,"./gameObjects/Building.js":23,"./gameObjects/Unit.js":24,"shortid":4}],15:[function(require,module,exports){
 var Tile = require('./Tile.js');
 
 class Map{
@@ -855,7 +847,7 @@ class Tile {
 }
 
 module.exports = Tile;
-},{"./component/RenderComponent.js":22}],17:[function(require,module,exports){
+},{"./component/RenderComponent.js":21}],17:[function(require,module,exports){
 
 class Utility {
     static checkRectRectCollision(rect1, rect2){
@@ -877,29 +869,6 @@ class Utility {
 
 module.exports = Utility;
 },{}],18:[function(require,module,exports){
-
-class ActionComponent {
-    constructor(){
-        this.type = "ActionComponent";
-        this.actions = [];
-        this.keys = ['q', 'w', 'e', 'r', 't'];
-    }
-    addAction(activateFunction){
-        this.actions.push(activateFunction);
-    }
-    activate(keyEvent){
-        console.log(keyEvent.key);
-        let index = this.keys.indexOf(keyEvent.key);
-        console.log(index);
-        console.log(this.actions.length);
-        if (typeof this.actions[index] === 'function') {
-            this.actions[index]();
-        }
-    }
-}
-
-module.exports = ActionComponent;
-},{}],19:[function(require,module,exports){
 class Animation {
     constructor(url, startFrame, totalFrames, frameWidth, frameHeight){
         this.type = "Animation";
@@ -952,7 +921,7 @@ class Animation {
 }
 
 module.exports = Animation;
-},{}],20:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
 var Utility = require('../Utility.js');
 
 class CirclePhysicsComponent {
@@ -1085,7 +1054,7 @@ class CirclePhysicsComponent {
 }
 
 module.exports = CirclePhysicsComponent;
-},{"../Utility.js":17}],21:[function(require,module,exports){
+},{"../Utility.js":17}],20:[function(require,module,exports){
 var Utility = require('../Utility.js');
 
 class RectPhysicsComponent {
@@ -1215,7 +1184,7 @@ class RectPhysicsComponent {
 }
 
 module.exports = RectPhysicsComponent;
-},{"../Utility.js":17}],22:[function(require,module,exports){
+},{"../Utility.js":17}],21:[function(require,module,exports){
 var Animation = require('./Animation.js');
 var State = require('./State.js');
 
@@ -1275,7 +1244,7 @@ class RenderComponent {
  }
  
  module.exports = RenderComponent;
-},{"./Animation.js":19,"./State.js":23}],23:[function(require,module,exports){
+},{"./Animation.js":18,"./State.js":22}],22:[function(require,module,exports){
 
 var State = {
     IDLE : 'idle',
@@ -1283,11 +1252,10 @@ var State = {
 };
 
 module.exports = State;
-},{}],24:[function(require,module,exports){
+},{}],23:[function(require,module,exports){
 var shortid = require('shortid');
 var RenderComponent = require('../component/RenderComponent.js');
 var RectPhysicsComponent = require('../component/RectPhysicsComponent.js');
-var ActionComponent = require('../component/ActionComponent.js');
 
 class Building {
     constructor(x, y, width, height, url){
@@ -1296,10 +1264,6 @@ class Building {
         this.renderComponent = new RenderComponent(url);
         this.physicsComponent = new RectPhysicsComponent(this.id, x, y, width, height, 0);
         this.actionComponent = new ActionComponent();
-        let test = function(){
-            console.log('testing');
-        };
-        this.actionComponent.addAction(test);
     }
     update(gameObjects, map){
         this.renderComponent.draw(this.physicsComponent.rect);
@@ -1311,13 +1275,10 @@ class Building {
     getCoords(){
         return this.physicsComponent.rect;
     }
-    activate(keyEvent){
-        this.actionComponent.activate(keyEvent);
-    }
 }
 
 module.exports = Building;
-},{"../component/ActionComponent.js":18,"../component/RectPhysicsComponent.js":21,"../component/RenderComponent.js":22,"shortid":4}],25:[function(require,module,exports){
+},{"../component/RectPhysicsComponent.js":20,"../component/RenderComponent.js":21,"shortid":4}],24:[function(require,module,exports){
 var shortid = require('shortid');
 var CirclePhysicsComponent = require('../component/CirclePhysicsComponent.js');
 var RenderComponent = require('../component/RenderComponent.js');
@@ -1371,4 +1332,4 @@ class Unit{
 }
 
 module.exports = Unit;
-},{"../component/CirclePhysicsComponent.js":20,"../component/RenderComponent.js":22,"../component/State.js":23,"shortid":4}]},{},[3]);
+},{"../component/CirclePhysicsComponent.js":19,"../component/RenderComponent.js":21,"../component/State.js":22,"shortid":4}]},{},[3]);
