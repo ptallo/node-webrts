@@ -6,6 +6,7 @@ var Unit = require('../../server/gameObjects/Unit.js');
 var Building = require('../../server/gameObjects/Building.js');
 
 //Component requirements
+var ActionComponent = require('../../server/component/ActionComponent.js');
 var RectPhysicsComponent = require('../../server/component/RectPhysicsComponent.js');
 var CirclePhysicsComponent = require('../../server/component/CirclePhysicsComponent.js');
 var RenderComponent = require('../../server/component/RenderComponent.js');
@@ -41,7 +42,6 @@ var translateOn = {
 var mouseDownEvent = null;
 var mouseMoveEvent = null;
 var selectedGameObjects = [];
-var priorityGameObject = null;
 
 var distanceFromWindow = 50; //mouse distance away from the window that will cause the window to move
 
@@ -102,8 +102,8 @@ let mouseEventHandler = {
 
 let keyboardEventHandler = {
     onkeypress : e => {
-        if (priorityGameObject !== null){
-            game.activate(e, priorityGameObject);
+        if (selectedGameObjects.length > 0){
+            game.activate(e, selectedGameObjects);
         } else {
             //activate default game actions
         }
@@ -220,12 +220,20 @@ socket.on('update game', function(gameJSON){
             }
         }
         game.gameObjects.push(gameObject);
+        for (let j = 0; j < selectedGameObjects.length; j++){
+            if (gameObject.id === selectedGameObjects[j].id){
+                selectedGameObjects.splice(j, 1);
+                selectedGameObjects.push(gameObject);
+            }
+        }
     }
 });
 
 function assignObject(object){
     if (Object.keys(object).indexOf("type") > -1) {
-       if (object.type === "Building"){
+       if (object.type === "ActionComponent") {
+           return Object.assign(new ActionComponent, object);
+       } else if (object.type === "Building"){
            return Object.assign(new Building, object);
        } else if (object.type === "CirclePhysicsComponent"){
            return Object.assign(new CirclePhysicsComponent, object);

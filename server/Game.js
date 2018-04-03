@@ -30,10 +30,12 @@ class Game{
             }
         }
     }
-    activate(keyEvent, gameObject){
-        for (let i = 0; i < gameObjects.length; i++){
-            if (gameObjects[i].id = gameObject.id && Object.keys(gameObjects[i]).indexOf('actionComponent') > -1){
-                gameObjects[i].actionComponent.activate(keyEvent);
+    activate(keyEvent, gameObjects){
+        for (let i = 0; i < this.gameObjects.length; i++){
+            for (let j = 0; j < gameObjects.length; j++){
+                if (this.gameObjects[i].id === gameObjects[j].id && typeof this.gameObjects[i].activate === 'function'){
+                    this.gameObjects[i].activate(keyEvent);
+                }
             }
         }
     }
