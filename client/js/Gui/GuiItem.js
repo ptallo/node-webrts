@@ -1,4 +1,3 @@
-
 class GuiItem{
     constructor(width, height, xBuffer, yBuffer){
         this.rect = {
@@ -40,7 +39,8 @@ class GuiItem{
         }
     }
     deactivate(){
-        this.fillStyle = "#1b15ee";    }
+        this.fillStyle = "#1b15ee";
+    }
 }
 
 module.exports = GuiItem;

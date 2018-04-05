@@ -2,13 +2,23 @@
 // browserify main.js -o bundle.js - game logic require
 var socket = io();
 var Game = require("../../server/Game.js");
-var GameObject = require('../../server/GameObject.js');
-var PhysicsComponent = require('../../server/component/PhysicsComponent.js');
+var Unit = require('../../server/gameObjects/Unit.js');
+var Building = require('../../server/gameObjects/Building.js');
+
+//Component requirements
+var RectPhysicsComponent = require('../../server/component/RectPhysicsComponent.js');
+var CirclePhysicsComponent = require('../../server/component/CirclePhysicsComponent.js');
 var RenderComponent = require('../../server/component/RenderComponent.js');
 var Animation = require('../../server/component/Animation.js');
+
+//Map Requirements
 var Map = require('../../server/Map.js');
 var Tile = require('../../server/Tile.js');
+
+//Gui Requirements
 var Gui = require('./Gui/Gui.js');
+
+var Utility = require('../../server/Utility.js');
 
 //Other global variables which need to be expressed
 var canvas = document.getElementById("game_canvas");
@@ -21,11 +31,6 @@ var gui = new Gui();
 var transform = {
     x : 0,
     y : 0
-};
-
-var translateOn = {
-    x : false,
-    y : false
 };
 
 var mouseDownEvent = null;
@@ -51,7 +56,7 @@ $(document).ready(function () {
     );
 });
 
-var mouseEventHandler = {
+let mouseEventHandler = {
     mousedown : e => {
         mouseDownEvent = e;
         let mouseDown = getMouseCoords(mouseDownEvent);
@@ -77,8 +82,9 @@ var mouseEventHandler = {
         mouseMoveEvent = e;
     },
     mouseup : e => {
-        if(mouseDownEvent != null){
-            selectUnits(mouseDownEvent, e);
+        if(mouseDownEvent !== null){
+            selectGameObjects(mouseDownEvent, e);
+            gui.populate(selectedGameObjects);
         }
         mouseDownEvent = null;
         gui.deactivate();
@@ -88,7 +94,18 @@ var mouseEventHandler = {
     }
 };
 
+let keyboardEventHandler = {
+    onkeypress : e => {
+        if (selectedGameObjects.length > 0){
+            game.activate(e, selectedGameObjects);
+        } else {
+            //activate default game actions
+        }
+    },
+};
+
 window.addEventListener('resize', resizeCanvas, false);
+document.onkeypress = keyboardEventHandler.onkeypress;
 canvas.onmousedown = mouseEventHandler.mousedown;
 canvas.onmousemove = mouseEventHandler.mousemove;
 canvas.onmouseup = mouseEventHandler.mouseup;
@@ -139,21 +156,20 @@ function translateCanvas(){
     transform.y += translate.y;
 }
 
-function selectUnits(mouseDownEvent, mouseUpEvent){
+function selectGameObjects(mouseDownEvent, mouseUpEvent){
     let mouseRect = getMouseSelectionRect(mouseDownEvent, mouseUpEvent);
     
     for (let i = 0; i < game.gameObjects.length; i++){
-        if (checkCircleRectCollision(game.gameObjects[i].physicsComponent.circle, mouseRect)){
+        let collision = false;
+        if (Object.keys(game.gameObjects[i].physicsComponent).indexOf("circle") > -1) {
+            collision = Utility.checkCircleRectCollision(mouseRect, game.gameObjects[i].physicsComponent.circle);
+        } else {
+            collision = Utility.checkRectRectCollision(game.gameObjects[i].physicsComponent.rect, mouseRect);
+        }
+        if (collision){
             selectedGameObjects.push(game.gameObjects[i]);
         }
     }
-}
-
-function checkCircleRectCollision(circle, rect){
-    let dx = circle.x - Math.max(rect.x, Math.min(circle.x, rect.x + rect.width));
-    let dy = circle.y - Math.max(rect.y, Math.min(circle.y , rect.y + rect.height));
-    let collision = Math.pow(dx, 2) + Math.pow(dy, 2) < Math.pow(circle.radius, 2);
-    return collision;
 }
 
 function drawSelectionRect(mouseDownEvent, mouseMoveEvent){
@@ -190,19 +206,43 @@ function getMouseCoords(mouseEvent){
 socket.on('update game', function(gameJSON){
     let serverGame = JSON.parse(gameJSON);
     game.gameObjects = [];
-    for(let i = 0; i < serverGame.gameObjects.length; i++) {
-        let object = Object.assign(new GameObject, serverGame.gameObjects[i]);
-        object.physicsComponent = Object.assign(new PhysicsComponent, object.physicsComponent);
-        object.renderComponent = Object.assign(new RenderComponent, object.renderComponent);
-        for (let animation in object.renderComponent.animations){
-            object.renderComponent.animations = Object.assign(new Animation, animation);
+    for (let i = 0; i < serverGame.gameObjects.length; i++){
+        let gameObject = assignObject(serverGame.gameObjects[i]);
+        for (let property in gameObject){
+            if (property.includes("Component")){
+                gameObject[property] = assignObject(gameObject[property]);
+            }
         }
-        object.renderComponent.currentAnimation = Object.assign(new Animation, object.renderComponent.currentAnimation);
-        game.gameObjects.push(object);
-    }
-    game.map = Object.assign(new Map, game.map);
-    let keysList = Object.keys(game.map.tileDef);
-    for(let i = 0; i < keysList.length; i++){
-        game.map.tileDef[keysList[i]] = Object.assign(new Tile, game.map.tileDef[keysList[i]]);
+        game.gameObjects.push(gameObject);
+        for (let j = 0; j < selectedGameObjects.length; j++){
+            if (gameObject.id === selectedGameObjects[j].id){
+                selectedGameObjects.splice(j, 1);
+                selectedGameObjects.push(gameObject);
+            }
+        }
     }
 });
+
+function assignObject(object){
+    if (Object.keys(object).indexOf("type") > -1) {
+       if (object.type === "Building"){
+           return Object.assign(new Building, object);
+       } else if (object.type === "CirclePhysicsComponent"){
+           return Object.assign(new CirclePhysicsComponent, object);
+       } else if (object.type === "RectPhysicsComponent"){
+           return Object.assign(new RectPhysicsComponent, object);
+       } else if (object.type === "RenderComponent"){
+           for (let i = 0; i < object.animations.length; i++){
+               object.animations[i].value = Object.assign(new Animation, object.animations[i].value);
+           }
+           if (object.currentAnimation !== null){
+               object.currentAnimation = Object.assign(new Animation, object.currentAnimation);
+           }
+           return Object.assign(new RenderComponent, object);
+       } else if (object.type === "Unit"){
+           return Object.assign(new Unit, object);
+       } else {
+           return object;
+       }
+    }
+}

@@ -1,6 +1,10 @@
 (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);var f=new Error("Cannot find module '"+o+"'");throw f.code="MODULE_NOT_FOUND",f}var l=n[o]={exports:{}};t[o][0].call(l.exports,function(e){var n=t[o][1][e];return s(n?n:e)},l,l.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(require,module,exports){
 var Section = require('./Section.js');
-var GuiItem = require('./GuiItem.js');
+
+var Unit = require('../../../server/gameObjects/Unit.js');
+var Building = require('../../../server/gameObjects/Building.js');
+
+var actionPriority = ["Unit", "Building"];
 
 class Gui {
     constructor(){
@@ -11,13 +15,14 @@ class Gui {
             width : 0,
             height : 0
         };
-        let section = new Section(0.05, 0.1);
-        for(let i = 0; i < 18; i++){
-            section.addItem(new GuiItem(30, 30, 0.10, 0.10));
-        }
-        this.sections.push(section);
-        this.sections.push(new Section(0, 0));
-        this.sections.push(new Section(0.05, 0.1));
+        this.actionSection = new Section(0.05, 0.1);
+        this.sections.push(this.actionSection);
+        
+        this.objectSection = new Section(0, 0);
+        this.sections.push(this.objectSection);
+        
+        this.minimapSection = new Section(0.05, 0.1);
+        this.sections.push(this.minimapSection);
     }
     draw(transform){
         if (typeof window !== 'undefined' && window.document) {
@@ -47,57 +52,19 @@ class Gui {
             this.sections[i].deactivate();
         }
     }
+    populate(gameObjects){
+        if (gameObjects.length === 0){
+        
+        } else {
+            //populate actionSection with available actions on selected unit
+            //populate objectSection with gameObjects list
+            //populate mini map with gameObjects list
+        }
+    }
 }
 
 module.exports = Gui;
-},{"./GuiItem.js":2,"./Section.js":3}],2:[function(require,module,exports){
-
-class GuiItem{
-    constructor(width, height, xBuffer, yBuffer){
-        this.rect = {
-            x : 0,
-            y : 0,
-            width : width,
-            height : height,
-            outerWidth : width + width * xBuffer,
-            outerHeight : height + height * yBuffer
-        };
-        this.xBuffer = xBuffer;
-        this.yBuffer = yBuffer;
-        this.fillStyle = "#1b15ee";
-    }
-    draw(sectionRect, itemNumber) {
-        let canvas = document.getElementById('game_canvas');
-        let context = canvas.getContext('2d');
-        
-        let numberItemsX = Math.floor(sectionRect.width / this.rect.outerWidth);
-        let numberItemsY = Math.floor(sectionRect.height / this.rect.outerHeight);
-        
-        if (itemNumber < numberItemsX * numberItemsY) {
-            let xPos = itemNumber % numberItemsX;
-            let yPos = Math.floor(itemNumber / numberItemsX);
-    
-            this.rect.x = sectionRect.x + (xPos * this.rect.outerWidth) + (this.rect.width * this.xBuffer);
-            this.rect.y = sectionRect.y + (yPos * this.rect.outerHeight) + (this.rect.height * this.yBuffer);
-    
-            context.fillStyle = this.fillStyle;
-            context.fillRect(this.rect.x, this.rect.y, this.rect.width, this.rect.height);
-        }
-    }
-    activate(mouseDownCoords){
-        if (mouseDownCoords.x > this.rect.x &&
-            mouseDownCoords.x < this.rect.x + this.rect.width &&
-            mouseDownCoords.y > this.rect.y &&
-            mouseDownCoords.y < this.rect.y + this.rect.height){
-            this.fillStyle = "#FF0000";
-        }
-    }
-    deactivate(){
-        this.fillStyle = "#1b15ee";    }
-}
-
-module.exports = GuiItem;
-},{}],3:[function(require,module,exports){
+},{"../../../server/gameObjects/Building.js":23,"../../../server/gameObjects/Unit.js":24,"./Section.js":2}],2:[function(require,module,exports){
 
 class Section{
     constructor(xBuffer, yBuffer){
@@ -114,11 +81,8 @@ class Section{
     draw(guiRect, numberOfSections, sectionNumber){
         let canvas = document.getElementById('game_canvas');
         let context = canvas.getContext('2d');
-
-        this.rect.width = guiRect.width * (1 - this.xBuffer) / numberOfSections;
-        this.rect.height = guiRect.height * (1 - this.yBuffer);
-        this.rect.x = guiRect.x + (guiRect.width * sectionNumber / numberOfSections) + (guiRect.width * this.xBuffer / 2 / numberOfSections);
-        this.rect.y = guiRect.y + (guiRect.height * this.yBuffer / 2);
+    
+        this.getDimensions(guiRect, numberOfSections, sectionNumber);
 
         context.fillStyle = "#7b31a2";
         context.fillRect(this.rect.x, this.rect.y, this.rect.width, this.rect.height);
@@ -127,8 +91,17 @@ class Section{
             this.items[i].draw(this.rect, i);
         }
     }
+    getDimensions(guiRect, numberOfSections, sectionNumber) {
+        this.rect.width = guiRect.width * (1 - this.xBuffer) / numberOfSections;
+        this.rect.height = guiRect.height * (1 - this.yBuffer);
+        this.rect.x = guiRect.x + (guiRect.width * sectionNumber / numberOfSections) + (guiRect.width * this.xBuffer / 2 / numberOfSections);
+        this.rect.y = guiRect.y + (guiRect.height * this.yBuffer / 2);
+    }
     addItem(item){
         this.items.push(item);
+    }
+    removeItems(){
+        this.items = [];
     }
     activate(mouseDownCoords){
         for (let i = 0; i < this.items.length; i++) {
@@ -143,18 +116,28 @@ class Section{
 }
 
 module.exports = Section;
-},{}],4:[function(require,module,exports){
+},{}],3:[function(require,module,exports){
 'use strict';
 // browserify main.js -o bundle.js - game logic require
 var socket = io();
 var Game = require("../../server/Game.js");
-var GameObject = require('../../server/GameObject.js');
-var PhysicsComponent = require('../../server/component/PhysicsComponent.js');
+var Unit = require('../../server/gameObjects/Unit.js');
+var Building = require('../../server/gameObjects/Building.js');
+
+//Component requirements
+var RectPhysicsComponent = require('../../server/component/RectPhysicsComponent.js');
+var CirclePhysicsComponent = require('../../server/component/CirclePhysicsComponent.js');
 var RenderComponent = require('../../server/component/RenderComponent.js');
 var Animation = require('../../server/component/Animation.js');
+
+//Map Requirements
 var Map = require('../../server/Map.js');
 var Tile = require('../../server/Tile.js');
+
+//Gui Requirements
 var Gui = require('./Gui/Gui.js');
+
+var Utility = require('../../server/Utility.js');
 
 //Other global variables which need to be expressed
 var canvas = document.getElementById("game_canvas");
@@ -167,11 +150,6 @@ var gui = new Gui();
 var transform = {
     x : 0,
     y : 0
-};
-
-var translateOn = {
-    x : false,
-    y : false
 };
 
 var mouseDownEvent = null;
@@ -197,7 +175,7 @@ $(document).ready(function () {
     );
 });
 
-var mouseEventHandler = {
+let mouseEventHandler = {
     mousedown : e => {
         mouseDownEvent = e;
         let mouseDown = getMouseCoords(mouseDownEvent);
@@ -223,8 +201,9 @@ var mouseEventHandler = {
         mouseMoveEvent = e;
     },
     mouseup : e => {
-        if(mouseDownEvent != null){
-            selectUnits(mouseDownEvent, e);
+        if(mouseDownEvent !== null){
+            selectGameObjects(mouseDownEvent, e);
+            gui.populate(selectedGameObjects);
         }
         mouseDownEvent = null;
         gui.deactivate();
@@ -234,7 +213,18 @@ var mouseEventHandler = {
     }
 };
 
+let keyboardEventHandler = {
+    onkeypress : e => {
+        if (selectedGameObjects.length > 0){
+            game.activate(e, selectedGameObjects);
+        } else {
+            //activate default game actions
+        }
+    },
+};
+
 window.addEventListener('resize', resizeCanvas, false);
+document.onkeypress = keyboardEventHandler.onkeypress;
 canvas.onmousedown = mouseEventHandler.mousedown;
 canvas.onmousemove = mouseEventHandler.mousemove;
 canvas.onmouseup = mouseEventHandler.mouseup;
@@ -285,21 +275,20 @@ function translateCanvas(){
     transform.y += translate.y;
 }
 
-function selectUnits(mouseDownEvent, mouseUpEvent){
+function selectGameObjects(mouseDownEvent, mouseUpEvent){
     let mouseRect = getMouseSelectionRect(mouseDownEvent, mouseUpEvent);
     
     for (let i = 0; i < game.gameObjects.length; i++){
-        if (checkCircleRectCollision(game.gameObjects[i].physicsComponent.circle, mouseRect)){
+        let collision = false;
+        if (Object.keys(game.gameObjects[i].physicsComponent).indexOf("circle") > -1) {
+            collision = Utility.checkCircleRectCollision(mouseRect, game.gameObjects[i].physicsComponent.circle);
+        } else {
+            collision = Utility.checkRectRectCollision(game.gameObjects[i].physicsComponent.rect, mouseRect);
+        }
+        if (collision){
             selectedGameObjects.push(game.gameObjects[i]);
         }
     }
-}
-
-function checkCircleRectCollision(circle, rect){
-    let dx = circle.x - Math.max(rect.x, Math.min(circle.x, rect.x + rect.width));
-    let dy = circle.y - Math.max(rect.y, Math.min(circle.y , rect.y + rect.height));
-    let collision = Math.pow(dx, 2) + Math.pow(dy, 2) < Math.pow(circle.radius, 2);
-    return collision;
 }
 
 function drawSelectionRect(mouseDownEvent, mouseMoveEvent){
@@ -336,28 +325,52 @@ function getMouseCoords(mouseEvent){
 socket.on('update game', function(gameJSON){
     let serverGame = JSON.parse(gameJSON);
     game.gameObjects = [];
-    for(let i = 0; i < serverGame.gameObjects.length; i++) {
-        let object = Object.assign(new GameObject, serverGame.gameObjects[i]);
-        object.physicsComponent = Object.assign(new PhysicsComponent, object.physicsComponent);
-        object.renderComponent = Object.assign(new RenderComponent, object.renderComponent);
-        for (let animation in object.renderComponent.animations){
-            object.renderComponent.animations = Object.assign(new Animation, animation);
+    for (let i = 0; i < serverGame.gameObjects.length; i++){
+        let gameObject = assignObject(serverGame.gameObjects[i]);
+        for (let property in gameObject){
+            if (property.includes("Component")){
+                gameObject[property] = assignObject(gameObject[property]);
+            }
         }
-        object.renderComponent.currentAnimation = Object.assign(new Animation, object.renderComponent.currentAnimation);
-        game.gameObjects.push(object);
-    }
-    game.map = Object.assign(new Map, game.map);
-    let keysList = Object.keys(game.map.tileDef);
-    for(let i = 0; i < keysList.length; i++){
-        game.map.tileDef[keysList[i]] = Object.assign(new Tile, game.map.tileDef[keysList[i]]);
+        game.gameObjects.push(gameObject);
+        for (let j = 0; j < selectedGameObjects.length; j++){
+            if (gameObject.id === selectedGameObjects[j].id){
+                selectedGameObjects.splice(j, 1);
+                selectedGameObjects.push(gameObject);
+            }
+        }
     }
 });
 
-},{"../../server/Game.js":15,"../../server/GameObject.js":16,"../../server/Map.js":17,"../../server/Tile.js":18,"../../server/component/Animation.js":19,"../../server/component/PhysicsComponent.js":20,"../../server/component/RenderComponent.js":21,"./Gui/Gui.js":1}],5:[function(require,module,exports){
+function assignObject(object){
+    if (Object.keys(object).indexOf("type") > -1) {
+       if (object.type === "Building"){
+           return Object.assign(new Building, object);
+       } else if (object.type === "CirclePhysicsComponent"){
+           return Object.assign(new CirclePhysicsComponent, object);
+       } else if (object.type === "RectPhysicsComponent"){
+           return Object.assign(new RectPhysicsComponent, object);
+       } else if (object.type === "RenderComponent"){
+           for (let i = 0; i < object.animations.length; i++){
+               object.animations[i].value = Object.assign(new Animation, object.animations[i].value);
+           }
+           if (object.currentAnimation !== null){
+               object.currentAnimation = Object.assign(new Animation, object.currentAnimation);
+           }
+           return Object.assign(new RenderComponent, object);
+       } else if (object.type === "Unit"){
+           return Object.assign(new Unit, object);
+       } else {
+           return object;
+       }
+    }
+}
+
+},{"../../server/Game.js":14,"../../server/Map.js":15,"../../server/Tile.js":16,"../../server/Utility.js":17,"../../server/component/Animation.js":18,"../../server/component/CirclePhysicsComponent.js":19,"../../server/component/RectPhysicsComponent.js":20,"../../server/component/RenderComponent.js":21,"../../server/gameObjects/Building.js":23,"../../server/gameObjects/Unit.js":24,"./Gui/Gui.js":1}],4:[function(require,module,exports){
 'use strict';
 module.exports = require('./lib/index');
 
-},{"./lib/index":10}],6:[function(require,module,exports){
+},{"./lib/index":9}],5:[function(require,module,exports){
 'use strict';
 
 var randomFromSeed = require('./random/random-from-seed');
@@ -457,7 +470,7 @@ module.exports = {
     shuffled: getShuffled
 };
 
-},{"./random/random-from-seed":13}],7:[function(require,module,exports){
+},{"./random/random-from-seed":12}],6:[function(require,module,exports){
 'use strict';
 
 var encode = require('./encode');
@@ -507,7 +520,7 @@ function build(clusterWorkerId) {
 
 module.exports = build;
 
-},{"./alphabet":6,"./encode":9}],8:[function(require,module,exports){
+},{"./alphabet":5,"./encode":8}],7:[function(require,module,exports){
 'use strict';
 var alphabet = require('./alphabet');
 
@@ -526,7 +539,7 @@ function decode(id) {
 
 module.exports = decode;
 
-},{"./alphabet":6}],9:[function(require,module,exports){
+},{"./alphabet":5}],8:[function(require,module,exports){
 'use strict';
 
 var randomByte = require('./random/random-byte');
@@ -547,7 +560,7 @@ function encode(lookup, number) {
 
 module.exports = encode;
 
-},{"./random/random-byte":12}],10:[function(require,module,exports){
+},{"./random/random-byte":11}],9:[function(require,module,exports){
 'use strict';
 
 var alphabet = require('./alphabet');
@@ -614,7 +627,7 @@ module.exports.characters = characters;
 module.exports.decode = decode;
 module.exports.isValid = isValid;
 
-},{"./alphabet":6,"./build":7,"./decode":8,"./encode":9,"./is-valid":11,"./util/cluster-worker-id":14}],11:[function(require,module,exports){
+},{"./alphabet":5,"./build":6,"./decode":7,"./encode":8,"./is-valid":10,"./util/cluster-worker-id":13}],10:[function(require,module,exports){
 'use strict';
 var alphabet = require('./alphabet');
 
@@ -635,7 +648,7 @@ function isShortId(id) {
 
 module.exports = isShortId;
 
-},{"./alphabet":6}],12:[function(require,module,exports){
+},{"./alphabet":5}],11:[function(require,module,exports){
 'use strict';
 
 var crypto = typeof window === 'object' && (window.crypto || window.msCrypto); // IE 11 uses window.msCrypto
@@ -651,7 +664,7 @@ function randomByte() {
 
 module.exports = randomByte;
 
-},{}],13:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 'use strict';
 
 // Found this seed-based random generator somewhere
@@ -678,27 +691,31 @@ module.exports = {
     seed: setSeed
 };
 
-},{}],14:[function(require,module,exports){
+},{}],13:[function(require,module,exports){
 'use strict';
 
 module.exports = 0;
 
-},{}],15:[function(require,module,exports){
+},{}],14:[function(require,module,exports){
 'use strict';
 var shortid = require('shortid');
-var GameObject = require('./GameObject.js');
+var Unit = require('./gameObjects/Unit.js');
+var Building = require('./gameObjects/Building.js');
 var Map = require('./Map.js');
 
 class Game{
     constructor(id="none"){
+        this.type = "Game";
         this.id = id == "none" ? shortid.generate() : id;
         this.gameObjects = [];
-        this.gameObjects.push(new GameObject(20, 20, 8, 16, 29));
-        this.gameObjects.push(new GameObject(200, 200, 8, 16, 29));
+        this.gameObjects.push(new Unit(20, 200, 8, 16, 29, 'images/character.png'));
+        this.gameObjects.push(new Building(0, 0, 128, 128, 'images/building.png'));
+        this.gameObjects.push(new Unit(200, 200, 8, 16, 29, 'images/character.png'));
         this.map = new Map();
     }
     update(){
         this.map.drawMap();
+        this.gameObjects = this.mergeSortGameObjects(this.gameObjects);
         for (let i = 0; i < this.gameObjects.length; i++) {
             this.gameObjects[i].update(this.gameObjects, this.map);
         }
@@ -712,66 +729,50 @@ class Game{
             }
         }
     }
+    activate(keyEvent, gameObjects){
+        for (let i = 0; i < this.gameObjects.length; i++){
+            for (let j = 0; j < gameObjects.length; j++){
+                if (this.gameObjects[i].id === gameObjects[j].id){
+                    this.gameObjects[i].activate(keyEvent);
+                }
+            }
+        }
+    }
+    mergeSortGameObjects(gameObjects){
+        if (gameObjects.length < 2) {
+            return gameObjects;
+        }
+        let mid = Math.floor(gameObjects.length / 2);
+        let left = gameObjects.slice(0, mid);
+        let right = gameObjects.slice(mid);
+        
+        return this.mergeObjects(this.mergeSortGameObjects(left), this.mergeSortGameObjects(right));
+    }
+    mergeObjects(left, right){
+        let results = [],
+            l = 0,
+            r = 0;
+        while (l < left.length && r < right.length){
+            if (left[l].getCoords().y < right[r].getCoords().y) {
+                results.push(left[l]);
+                l++;
+            } else {
+                results.push(right[r]);
+                r++;
+            }
+        }
+        return results.concat(left.slice(l)).concat(right.slice(r));
+    }
 }
 
 module.exports = Game;
 
-},{"./GameObject.js":16,"./Map.js":17,"shortid":5}],16:[function(require,module,exports){
-'use strict';
-var shortid = require('shortid');
-var PhysicsComponent = require('./component/PhysicsComponent.js');
-var RenderComponent = require('./component/RenderComponent.js');
-var State = require('./component/State.js');
-
-class GameObject{
-    constructor(x, y, radius, xDisjoint, yDisjoint){
-        this.id = shortid.generate();
-        this.state = State.IDLE;
-        this.disjoint = {
-            x : xDisjoint,
-            y : yDisjoint
-        };
-        this.physicsComponent = new PhysicsComponent(this.id, x, y, radius, 100);
-        this.renderComponent = new RenderComponent('images/character.png');
-        this.renderComponent.addAnimation(State.IDLE, 2, 4, 32, 32);
-        this.renderComponent.addAnimation(State.WALKING, 6, 4, 32, 32);
-    }
-    update(gameObjects, map){
-        let newState = this.determineState();
-        if (this.state !== newState){
-            this.setState(newState);
-        }
-
-        this.physicsComponent.update(gameObjects, map);
-        this.physicsComponent.drawCollisionSize();
-        let renderPoint = {
-            x : this.physicsComponent.circle.x - this.disjoint.x,
-            y : this.physicsComponent.circle.y - this.disjoint.y
-        };
-        this.renderComponent.draw(renderPoint);
-    }
-    updateDestination(x, y){
-        this.physicsComponent.updateDestination(x, y);
-    }
-    setState(state){
-        this.state = state;
-        this.renderComponent.changeState(state);
-    }
-    determineState(){
-        let state = State.IDLE;
-        if (this.physicsComponent.destPoint.x !== this.physicsComponent.circle.x || this.physicsComponent.destPoint.y !== this.physicsComponent.circle.y) {
-            state = State.WALKING;
-        }
-        return state;
-    }
-}
-
-module.exports = GameObject;
-},{"./component/PhysicsComponent.js":20,"./component/RenderComponent.js":21,"./component/State.js":22,"shortid":5}],17:[function(require,module,exports){
+},{"./Map.js":15,"./gameObjects/Building.js":23,"./gameObjects/Unit.js":24,"shortid":4}],15:[function(require,module,exports){
 var Tile = require('./Tile.js');
 
 class Map{
     constructor(){
+        this.type = "Map";
         this.tileHeight = 64;
         this.tileWidth = 64;
         this.mapDef = [
@@ -787,7 +788,13 @@ class Map{
             1 : new Tile('images/grasstile.png', true, true),
             2 : new Tile('images/sandtile.png', false, true),
             3 : new Tile('images/swamp.png', false, false)
-        }
+        };
+        this.rect = {
+            x : 0,
+            y : 0,
+            width : this.mapDef[0].length * this.tileWidth,
+            height : this.mapDef.length * this.tileHeight
+        };
     }
     drawMap(){
         for(let i = 0; i < this.mapDef.length; i++){
@@ -801,33 +808,35 @@ class Map{
             }
         }
     }
-    getTileAtPoint(point){
-        let tile = null;
+    getUnmovableMapRects(){
+        let rectList = [];
         for (let i = 0; i < this.mapDef.length; i++) {
             for (let j = 0; j < this.mapDef[i].length; j++){
-                let mapPoint = {};
-                mapPoint.x = j * this.tileWidth;
-                mapPoint.y = i * this.tileHeight;
-                
-                if (mapPoint.x < point.x
-                    && mapPoint.x + this.tileWidth > point.x
-                    && mapPoint.y < point.y
-                    && mapPoint.y + this.tileHeight > point.y) {
-                    let tileType = this.mapDef[i][j];
-                    tile = this.tileDef[tileType];
+                let tileType = this.mapDef[i][j];
+                let tile = this.tileDef[tileType];
+                if (!tile.isMovable) {
+                    let tileRect = {
+                        x : j * this.tileWidth,
+                        y : i * this.tileHeight,
+                        width : this.tileWidth,
+                        height : this.tileHeight
+                    };
+                    rectList.push(tileRect);
                 }
             }
         }
-        return tile;
+        return rectList;
     }
+
 }
 
 module.exports = Map;
-},{"./Tile.js":18}],18:[function(require,module,exports){
+},{"./Tile.js":16}],16:[function(require,module,exports){
 var RenderComponent = require('./component/RenderComponent.js');
 
 class Tile {
     constructor(url, movable, buildable){
+        this.type = "Tile";
         this.renderComponent = new RenderComponent(url);
         this.isMovable = movable;
         this.isBuildable = buildable;
@@ -838,9 +847,31 @@ class Tile {
 }
 
 module.exports = Tile;
-},{"./component/RenderComponent.js":21}],19:[function(require,module,exports){
+},{"./component/RenderComponent.js":21}],17:[function(require,module,exports){
+
+class Utility {
+    static checkRectRectCollision(rect1, rect2){
+        return rect1.x < rect2.x + rect2.width && rect1.x + rect1.width > rect2.x &&
+            rect1.y < rect2.y + rect2.height && rect1.height + rect1.y > rect2.y;
+    }
+    static checkCircleRectCollision(rect, circle){
+        let DeltaX = circle.x - Math.max(rect.x, Math.min(circle.x, rect.x + rect.width));
+        let DeltaY = circle.y - Math.max(rect.y, Math.min(circle.y, rect.y + rect.height));
+        return (DeltaX * DeltaX + DeltaY * DeltaY) < (circle.radius * circle.radius);
+    }
+    static checkCircleCircleCollision(circle1, circle2) {
+        let dx = circle1.x - circle2.x;
+        let dy = circle1.y - circle2.y;
+        let distance = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
+        return distance < circle1.radius + circle2.radius;
+    }
+}
+
+module.exports = Utility;
+},{}],18:[function(require,module,exports){
 class Animation {
     constructor(url, startFrame, totalFrames, frameWidth, frameHeight){
+        this.type = "Animation";
         this.url = url;
         this.image = null;
         this.startFrame = startFrame - 1;
@@ -853,9 +884,7 @@ class Animation {
     }
     draw(point){
         if (typeof window !== 'undefined' && window.document){
-            if (this.image === null){
-                this.loadImage();
-            }
+            this.loadImage();
             let canvas = document.getElementById('game_canvas');
             let context = canvas.getContext('2d');
             context.drawImage(
@@ -892,10 +921,12 @@ class Animation {
 }
 
 module.exports = Animation;
-},{}],20:[function(require,module,exports){
+},{}],19:[function(require,module,exports){
+var Utility = require('../Utility.js');
 
-class PhysicsComponent {
+class CirclePhysicsComponent {
     constructor(id, x, y, radius, speed){
+        this.type = "CirclePhysicsComponent";
         this.id = id;
         this.circle = {
             x : x,
@@ -912,8 +943,19 @@ class PhysicsComponent {
     update(gameObjects, map){
         let newCircle = this.getNewCircle();
         let collision = this.checkCollision(gameObjects, newCircle);
-        let tile = map.getTileAtPoint(newCircle);
-        if (!collision && tile !== null && tile.isMovable) {
+        let rectList = map.getUnmovableMapRects();
+        for (let i = 0; i < rectList.length; i++){
+            let tempCollision = Utility.checkCircleRectCollision(rectList[i], newCircle);
+            if (tempCollision) {
+                collision = true;
+            }
+        }
+        let inMap = newCircle.x > map.rect.x &&
+            newCircle.x < map.rect.x + map.rect.width &&
+            newCircle.y > map.rect.y &&
+            newCircle.y < map.rect.y + map.rect.height;
+        
+        if (!collision && inMap) {
             this.circle = newCircle;
         }
     }
@@ -924,9 +966,11 @@ class PhysicsComponent {
         return dt;
     }
     updateDestination(x, y){
-        this.destPoint = {
-            x : x,
-            y : y
+        if (this.speed > 0) {
+            this.destPoint = {
+                x: x,
+                y: y
+            }
         }
     }
     getNewCircle(){
@@ -978,14 +1022,16 @@ class PhysicsComponent {
     }
     checkCollision(gameObjects, newCircle){
         for (let i = 0; i < gameObjects.length; i++){
-            let gameObject = gameObjects[i];
-            if (this.id !== gameObject.id) {
-                let dx = gameObject.physicsComponent.circle.x - newCircle.x;
-                let dy = gameObject.physicsComponent.circle.y - newCircle.y;
-                let distance = Math.sqrt(Math.pow(dx,2) + Math.pow(dy, 2));
-                if (distance < newCircle.radius + gameObject.physicsComponent.circle.radius) {
-                    // collision detected!
-                    return true;
+            if (this.id !== gameObjects[i].id) {
+                let collision = false;
+                if (Object.keys(gameObjects[i].physicsComponent).indexOf('circle') > -1){
+                     collision = Utility.checkCircleCircleCollision(gameObjects[i].physicsComponent.circle, newCircle);
+                } else if (Object.keys(gameObjects[i].physicsComponent).indexOf('rect') > -1){
+                    collision = Utility.checkCircleRectCollision(gameObjects[i].physicsComponent.rect, newCircle);
+                }
+                
+                if (collision){
+                    return collision;
                 }
             }
         }
@@ -1007,13 +1053,144 @@ class PhysicsComponent {
     }
 }
 
-module.exports = PhysicsComponent;
-},{}],21:[function(require,module,exports){
+module.exports = CirclePhysicsComponent;
+},{"../Utility.js":17}],20:[function(require,module,exports){
+var Utility = require('../Utility.js');
+
+class RectPhysicsComponent {
+    constructor(id, x, y, width, height, speed){
+        this.type = "RectPhysicsComponent";
+        this.id = id;
+        this.speed = speed;
+        this.timeStamp = null;
+        this.rect = {
+            x : x,
+            y : y,
+            width : width,
+            height : height
+        };
+    }
+    update(gameObjects, map){
+        let newRect = this.getNewRect();
+        let collision = this.checkCollision(gameObjects, newRect);
+        let rectList = map.getUnmovableMapRects();
+        for (let i = 0; i < rectList.length; i++){
+            let tempCollision = Utility.checkRectRectCollision(rectList[i], newRect);
+            if (tempCollision){
+                collision = true;
+            }
+        }
+        
+        let point = {
+            x : this.rect.x + this.rect.width / 2,
+            y : this.rect.y + this.rect.height / 2
+        };
+        let inMap = point.x > map.rect.x &&
+            point.x < map.rect.x + map.rect.width &&
+            point.y > map.rect.y &&
+            point.y < map.rect.y + map.rect.height;
+        
+        if (!collision && inMap){
+            this.rect = newRect;
+        }
+    }
+    calculateDeltaTime(){
+        let lastTimeStamp = this.timeStamp;
+        this.timeStamp = Date.now();
+        var dt = this.timeStamp - lastTimeStamp;
+        return dt;
+    }
+    updateDestination(x, y){
+        if (this.speed > 0) {
+            this.destPoint = {
+                x: x,
+                y: y
+            }
+        }
+    }
+    getNewRect(){
+        let dx = Math.abs(this.circle.x - this.destPoint.x);
+        let dy = Math.abs(this.circle.y - this.destPoint.y);
+        let distance = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
+    
+        let cos = dx / distance;
+        let sin = dy / distance;
+    
+        let dt = this.calculateDeltaTime();
+    
+        let move = {
+            x : this.speed * cos * (1/1000 * dt),
+            y : this.speed * sin * (1/1000 * dt)
+        };
+    
+        let newX = null;
+        if (this.destPoint.x !== this.circle.x){
+            let coefficient = this.destPoint.x < this.circle.x ? -1 : 1;
+            if (Math.abs(this.destPoint.x - this.circle.x) < move.x) {
+                newX = this.destPoint.x ;
+            } else {
+                newX = this.circle.x + move.x * coefficient;
+            }
+        } else {
+            newX = this.circle.x;
+        }
+    
+        let newY = null;
+        if (this.destPoint.y !== this.circle.y){
+            let coefficient = this.destPoint.y < this.circle.y ? -1 : 1;
+            if (Math.abs(this.destPoint.y - this.circle.y) < move.y){
+                newY = this.destPoint.y ;
+            } else {
+                newY = this.circle.y + move.y * coefficient;
+            }
+        } else {
+            newY = this.circle.y;
+        }
+        
+        let newRect = {
+            x : newX,
+            y : newY,
+            width: this.rect.width,
+            height : this.rect.height
+        };
+        
+        return newRect;
+    }
+    checkCollision(gameObjects, newRect){
+        for (let i = 0; i < gameObjects.length; i++) {
+            if (gameObjects[i].id !== this.id){
+                let collision = false;
+                if (Object.keys(gameObjects[i].physicsComponent).indexOf("circle") > -1) {
+                    collision = Utility.checkCircleRectCollision(newRect, gameObjects[i].physicsComponent.circle);
+                } else if (Object.keys(gameObjects[i].physicsComponent).indexOf('rect') > -1){
+                    collision = Utility.checkRectRectCollision(gameObjects[i].physicsComponent.rect, newRect);
+                }
+                
+                if (collision){
+                    return collision;
+                }
+            }
+        }
+        return false;
+    }
+    drawCollisionSize(){
+        if (typeof window !== 'undefined' && window.document){
+            let canvas = document.getElementById("game_canvas");
+            let context = canvas .getContext("2d");
+            context.strokeStyle = "#ffdb39";
+            context.strokeRect(this.rect.x, this.rect.y, this.rect.width, this.rect.height);
+        }
+    }
+}
+
+module.exports = RectPhysicsComponent;
+},{"../Utility.js":17}],21:[function(require,module,exports){
 var Animation = require('./Animation.js');
 var State = require('./State.js');
 
 class RenderComponent {
     constructor(url){
+        this.type = "RenderComponent";
         this.image = null;
         this.url = url;
         this.animations = [];
@@ -1047,15 +1224,13 @@ class RenderComponent {
         }
         if (typeof window !== 'undefined' && window.document) {
             if (this.currentAnimation === null) {
+                this.loadImage();
                 let canvas = document.getElementById('game_canvas');
                 let context = canvas.getContext('2d');
-                this.loadImage();
                 context.drawImage(
                     this.image,
                     point.x,
-                    point.y,
-                    this.image.width,
-                    this.image.height
+                    point.y
                 );
             } else {
                 this.currentAnimation.draw(point);
@@ -1063,15 +1238,13 @@ class RenderComponent {
         }
     }
     loadImage(){
-        if (this.image === null) {
-            this.image = new Image();
-            this.image.src = this.url;
-        }
+        this.image = new Image();
+        this.image.src = this.url;
     }
  }
  
  module.exports = RenderComponent;
-},{"./Animation.js":19,"./State.js":22}],22:[function(require,module,exports){
+},{"./Animation.js":18,"./State.js":22}],22:[function(require,module,exports){
 
 var State = {
     IDLE : 'idle',
@@ -1079,4 +1252,84 @@ var State = {
 };
 
 module.exports = State;
-},{}]},{},[4]);
+},{}],23:[function(require,module,exports){
+var shortid = require('shortid');
+var RenderComponent = require('../component/RenderComponent.js');
+var RectPhysicsComponent = require('../component/RectPhysicsComponent.js');
+
+class Building {
+    constructor(x, y, width, height, url){
+        this.type = "Building";
+        this.id = shortid.generate();
+        this.renderComponent = new RenderComponent(url);
+        this.physicsComponent = new RectPhysicsComponent(this.id, x, y, width, height, 0);
+        this.actionComponent = new ActionComponent();
+    }
+    update(gameObjects, map){
+        this.renderComponent.draw(this.physicsComponent.rect);
+        this.physicsComponent.drawCollisionSize();
+    }
+    updateDestination(x, y){
+        this.physicsComponent.updateDestination(x, y);
+    }
+    getCoords(){
+        return this.physicsComponent.rect;
+    }
+}
+
+module.exports = Building;
+},{"../component/RectPhysicsComponent.js":20,"../component/RenderComponent.js":21,"shortid":4}],24:[function(require,module,exports){
+var shortid = require('shortid');
+var CirclePhysicsComponent = require('../component/CirclePhysicsComponent.js');
+var RenderComponent = require('../component/RenderComponent.js');
+var State = require('../component/State.js');
+
+class Unit{
+    constructor(x, y, radius, xDisjoint, yDisjoint, url){
+        this.type = "Unit";
+        this.id = shortid.generate();
+        this.state = State.IDLE;
+        this.disjoint = {
+            x : xDisjoint,
+            y : yDisjoint
+        };
+        this.physicsComponent = new CirclePhysicsComponent(this.id, x, y, radius, 100);
+        this.renderComponent = new RenderComponent(url);
+        this.renderComponent.addAnimation(State.IDLE, 2, 4, 32, 32);
+        this.renderComponent.addAnimation(State.WALKING, 6, 4, 32, 32);
+    }
+    update(gameObjects, map){
+        let newState = this.determineState();
+        if (this.state !== newState){
+            this.setState(newState);
+        }
+
+        this.physicsComponent.update(gameObjects, map);
+        this.physicsComponent.drawCollisionSize();
+        let renderPoint = {
+            x : this.physicsComponent.circle.x - this.disjoint.x,
+            y : this.physicsComponent.circle.y - this.disjoint.y
+        };
+        this.renderComponent.draw(renderPoint);
+    }
+    updateDestination(x, y){
+        this.physicsComponent.updateDestination(x, y);
+    }
+    getCoords(){
+        return this.physicsComponent.circle;
+    }
+    setState(state){
+        this.state = state;
+        this.renderComponent.changeState(state);
+    }
+    determineState(){
+        let state = State.IDLE;
+        if (this.physicsComponent.destPoint.x !== this.physicsComponent.circle.x || this.physicsComponent.destPoint.y !== this.physicsComponent.circle.y) {
+            state = State.WALKING;
+        }
+        return state;
+    }
+}
+
+module.exports = Unit;
+},{"../component/CirclePhysicsComponent.js":19,"../component/RenderComponent.js":21,"../component/State.js":22,"shortid":4}]},{},[3]);

@@ -1,6 +1,8 @@
+var Utility = require('../Utility.js');
 
-class PhysicsComponent {
+class CirclePhysicsComponent {
     constructor(id, x, y, radius, speed){
+        this.type = "CirclePhysicsComponent";
         this.id = id;
         this.circle = {
             x : x,
@@ -17,8 +19,19 @@ class PhysicsComponent {
     update(gameObjects, map){
         let newCircle = this.getNewCircle();
         let collision = this.checkCollision(gameObjects, newCircle);
-        let tile = map.getTileAtPoint(newCircle);
-        if (!collision && tile !== null && tile.isMovable) {
+        let rectList = map.getUnmovableMapRects();
+        for (let i = 0; i < rectList.length; i++){
+            let tempCollision = Utility.checkCircleRectCollision(rectList[i], newCircle);
+            if (tempCollision) {
+                collision = true;
+            }
+        }
+        let inMap = newCircle.x > map.rect.x &&
+            newCircle.x < map.rect.x + map.rect.width &&
+            newCircle.y > map.rect.y &&
+            newCircle.y < map.rect.y + map.rect.height;
+        
+        if (!collision && inMap) {
             this.circle = newCircle;
         }
     }
@@ -29,9 +42,11 @@ class PhysicsComponent {
         return dt;
     }
     updateDestination(x, y){
-        this.destPoint = {
-            x : x,
-            y : y
+        if (this.speed > 0) {
+            this.destPoint = {
+                x: x,
+                y: y
+            }
         }
     }
     getNewCircle(){
@@ -83,14 +98,16 @@ class PhysicsComponent {
     }
     checkCollision(gameObjects, newCircle){
         for (let i = 0; i < gameObjects.length; i++){
-            let gameObject = gameObjects[i];
-            if (this.id !== gameObject.id) {
-                let dx = gameObject.physicsComponent.circle.x - newCircle.x;
-                let dy = gameObject.physicsComponent.circle.y - newCircle.y;
-                let distance = Math.sqrt(Math.pow(dx,2) + Math.pow(dy, 2));
-                if (distance < newCircle.radius + gameObject.physicsComponent.circle.radius) {
-                    // collision detected!
-                    return true;
+            if (this.id !== gameObjects[i].id) {
+                let collision = false;
+                if (Object.keys(gameObjects[i].physicsComponent).indexOf('circle') > -1){
+                     collision = Utility.checkCircleCircleCollision(gameObjects[i].physicsComponent.circle, newCircle);
+                } else if (Object.keys(gameObjects[i].physicsComponent).indexOf('rect') > -1){
+                    collision = Utility.checkCircleRectCollision(gameObjects[i].physicsComponent.rect, newCircle);
+                }
+                
+                if (collision){
+                    return collision;
                 }
             }
         }
@@ -112,4 +129,4 @@ class PhysicsComponent {
     }
 }
 
-module.exports = PhysicsComponent;
+module.exports = CirclePhysicsComponent;

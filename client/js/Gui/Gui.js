@@ -1,5 +1,9 @@
 var Section = require('./Section.js');
-var GuiItem = require('./GuiItem.js');
+
+var Unit = require('../../../server/gameObjects/Unit.js');
+var Building = require('../../../server/gameObjects/Building.js');
+
+var actionPriority = ["Unit", "Building"];
 
 class Gui {
     constructor(){
@@ -10,13 +14,14 @@ class Gui {
             width : 0,
             height : 0
         };
-        let section = new Section(0.05, 0.1);
-        for(let i = 0; i < 18; i++){
-            section.addItem(new GuiItem(30, 30, 0.10, 0.10));
-        }
-        this.sections.push(section);
-        this.sections.push(new Section(0, 0));
-        this.sections.push(new Section(0.05, 0.1));
+        this.actionSection = new Section(0.05, 0.1);
+        this.sections.push(this.actionSection);
+        
+        this.objectSection = new Section(0, 0);
+        this.sections.push(this.objectSection);
+        
+        this.minimapSection = new Section(0.05, 0.1);
+        this.sections.push(this.minimapSection);
     }
     draw(transform){
         if (typeof window !== 'undefined' && window.document) {
@@ -44,6 +49,15 @@ class Gui {
     deactivate(){
         for (let i = 0; i < this.sections.length; i++) {
             this.sections[i].deactivate();
+        }
+    }
+    populate(gameObjects){
+        if (gameObjects.length === 0){
+        
+        } else {
+            //populate actionSection with available actions on selected unit
+            //populate objectSection with gameObjects list
+            //populate mini map with gameObjects list
         }
     }
 }
