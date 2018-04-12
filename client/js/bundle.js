@@ -64,7 +64,7 @@ class Gui {
 }
 
 module.exports = Gui;
-},{"../../../server/gameObjects/Building.js":23,"../../../server/gameObjects/Unit.js":24,"./Section.js":2}],2:[function(require,module,exports){
+},{"../../../server/gameObjects/Building.js":24,"../../../server/gameObjects/Unit.js":25,"./Section.js":2}],2:[function(require,module,exports){
 
 class Section{
     constructor(xBuffer, yBuffer){
@@ -127,6 +127,7 @@ var Building = require('../../server/gameObjects/Building.js');
 //Component requirements
 var RectPhysicsComponent = require('../../server/component/RectPhysicsComponent.js');
 var CirclePhysicsComponent = require('../../server/component/CirclePhysicsComponent.js');
+var UnitCreationComponent = require('../../server/component/UnitCreationComponent.js');
 var RenderComponent = require('../../server/component/RenderComponent.js');
 var Animation = require('../../server/component/Animation.js');
 
@@ -281,7 +282,7 @@ function selectGameObjects(mouseDownEvent, mouseUpEvent){
     for (let i = 0; i < game.gameObjects.length; i++){
         let collision = false;
         if (Object.keys(game.gameObjects[i].physicsComponent).indexOf("circle") > -1) {
-            collision = Utility.checkCircleRectCollision(mouseRect, game.gameObjects[i].physicsComponent.circle);
+            collision = Utility.checkRectCircleCollision(mouseRect, game.gameObjects[i].physicsComponent.circle);
         } else {
             collision = Utility.checkRectRectCollision(game.gameObjects[i].physicsComponent.rect, mouseRect);
         }
@@ -358,6 +359,17 @@ function assignObject(object){
                object.currentAnimation = Object.assign(new Animation, object.currentAnimation);
            }
            return Object.assign(new RenderComponent, object);
+       } else if (object.type === "UnitCreationComponent"){
+           for (let i = 0; i < object.queue.length; i++){
+               let gameObject = assignObject(object.queue[i]);
+               for (let property in gameObject){
+                   if (property.includes("Component")){
+                       gameObject[property] = assignObject(gameObject[property]);
+                   }
+               }
+               object.queue[i] = gameObject;
+           }
+           return Object.assign(new UnitCreationComponent, object);
        } else if (object.type === "Unit"){
            return Object.assign(new Unit, object);
        } else {
@@ -366,7 +378,7 @@ function assignObject(object){
     }
 }
 
-},{"../../server/Game.js":14,"../../server/Map.js":15,"../../server/Tile.js":16,"../../server/Utility.js":17,"../../server/component/Animation.js":18,"../../server/component/CirclePhysicsComponent.js":19,"../../server/component/RectPhysicsComponent.js":20,"../../server/component/RenderComponent.js":21,"../../server/gameObjects/Building.js":23,"../../server/gameObjects/Unit.js":24,"./Gui/Gui.js":1}],4:[function(require,module,exports){
+},{"../../server/Game.js":14,"../../server/Map.js":15,"../../server/Tile.js":16,"../../server/Utility.js":17,"../../server/component/Animation.js":18,"../../server/component/CirclePhysicsComponent.js":19,"../../server/component/RectPhysicsComponent.js":20,"../../server/component/RenderComponent.js":21,"../../server/component/UnitCreationComponent.js":23,"../../server/gameObjects/Building.js":24,"../../server/gameObjects/Unit.js":25,"./Gui/Gui.js":1}],4:[function(require,module,exports){
 'use strict';
 module.exports = require('./lib/index');
 
@@ -708,16 +720,19 @@ class Game{
         this.type = "Game";
         this.id = id == "none" ? shortid.generate() : id;
         this.gameObjects = [];
-        this.gameObjects.push(new Unit(20, 200, 8, 16, 29, 'images/character.png'));
         this.gameObjects.push(new Building(0, 0, 128, 128, 'images/building.png'));
-        this.gameObjects.push(new Unit(200, 200, 8, 16, 29, 'images/character.png'));
         this.map = new Map();
     }
     update(){
         this.map.drawMap();
         this.gameObjects = this.mergeSortGameObjects(this.gameObjects);
         for (let i = 0; i < this.gameObjects.length; i++) {
-            this.gameObjects[i].update(this.gameObjects, this.map);
+            try {
+                this.gameObjects[i].update(this.gameObjects, this.map);
+            } catch (e) {
+                console.log(JSON.stringify(this.gameObjects));
+                throw e;
+            }
         }
     }
     moveObjects(objects, mouseCords){
@@ -767,7 +782,7 @@ class Game{
 
 module.exports = Game;
 
-},{"./Map.js":15,"./gameObjects/Building.js":23,"./gameObjects/Unit.js":24,"shortid":4}],15:[function(require,module,exports){
+},{"./Map.js":15,"./gameObjects/Building.js":24,"./gameObjects/Unit.js":25,"shortid":4}],15:[function(require,module,exports){
 var Tile = require('./Tile.js');
 
 class Map{
@@ -777,11 +792,11 @@ class Map{
         this.tileWidth = 64;
         this.mapDef = [
             [1, 1, 1, 1, 1, 1, 1],
-            [1, 2, 1, 1, 3, 3, 1],
-            [1, 2, 2, 1, 3, 3, 1],
-            [1, 2, 1, 1, 1, 1, 1],
-            [1, 2, 2, 2, 1, 1, 1],
-            [1, 2, 1, 1, 1, 1, 1],
+            [1, 1, 1, 1, 1, 1, 1],
+            [1, 1, 1, 1, 1, 1, 1],
+            [1, 1, 1, 1, 1, 1, 1],
+            [1, 1, 1, 1, 1, 1, 1],
+            [1, 1, 1, 1, 1, 1, 1],
             [1, 1, 1, 1, 1, 1, 1]
         ];
         this.tileDef = {
@@ -854,7 +869,7 @@ class Utility {
         return rect1.x < rect2.x + rect2.width && rect1.x + rect1.width > rect2.x &&
             rect1.y < rect2.y + rect2.height && rect1.height + rect1.y > rect2.y;
     }
-    static checkCircleRectCollision(rect, circle){
+    static checkRectCircleCollision(rect, circle){
         let DeltaX = circle.x - Math.max(rect.x, Math.min(circle.x, rect.x + rect.width));
         let DeltaY = circle.y - Math.max(rect.y, Math.min(circle.y, rect.y + rect.height));
         return (DeltaX * DeltaX + DeltaY * DeltaY) < (circle.radius * circle.radius);
@@ -864,6 +879,17 @@ class Utility {
         let dy = circle1.y - circle2.y;
         let distance = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
         return distance < circle1.radius + circle2.radius;
+    }
+    static checkUnknownObjectCollision(object1, object2){
+        if (object1.type === "RectPhysicsComponent" && object2.type === "RectPhysicsComponent"){
+            return Utility.checkRectRectCollision(object1.rect, object2.rect);
+        } else if (object1.type ==="RectPhysicsComponent" && object2.type === "CirclePhysicsComponent"){
+            return Utility.checkRectCircleCollision(object1.rect, object2.circle);
+        } else if (object1.type ==="CirclePhysicsComponent" && object2.type === "RectPhysicsComponent"){
+            return Utility.checkRectCircleCollision(object2.rect, object1.circle);
+        } else if (object1.type ==="CirclePhysicsComponent" && object2.type === "CirclePhysicsComponent"){
+            return Utility.checkCircleCircleCollision(object1.circle, object2.circle);
+        }
     }
 }
 
@@ -945,7 +971,7 @@ class CirclePhysicsComponent {
         let collision = this.checkCollision(gameObjects, newCircle);
         let rectList = map.getUnmovableMapRects();
         for (let i = 0; i < rectList.length; i++){
-            let tempCollision = Utility.checkCircleRectCollision(rectList[i], newCircle);
+            let tempCollision = Utility.checkRectCircleCollision(rectList[i], newCircle);
             if (tempCollision) {
                 collision = true;
             }
@@ -1027,7 +1053,7 @@ class CirclePhysicsComponent {
                 if (Object.keys(gameObjects[i].physicsComponent).indexOf('circle') > -1){
                      collision = Utility.checkCircleCircleCollision(gameObjects[i].physicsComponent.circle, newCircle);
                 } else if (Object.keys(gameObjects[i].physicsComponent).indexOf('rect') > -1){
-                    collision = Utility.checkCircleRectCollision(gameObjects[i].physicsComponent.rect, newCircle);
+                    collision = Utility.checkRectCircleCollision(gameObjects[i].physicsComponent.rect, newCircle);
                 }
                 
                 if (collision){
@@ -1047,9 +1073,14 @@ class CirclePhysicsComponent {
                 x : this.circle.x,
                 y : this.circle.y
             };
-            context.ellipse(point.x, point.y, this.circle.radius, 0.5 * this.circle.radius, 0, 0, 2 * Math.PI);
+            // context.ellipse(point.x, point.y, this.circle.radius, 0.5 * this.circle.radius, 0, 0, 2 * Math.PI);
+            context.arc(point.x, point.y, this.circle.radius, 0, 2 * Math.PI);
             context.stroke();
         }
+    }
+    setPosition(x, y){
+        this.circle.x = x;
+        this.circle.y = y;
     }
 }
 
@@ -1161,7 +1192,7 @@ class RectPhysicsComponent {
             if (gameObjects[i].id !== this.id){
                 let collision = false;
                 if (Object.keys(gameObjects[i].physicsComponent).indexOf("circle") > -1) {
-                    collision = Utility.checkCircleRectCollision(newRect, gameObjects[i].physicsComponent.circle);
+                    collision = Utility.checkRectCircleCollision(newRect, gameObjects[i].physicsComponent.circle);
                 } else if (Object.keys(gameObjects[i].physicsComponent).indexOf('rect') > -1){
                     collision = Utility.checkRectRectCollision(gameObjects[i].physicsComponent.rect, newRect);
                 }
@@ -1180,6 +1211,10 @@ class RectPhysicsComponent {
             context.strokeStyle = "#ffdb39";
             context.strokeRect(this.rect.x, this.rect.y, this.rect.width, this.rect.height);
         }
+    }
+    setPosition(x, y){
+        this.rect.x = x;
+        this.rect.y = y;
     }
 }
 
@@ -1253,9 +1288,73 @@ var State = {
 
 module.exports = State;
 },{}],23:[function(require,module,exports){
+var Unit = require('../gameObjects/Unit.js');
+var Utility = require('../Utility.js');
+
+class UnitCreationComponent {
+    constructor(){
+        this.type = "UnitCreationComponent";
+        this.queue = [];
+        this.creationTime = 5000; // 5000 milliseconds, 5 second
+        this.timeStamp = Date.now();
+        this.destinationPoint = {
+            x : 0,
+            y : 0
+        }
+    }
+    update(physicsComponent){
+        if (Date.now() - this.timeStamp > this.creationTime && this.queue.length > 0){
+            let unit = this.getUnitFromQueue();
+            unit.updateDestination(this.destinationPoint.x, this.destinationPoint.y);
+            this.setUnitPosition(unit, physicsComponent);
+            return unit;
+        }
+        return null;
+    }
+    addUnitToQueue(unit){
+        this.queue.push(unit);
+    }
+    getUnitFromQueue(){
+        return this.queue.shift();
+    }
+    setDestination(x, y){
+        this.destinationPoint = {
+            x : x,
+            y : y
+        };
+    }
+    //Based on where the unit is trying to go to this should place it adjacent to the current object
+    setUnitPosition(unit, physicsComponent){
+        let xDistance = null;
+        let yDistance = null;
+        if (physicsComponent.type === "RectPhysicsComponent"){
+            xDistance = physicsComponent.rect.x + (physicsComponent.rect.width / 2) - this.destinationPoint.x;
+            yDistance = physicsComponent.rect.y + (physicsComponent.rect.height / 2) - this.destinationPoint.y;
+        } else if (physicsComponent.type === "CirclePhysicsComponent"){
+            xDistance = physicsComponent.circle.x - this.destinationPoint.x;
+            yDistance = physicsComponent.circle.y - this.destinationPoint.y;
+        }
+    
+        let distance = Math.sqrt(Math.pow(xDistance,2) + Math.pow(yDistance,2));
+        let theta = Math.asin(yDistance / distance);
+        let percentage = 0;
+        do {
+            percentage += 1;
+            let tempDistance = distance * percentage / 100;
+            let newX = tempDistance * Math.sin(theta);
+            let newY = tempDistance * Math.cos(theta);
+            unit.physicsComponent.setPosition(newX, newY);
+        } while (Utility.checkUnknownObjectCollision(unit.physicsComponent, physicsComponent));
+    }
+}
+
+module.exports = UnitCreationComponent;
+},{"../Utility.js":17,"../gameObjects/Unit.js":25}],24:[function(require,module,exports){
 var shortid = require('shortid');
 var RenderComponent = require('../component/RenderComponent.js');
 var RectPhysicsComponent = require('../component/RectPhysicsComponent.js');
+var UnitCreationComponent = require('../component/UnitCreationComponent.js');
+var Unit = require('../gameObjects/Unit.js');
 
 class Building {
     constructor(x, y, width, height, url){
@@ -1263,11 +1362,19 @@ class Building {
         this.id = shortid.generate();
         this.renderComponent = new RenderComponent(url);
         this.physicsComponent = new RectPhysicsComponent(this.id, x, y, width, height, 0);
-        this.actionComponent = new ActionComponent();
+        this.unitCreationComponent = new UnitCreationComponent();
+        let unit = new Unit(200, 200, 8, 16, 29, 'images/character.png');
+        this.unitCreationComponent.addUnitToQueue(unit);
+        this.unitCreationComponent.setDestination(300, 300);
     }
     update(gameObjects, map){
         this.renderComponent.draw(this.physicsComponent.rect);
         this.physicsComponent.drawCollisionSize();
+        let unit = this.unitCreationComponent.update(this.physicsComponent);
+        if (unit !== null) {
+            console.log("unit: " + JSON.stringify(unit) + ", " + typeof unit);
+            gameObjects.push(unit);
+        }
     }
     updateDestination(x, y){
         this.physicsComponent.updateDestination(x, y);
@@ -1275,10 +1382,13 @@ class Building {
     getCoords(){
         return this.physicsComponent.rect;
     }
+    addUnitToQueue(unit){
+        this.unitCreationComponent.addUnitToQueue(unit);
+    }
 }
 
 module.exports = Building;
-},{"../component/RectPhysicsComponent.js":20,"../component/RenderComponent.js":21,"shortid":4}],24:[function(require,module,exports){
+},{"../component/RectPhysicsComponent.js":20,"../component/RenderComponent.js":21,"../component/UnitCreationComponent.js":23,"../gameObjects/Unit.js":25,"shortid":4}],25:[function(require,module,exports){
 var shortid = require('shortid');
 var CirclePhysicsComponent = require('../component/CirclePhysicsComponent.js');
 var RenderComponent = require('../component/RenderComponent.js');
