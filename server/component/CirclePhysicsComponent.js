@@ -21,7 +21,7 @@ class CirclePhysicsComponent {
         let collision = this.checkCollision(gameObjects, newCircle);
         let rectList = map.getUnmovableMapRects();
         for (let i = 0; i < rectList.length; i++){
-            let tempCollision = Utility.checkCircleRectCollision(rectList[i], newCircle);
+            let tempCollision = Utility.checkRectCircleCollision(rectList[i], newCircle);
             if (tempCollision) {
                 collision = true;
             }
@@ -103,7 +103,7 @@ class CirclePhysicsComponent {
                 if (Object.keys(gameObjects[i].physicsComponent).indexOf('circle') > -1){
                      collision = Utility.checkCircleCircleCollision(gameObjects[i].physicsComponent.circle, newCircle);
                 } else if (Object.keys(gameObjects[i].physicsComponent).indexOf('rect') > -1){
-                    collision = Utility.checkCircleRectCollision(gameObjects[i].physicsComponent.rect, newCircle);
+                    collision = Utility.checkRectCircleCollision(gameObjects[i].physicsComponent.rect, newCircle);
                 }
                 
                 if (collision){
@@ -123,9 +123,14 @@ class CirclePhysicsComponent {
                 x : this.circle.x,
                 y : this.circle.y
             };
-            context.ellipse(point.x, point.y, this.circle.radius, 0.5 * this.circle.radius, 0, 0, 2 * Math.PI);
+            // context.ellipse(point.x, point.y, this.circle.radius, 0.5 * this.circle.radius, 0, 0, 2 * Math.PI);
+            context.arc(point.x, point.y, this.circle.radius, 0, 2 * Math.PI);
             context.stroke();
         }
+    }
+    setPosition(x, y){
+        this.circle.x = x;
+        this.circle.y = y;
     }
 }
 

@@ -104,7 +104,7 @@ class RectPhysicsComponent {
             if (gameObjects[i].id !== this.id){
                 let collision = false;
                 if (Object.keys(gameObjects[i].physicsComponent).indexOf("circle") > -1) {
-                    collision = Utility.checkCircleRectCollision(newRect, gameObjects[i].physicsComponent.circle);
+                    collision = Utility.checkRectCircleCollision(newRect, gameObjects[i].physicsComponent.circle);
                 } else if (Object.keys(gameObjects[i].physicsComponent).indexOf('rect') > -1){
                     collision = Utility.checkRectRectCollision(gameObjects[i].physicsComponent.rect, newRect);
                 }
@@ -123,6 +123,10 @@ class RectPhysicsComponent {
             context.strokeStyle = "#ffdb39";
             context.strokeRect(this.rect.x, this.rect.y, this.rect.width, this.rect.height);
         }
+    }
+    setPosition(x, y){
+        this.rect.x = x;
+        this.rect.y = y;
     }
 }
 
