@@ -82,7 +82,6 @@ class UnitCreationComponent {
                 initialPosition.x + (xIncrement * increment * directionModifier.x),
                 initialPosition.y + (yIncrement * increment * directionModifier.y)
             );
-            unit.physicsComponent.setPosition(100, 20);
         } while(Utility.checkUnknownObjectCollision(unit.physicsComponent, physicsComponent));
     }
 }
