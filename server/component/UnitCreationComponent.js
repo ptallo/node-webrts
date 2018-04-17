@@ -5,7 +5,7 @@ class UnitCreationComponent {
     constructor(){
         this.type = "UnitCreationComponent";
         this.queue = [];
-        this.creationTime = 5000; // 5000 milliseconds, 5 second
+        this.creationTime = 1000; // 5000 milliseconds, 5 second
         this.timeStamp = Date.now();
         this.destinationPoint = {
             x : 0,
@@ -21,7 +21,8 @@ class UnitCreationComponent {
         }
         return null;
     }
-    addUnitToQueue(unit){
+    addUnitToQueue(unit, point){
+        unit.physicsComponent.setPosition(point.x, point.y);
         this.queue.push(unit);
     }
     getUnitFromQueue(){
@@ -37,24 +38,52 @@ class UnitCreationComponent {
     setUnitPosition(unit, physicsComponent){
         let xDistance = null;
         let yDistance = null;
+        let initialPosition = {
+            x : 0,
+            y : 0
+        };
+        
+        let directionModifier = {
+            x : 1,
+            y : 1
+        };
+        
         if (physicsComponent.type === "RectPhysicsComponent"){
-            xDistance = physicsComponent.rect.x + (physicsComponent.rect.width / 2) - this.destinationPoint.x;
-            yDistance = physicsComponent.rect.y + (physicsComponent.rect.height / 2) - this.destinationPoint.y;
+            initialPosition.x = physicsComponent.rect.x;
+            initialPosition.y = physicsComponent.rect.y;
+            xDistance = Math.abs(initialPosition.x - this.destinationPoint.x);
+            yDistance = Math.abs(initialPosition.y - this.destinationPoint.y);
         } else if (physicsComponent.type === "CirclePhysicsComponent"){
-            xDistance = physicsComponent.circle.x - this.destinationPoint.x;
-            yDistance = physicsComponent.circle.y - this.destinationPoint.y;
+            initialPosition.x = physicsComponent.circle.x;
+            initialPosition.y = physicsComponent.circle.y;
+            xDistance = Math.abs(initialPosition.x - this.destinationPoint.x);
+            yDistance = Math.abs(initialPosition.y - this.destinationPoint.y);
         }
     
+        if (initialPosition.x > this.destinationPoint.x){
+            directionModifier.x = -1;
+        }
+    
+        if (initialPosition.y > this.destinationPoint.y){
+            directionModifier.y = -1;
+        }
+        
         let distance = Math.sqrt(Math.pow(xDistance,2) + Math.pow(yDistance,2));
         let theta = Math.asin(yDistance / distance);
-        let percentage = 0;
+        let increment = 0;
+    
+        let distanceIncrement = distance * 0.01;
+        let xIncrement = distanceIncrement * Math.cos(theta);
+        let yIncrement = distanceIncrement * Math.sin(theta);
+        
         do {
-            percentage += 1;
-            let tempDistance = distance * percentage / 100;
-            let newX = tempDistance * Math.sin(theta);
-            let newY = tempDistance * Math.cos(theta);
-            unit.physicsComponent.setPosition(newX, newY);
-        } while (Utility.checkUnknownObjectCollision(unit.physicsComponent, physicsComponent));
+            increment += 1;
+            unit.physicsComponent.setPosition(
+                initialPosition.x + (xIncrement * increment * directionModifier.x),
+                initialPosition.y + (yIncrement * increment * directionModifier.y)
+            );
+            unit.physicsComponent.setPosition(100, 20);
+        } while(Utility.checkUnknownObjectCollision(unit.physicsComponent, physicsComponent));
     }
 }
 
