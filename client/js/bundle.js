@@ -720,19 +720,14 @@ class Game{
         this.type = "Game";
         this.id = id == "none" ? shortid.generate() : id;
         this.gameObjects = [];
-        this.gameObjects.push(new Building(0, 0, 128, 128, 'images/building.png'));
+        this.gameObjects.push(new Building(256, 256, 128, 128, 'images/building.png'));
         this.map = new Map();
     }
     update(){
         this.map.drawMap();
         this.gameObjects = this.mergeSortGameObjects(this.gameObjects);
         for (let i = 0; i < this.gameObjects.length; i++) {
-            try {
-                this.gameObjects[i].update(this.gameObjects, this.map);
-            } catch (e) {
-                console.log(JSON.stringify(this.gameObjects));
-                throw e;
-            }
+            this.gameObjects[i].update(this.gameObjects, this.map);
         }
     }
     moveObjects(objects, mouseCords){
@@ -865,21 +860,29 @@ module.exports = Tile;
 },{"./component/RenderComponent.js":21}],17:[function(require,module,exports){
 
 class Utility {
+    //Input : two rectangles
+    //Output : a boolean which indicated true if a collision happened
     static checkRectRectCollision(rect1, rect2){
         return rect1.x < rect2.x + rect2.width && rect1.x + rect1.width > rect2.x &&
             rect1.y < rect2.y + rect2.height && rect1.height + rect1.y > rect2.y;
     }
+    //Input : a rectangle and a circle
+    //Output : a boolean which indicated true if a collision happened
     static checkRectCircleCollision(rect, circle){
         let DeltaX = circle.x - Math.max(rect.x, Math.min(circle.x, rect.x + rect.width));
         let DeltaY = circle.y - Math.max(rect.y, Math.min(circle.y, rect.y + rect.height));
         return (DeltaX * DeltaX + DeltaY * DeltaY) < (circle.radius * circle.radius);
     }
+    //Input : two circles
+    //Output : a boolean which indicated true if a collision happened
     static checkCircleCircleCollision(circle1, circle2) {
         let dx = circle1.x - circle2.x;
         let dy = circle1.y - circle2.y;
         let distance = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
         return distance < circle1.radius + circle2.radius;
     }
+    //Input : two physics components with unknown properties
+    //Output : a boolean which indicated true if a collision happened
     static checkUnknownObjectCollision(object1, object2){
         if (object1.type === "RectPhysicsComponent" && object2.type === "RectPhysicsComponent"){
             return Utility.checkRectRectCollision(object1.rect, object2.rect);
@@ -1295,7 +1298,7 @@ class UnitCreationComponent {
     constructor(){
         this.type = "UnitCreationComponent";
         this.queue = [];
-        this.creationTime = 5000; // 5000 milliseconds, 5 second
+        this.creationTime = 1000; // 5000 milliseconds, 5 second
         this.timeStamp = Date.now();
         this.destinationPoint = {
             x : 0,
@@ -1311,7 +1314,8 @@ class UnitCreationComponent {
         }
         return null;
     }
-    addUnitToQueue(unit){
+    addUnitToQueue(unit, point){
+        unit.physicsComponent.setPosition(point.x, point.y);
         this.queue.push(unit);
     }
     getUnitFromQueue(){
@@ -1327,24 +1331,51 @@ class UnitCreationComponent {
     setUnitPosition(unit, physicsComponent){
         let xDistance = null;
         let yDistance = null;
+        let initialPosition = {
+            x : 0,
+            y : 0
+        };
+        
+        let directionModifier = {
+            x : 1,
+            y : 1
+        };
+        
         if (physicsComponent.type === "RectPhysicsComponent"){
-            xDistance = physicsComponent.rect.x + (physicsComponent.rect.width / 2) - this.destinationPoint.x;
-            yDistance = physicsComponent.rect.y + (physicsComponent.rect.height / 2) - this.destinationPoint.y;
+            initialPosition.x = physicsComponent.rect.x;
+            initialPosition.y = physicsComponent.rect.y;
+            xDistance = Math.abs(initialPosition.x - this.destinationPoint.x);
+            yDistance = Math.abs(initialPosition.y - this.destinationPoint.y);
         } else if (physicsComponent.type === "CirclePhysicsComponent"){
-            xDistance = physicsComponent.circle.x - this.destinationPoint.x;
-            yDistance = physicsComponent.circle.y - this.destinationPoint.y;
+            initialPosition.x = physicsComponent.circle.x;
+            initialPosition.y = physicsComponent.circle.y;
+            xDistance = Math.abs(initialPosition.x - this.destinationPoint.x);
+            yDistance = Math.abs(initialPosition.y - this.destinationPoint.y);
         }
     
+        if (initialPosition.x > this.destinationPoint.x){
+            directionModifier.x = -1;
+        }
+    
+        if (initialPosition.y > this.destinationPoint.y){
+            directionModifier.y = -1;
+        }
+        
         let distance = Math.sqrt(Math.pow(xDistance,2) + Math.pow(yDistance,2));
         let theta = Math.asin(yDistance / distance);
-        let percentage = 0;
+        let increment = 0;
+    
+        let distanceIncrement = distance * 0.01;
+        let xIncrement = distanceIncrement * Math.cos(theta);
+        let yIncrement = distanceIncrement * Math.sin(theta);
+        
         do {
-            percentage += 1;
-            let tempDistance = distance * percentage / 100;
-            let newX = tempDistance * Math.sin(theta);
-            let newY = tempDistance * Math.cos(theta);
-            unit.physicsComponent.setPosition(newX, newY);
-        } while (Utility.checkUnknownObjectCollision(unit.physicsComponent, physicsComponent));
+            increment += 1;
+            unit.physicsComponent.setPosition(
+                initialPosition.x + (xIncrement * increment * directionModifier.x),
+                initialPosition.y + (yIncrement * increment * directionModifier.y)
+            );
+        } while(Utility.checkUnknownObjectCollision(unit.physicsComponent, physicsComponent));
     }
 }
 
@@ -1364,15 +1395,15 @@ class Building {
         this.physicsComponent = new RectPhysicsComponent(this.id, x, y, width, height, 0);
         this.unitCreationComponent = new UnitCreationComponent();
         let unit = new Unit(200, 200, 8, 16, 29, 'images/character.png');
-        this.unitCreationComponent.addUnitToQueue(unit);
-        this.unitCreationComponent.setDestination(300, 300);
+        this.unitCreationComponent.addUnitToQueue(unit, this.physicsComponent.rect);
+        this.unitCreationComponent.setDestination(60, 60);
     }
     update(gameObjects, map){
         this.renderComponent.draw(this.physicsComponent.rect);
         this.physicsComponent.drawCollisionSize();
         let unit = this.unitCreationComponent.update(this.physicsComponent);
         if (unit !== null) {
-            console.log("unit: " + JSON.stringify(unit) + ", " + typeof unit);
+            console.log(JSON.stringify(unit));
             gameObjects.push(unit);
         }
     }
@@ -1381,9 +1412,6 @@ class Building {
     }
     getCoords(){
         return this.physicsComponent.rect;
-    }
-    addUnitToQueue(unit){
-        this.unitCreationComponent.addUnitToQueue(unit);
     }
 }
 

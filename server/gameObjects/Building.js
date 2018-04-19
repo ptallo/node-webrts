@@ -20,6 +20,7 @@ class Building {
         this.physicsComponent.drawCollisionSize();
         let unit = this.unitCreationComponent.update(this.physicsComponent);
         if (unit !== null) {
+            console.log(JSON.stringify(unit));
             gameObjects.push(unit);
         }
     }

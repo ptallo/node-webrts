@@ -9,7 +9,7 @@ class Game{
         this.type = "Game";
         this.id = id == "none" ? shortid.generate() : id;
         this.gameObjects = [];
-        this.gameObjects.push(new Building(0, 0, 128, 128, 'images/building.png'));
+        this.gameObjects.push(new Building(256, 256, 128, 128, 'images/building.png'));
         this.map = new Map();
     }
     update(){
