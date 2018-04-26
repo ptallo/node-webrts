@@ -18,7 +18,7 @@ class Building {
     updateDestination(x, y){
         this.physicsComponent.updateDestination(x, y);
     }
-    getCoords(){
+    getLocation(){
         return this.physicsComponent.rect;
     }
 }

@@ -52,7 +52,7 @@ class Game{
             l = 0,
             r = 0;
         while (l < left.length && r < right.length){
-            if (left[l].getCoords().y < right[r].getCoords().y) {
+            if (left[l].getLocation().y < right[r].getLocation().y) {
                 results.push(left[l]);
                 l++;
             } else {
