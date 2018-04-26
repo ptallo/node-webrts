@@ -8,7 +8,6 @@ var Building = require('../../server/gameObjects/Building.js');
 //Component requirements
 var RectPhysicsComponent = require('../../server/component/RectPhysicsComponent.js');
 var CirclePhysicsComponent = require('../../server/component/CirclePhysicsComponent.js');
-var UnitCreationComponent = require('../../server/component/UnitCreationComponent.js');
 var RenderComponent = require('../../server/component/RenderComponent.js');
 var Animation = require('../../server/component/Animation.js');
 
@@ -240,21 +239,10 @@ function assignObject(object){
                object.currentAnimation = Object.assign(new Animation, object.currentAnimation);
            }
            return Object.assign(new RenderComponent, object);
-       } else if (object.type === "UnitCreationComponent"){
-           for (let i = 0; i < object.queue.length; i++){
-               let gameObject = assignObject(object.queue[i]);
-               for (let property in gameObject){
-                   if (property.includes("Component")){
-                       gameObject[property] = assignObject(gameObject[property]);
-                   }
-               }
-               object.queue[i] = gameObject;
-           }
-           return Object.assign(new UnitCreationComponent, object);
-       } else if (object.type === "Unit"){
+       }  else if (object.type === "Unit"){
            return Object.assign(new Unit, object);
-       } else {
-           return object;
        }
+    } else {
+        return object;
     }
 }
