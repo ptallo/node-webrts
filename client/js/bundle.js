@@ -64,7 +64,7 @@ class Gui {
 }
 
 module.exports = Gui;
-},{"../../../server/gameObjects/Building.js":23,"../../../server/gameObjects/Unit.js":24,"./Section.js":2}],2:[function(require,module,exports){
+},{"../../../server/gameObjects/Building.js":24,"../../../server/gameObjects/Unit.js":25,"./Section.js":2}],2:[function(require,module,exports){
 
 class Section{
     constructor(xBuffer, yBuffer){
@@ -127,6 +127,7 @@ var Building = require('../../server/gameObjects/Building.js');
 //Component requirements
 var RectPhysicsComponent = require('../../server/component/RectPhysicsComponent.js');
 var CirclePhysicsComponent = require('../../server/component/CirclePhysicsComponent.js');
+var UnitCreationComponent = require('../../server/component/UnitCreationComponent.js');
 var RenderComponent = require('../../server/component/RenderComponent.js');
 var Animation = require('../../server/component/Animation.js');
 
@@ -327,11 +328,6 @@ socket.on('update game', function(gameJSON){
     game.gameObjects = [];
     for (let i = 0; i < serverGame.gameObjects.length; i++){
         let gameObject = assignObject(serverGame.gameObjects[i]);
-        for (let property in gameObject){
-            if (property.includes("Component")){
-                gameObject[property] = assignObject(gameObject[property]);
-            }
-        }
         game.gameObjects.push(gameObject);
         for (let j = 0; j < selectedGameObjects.length; j++){
             if (gameObject.id === selectedGameObjects[j].id){
@@ -343,13 +339,23 @@ socket.on('update game', function(gameJSON){
 });
 
 function assignObject(object){
+    object = castObject(object);
+    for (let property in object){
+        if (property.includes("Component")){
+            object[property] = castObject(object[property]);
+        }
+    }
+    return object;
+}
+
+function castObject(object){
     if (Object.keys(object).indexOf("type") > -1) {
        if (object.type === "Building"){
-           return Object.assign(new Building, object);
+           object = Object.assign(new Building, object);
        } else if (object.type === "CirclePhysicsComponent"){
-           return Object.assign(new CirclePhysicsComponent, object);
+           object = Object.assign(new CirclePhysicsComponent, object);
        } else if (object.type === "RectPhysicsComponent"){
-           return Object.assign(new RectPhysicsComponent, object);
+           object = Object.assign(new RectPhysicsComponent, object);
        } else if (object.type === "RenderComponent"){
            for (let i = 0; i < object.animations.length; i++){
                object.animations[i].value = Object.assign(new Animation, object.animations[i].value);
@@ -357,16 +363,20 @@ function assignObject(object){
            if (object.currentAnimation !== null){
                object.currentAnimation = Object.assign(new Animation, object.currentAnimation);
            }
-           return Object.assign(new RenderComponent, object);
+           object = Object.assign(new RenderComponent, object);
        }  else if (object.type === "Unit"){
-           return Object.assign(new Unit, object);
+           object = Object.assign(new Unit, object);
+       } else if (object.type === "UnitCreationComponent"){
+           for (let i = 0; i < object.queue.length;i ++){
+               object.queue[i] = assignObject(object.queue[i]);
+           }
+           object = Object.assign(new UnitCreationComponent, object);
        }
-    } else {
-        return object;
     }
+    return object;
 }
 
-},{"../../server/Game.js":14,"../../server/Map.js":15,"../../server/Tile.js":16,"../../server/Utility.js":17,"../../server/component/Animation.js":18,"../../server/component/CirclePhysicsComponent.js":19,"../../server/component/RectPhysicsComponent.js":20,"../../server/component/RenderComponent.js":21,"../../server/gameObjects/Building.js":23,"../../server/gameObjects/Unit.js":24,"./Gui/Gui.js":1}],4:[function(require,module,exports){
+},{"../../server/Game.js":14,"../../server/Map.js":15,"../../server/Tile.js":16,"../../server/Utility.js":17,"../../server/component/Animation.js":18,"../../server/component/CirclePhysicsComponent.js":19,"../../server/component/RectPhysicsComponent.js":20,"../../server/component/RenderComponent.js":21,"../../server/component/UnitCreationComponent.js":23,"../../server/gameObjects/Building.js":24,"../../server/gameObjects/Unit.js":25,"./Gui/Gui.js":1}],4:[function(require,module,exports){
 'use strict';
 module.exports = require('./lib/index');
 
@@ -709,6 +719,7 @@ class Game{
         this.id = id == "none" ? shortid.generate() : id;
         this.gameObjects = [];
         this.gameObjects.push(new Building(256, 256, 128, 128, 'images/building.png'));
+        // this.gameObjects.push(new Unit(200, 200, 8, 16, 29, 'images/character.png'));
         this.map = new Map();
     }
     update(){
@@ -751,7 +762,7 @@ class Game{
             l = 0,
             r = 0;
         while (l < left.length && r < right.length){
-            if (left[l].getCoords().y < right[r].getCoords().y) {
+            if (left[l].getLocation().y < right[r].getLocation().y) {
                 results.push(left[l]);
                 l++;
             } else {
@@ -765,7 +776,7 @@ class Game{
 
 module.exports = Game;
 
-},{"./Map.js":15,"./gameObjects/Building.js":23,"./gameObjects/Unit.js":24,"shortid":4}],15:[function(require,module,exports){
+},{"./Map.js":15,"./gameObjects/Building.js":24,"./gameObjects/Unit.js":25,"shortid":4}],15:[function(require,module,exports){
 var Tile = require('./Tile.js');
 
 class Map{
@@ -881,6 +892,11 @@ class Utility {
         } else if (object1.type ==="CirclePhysicsComponent" && object2.type === "CirclePhysicsComponent"){
             return Utility.checkCircleCircleCollision(object1.circle, object2.circle);
         }
+    }
+    //Input : a number of ms to sleep for
+    //Output : nothing
+    static sleep(ms){
+        return new Promise(resolve => setTimeout(resolve, ms));
     }
 }
 
@@ -1283,9 +1299,54 @@ var State = {
 
 module.exports = State;
 },{}],23:[function(require,module,exports){
+var Unit = require('../gameObjects/Unit.js');
+var Utility = require('../Utility.js');
+
+class UnitCreationComponent{
+    constructor(){
+        this.type = "UnitCreationComponent";
+        this.queue = [];
+        this.constructionTime = 1000;
+        this.timeStamp = Date.now();
+        this.destination = {
+            x : null,
+            y : null
+        };
+    }
+    addUnit(unit){
+        this.queue.push(unit);
+    }
+    getUnit(){
+        return this.queue.shift();
+    }
+    updateDestination(x, y){
+        this.destination = {
+            x : x,
+            y : y
+        };
+    }
+    update(gameObjects, coordinates){
+        if (Date.now() - this.timeStamp > this.constructionTime && this.queue.length > 0){
+            this.timeStamp = Date.now();
+            let unit = this.getUnit();
+            if (typeof unit !== "undefined"){
+                // unit.physicsComponent.updateDestination(this.destination.x, this.destination.y);
+                this.positionUnit(unit, coordinates);
+                gameObjects.push(unit);
+            }
+        }
+    }
+    positionUnit(unit, coordinates){
+        unit.physicsComponent.setPosition(coordinates.x - 20, coordinates.y - 20);
+    }
+}
+
+module.exports = UnitCreationComponent;
+},{"../Utility.js":17,"../gameObjects/Unit.js":25}],24:[function(require,module,exports){
 var shortid = require('shortid');
 var RenderComponent = require('../component/RenderComponent.js');
 var RectPhysicsComponent = require('../component/RectPhysicsComponent.js');
+var UnitCreationComponent = require('../component/UnitCreationComponent.js');
 var Unit = require('../gameObjects/Unit.js');
 
 class Building {
@@ -1294,22 +1355,27 @@ class Building {
         this.id = shortid.generate();
         this.renderComponent = new RenderComponent(url);
         this.physicsComponent = new RectPhysicsComponent(this.id, x, y, width, height, 0);
+        this.unitCreationComponent = new UnitCreationComponent();
+        let unit = new Unit(200, 200, 8, 16, 29, 'images/character.png');
+        this.unitCreationComponent.addUnit(unit);
+        this.unitCreationComponent.updateDestination(100, 20);
     }
     update(gameObjects, map){
         this.renderComponent.draw(this.physicsComponent.rect);
         this.physicsComponent.update(gameObjects, map);
         this.physicsComponent.drawCollisionSize();
+        this.unitCreationComponent.update(gameObjects, this.getLocation());
     }
     updateDestination(x, y){
         this.physicsComponent.updateDestination(x, y);
     }
-    getCoords(){
+    getLocation(){
         return this.physicsComponent.rect;
     }
 }
 
 module.exports = Building;
-},{"../component/RectPhysicsComponent.js":20,"../component/RenderComponent.js":21,"../gameObjects/Unit.js":24,"shortid":4}],24:[function(require,module,exports){
+},{"../component/RectPhysicsComponent.js":20,"../component/RenderComponent.js":21,"../component/UnitCreationComponent.js":23,"../gameObjects/Unit.js":25,"shortid":4}],25:[function(require,module,exports){
 var shortid = require('shortid');
 var CirclePhysicsComponent = require('../component/CirclePhysicsComponent.js');
 var RenderComponent = require('../component/RenderComponent.js');
@@ -1346,7 +1412,7 @@ class Unit{
     updateDestination(x, y){
         this.physicsComponent.updateDestination(x, y);
     }
-    getCoords(){
+    getLocation(){
         return this.physicsComponent.circle;
     }
     setState(state){
