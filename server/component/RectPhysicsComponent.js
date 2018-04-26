@@ -6,6 +6,10 @@ class RectPhysicsComponent {
         this.id = id;
         this.speed = speed;
         this.timeStamp = null;
+        this.destPoint = {
+            x : x,
+            y : y
+        };
         this.rect = {
             x : x,
             y : y,
@@ -52,8 +56,8 @@ class RectPhysicsComponent {
         }
     }
     getNewRect(){
-        let dx = Math.abs(this.circle.x - this.destPoint.x);
-        let dy = Math.abs(this.circle.y - this.destPoint.y);
+        let dx = Math.abs(this.rect.x - this.destPoint.x);
+        let dy = Math.abs(this.rect.y - this.destPoint.y);
         let distance = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
     
         let cos = dx / distance;
@@ -67,27 +71,27 @@ class RectPhysicsComponent {
         };
     
         let newX = null;
-        if (this.destPoint.x !== this.circle.x){
-            let coefficient = this.destPoint.x < this.circle.x ? -1 : 1;
-            if (Math.abs(this.destPoint.x - this.circle.x) < move.x) {
+        if (this.destPoint.x !== this.rect.x){
+            let coefficient = this.destPoint.x < this.rect.x ? -1 : 1;
+            if (Math.abs(this.destPoint.x - this.rect.x) < move.x) {
                 newX = this.destPoint.x ;
             } else {
-                newX = this.circle.x + move.x * coefficient;
+                newX = this.rect.x + move.x * coefficient;
             }
         } else {
-            newX = this.circle.x;
+            newX = this.rect.x;
         }
     
         let newY = null;
-        if (this.destPoint.y !== this.circle.y){
-            let coefficient = this.destPoint.y < this.circle.y ? -1 : 1;
-            if (Math.abs(this.destPoint.y - this.circle.y) < move.y){
+        if (this.destPoint.y !== this.rect.y){
+            let coefficient = this.destPoint.y < this.rect.y ? -1 : 1;
+            if (Math.abs(this.destPoint.y - this.rect.y) < move.y){
                 newY = this.destPoint.y ;
             } else {
-                newY = this.circle.y + move.y * coefficient;
+                newY = this.rect.y + move.y * coefficient;
             }
         } else {
-            newY = this.circle.y;
+            newY = this.rect.y;
         }
         
         let newRect = {
