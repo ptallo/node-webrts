@@ -34,6 +34,11 @@ class Utility {
             return Utility.checkCircleCircleCollision(object1.circle, object2.circle);
         }
     }
+    //Input : a number of ms to sleep for
+    //Output : nothing
+    static sleep(ms){
+        return new Promise(resolve => setTimeout(resolve, ms));
+    }
 }
 
 module.exports = Utility;
