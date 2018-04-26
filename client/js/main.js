@@ -8,6 +8,7 @@ var Building = require('../../server/gameObjects/Building.js');
 //Component requirements
 var RectPhysicsComponent = require('../../server/component/RectPhysicsComponent.js');
 var CirclePhysicsComponent = require('../../server/component/CirclePhysicsComponent.js');
+var UnitCreationComponent = require('../../server/component/UnitCreationComponent.js');
 var RenderComponent = require('../../server/component/RenderComponent.js');
 var Animation = require('../../server/component/Animation.js');
 
@@ -208,11 +209,6 @@ socket.on('update game', function(gameJSON){
     game.gameObjects = [];
     for (let i = 0; i < serverGame.gameObjects.length; i++){
         let gameObject = assignObject(serverGame.gameObjects[i]);
-        for (let property in gameObject){
-            if (property.includes("Component")){
-                gameObject[property] = assignObject(gameObject[property]);
-            }
-        }
         game.gameObjects.push(gameObject);
         for (let j = 0; j < selectedGameObjects.length; j++){
             if (gameObject.id === selectedGameObjects[j].id){
@@ -224,13 +220,23 @@ socket.on('update game', function(gameJSON){
 });
 
 function assignObject(object){
+    object = castObject(object);
+    for (let property in object){
+        if (property.includes("Component")){
+            object[property] = castObject(object[property]);
+        }
+    }
+    return object;
+}
+
+function castObject(object){
     if (Object.keys(object).indexOf("type") > -1) {
        if (object.type === "Building"){
-           return Object.assign(new Building, object);
+           object = Object.assign(new Building, object);
        } else if (object.type === "CirclePhysicsComponent"){
-           return Object.assign(new CirclePhysicsComponent, object);
+           object = Object.assign(new CirclePhysicsComponent, object);
        } else if (object.type === "RectPhysicsComponent"){
-           return Object.assign(new RectPhysicsComponent, object);
+           object = Object.assign(new RectPhysicsComponent, object);
        } else if (object.type === "RenderComponent"){
            for (let i = 0; i < object.animations.length; i++){
                object.animations[i].value = Object.assign(new Animation, object.animations[i].value);
@@ -238,11 +244,15 @@ function assignObject(object){
            if (object.currentAnimation !== null){
                object.currentAnimation = Object.assign(new Animation, object.currentAnimation);
            }
-           return Object.assign(new RenderComponent, object);
+           object = Object.assign(new RenderComponent, object);
        }  else if (object.type === "Unit"){
-           return Object.assign(new Unit, object);
+           object = Object.assign(new Unit, object);
+       } else if (object.type === "UnitCreationComponent"){
+           for (let i = 0; i < object.queue.length;i ++){
+               object.queue[i] = assignObject(object.queue[i]);
+           }
+           object = Object.assign(new UnitCreationComponent, object);
        }
-    } else {
-        return object;
     }
+    return object;
 }
