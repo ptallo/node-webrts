@@ -11,7 +11,7 @@ class Building {
         this.renderComponent = new RenderComponent(url);
         this.physicsComponent = new RectPhysicsComponent(this.id, x, y, width, height, 0);
         this.unitCreationComponent = new UnitCreationComponent();
-        let unit = new Unit(200, 200, 8, 16, 29, 'images/character.png');
+        let unit = new Unit(30, 30, 8, 16, 29, 'images/character.png');
         this.unitCreationComponent.addUnit(unit);
         this.unitCreationComponent.updateDestination(100, 20);
     }

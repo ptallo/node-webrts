@@ -719,12 +719,11 @@ class Game{
         this.id = id == "none" ? shortid.generate() : id;
         this.gameObjects = [];
         this.gameObjects.push(new Building(256, 256, 128, 128, 'images/building.png'));
-        // this.gameObjects.push(new Unit(200, 200, 8, 16, 29, 'images/character.png'));
         this.map = new Map();
     }
     update(){
         this.map.drawMap();
-        this.gameObjects = this.mergeSortGameObjects(this.gameObjects);
+        // this.gameObjects = this.mergeSortGameObjects(this.gameObjects);
         for (let i = 0; i < this.gameObjects.length; i++) {
             this.gameObjects[i].update(this.gameObjects, this.map);
         }
@@ -1299,14 +1298,13 @@ var State = {
 
 module.exports = State;
 },{}],23:[function(require,module,exports){
-var Unit = require('../gameObjects/Unit.js');
 var Utility = require('../Utility.js');
 
 class UnitCreationComponent{
     constructor(){
         this.type = "UnitCreationComponent";
         this.queue = [];
-        this.constructionTime = 1000;
+        this.constructionTime = 0;
         this.timeStamp = Date.now();
         this.destination = {
             x : null,
@@ -1325,24 +1323,49 @@ class UnitCreationComponent{
             y : y
         };
     }
-    update(gameObjects, coordinates){
+    update(gameObjects, physicsComponent){
         if (Date.now() - this.timeStamp > this.constructionTime && this.queue.length > 0){
             this.timeStamp = Date.now();
-            let unit = this.getUnit();
+            let testUnit = this.getUnit();
+            let unit = Object.assign(Object.create(Object.getPrototypeOf(testUnit)), testUnit);
             if (typeof unit !== "undefined"){
                 // unit.physicsComponent.updateDestination(this.destination.x, this.destination.y);
-                this.positionUnit(unit, coordinates);
+                // this.positionUnit(unit, physicsComponent);
+                unit.updateDestination(20, 300);
                 gameObjects.push(unit);
             }
         }
     }
-    positionUnit(unit, coordinates){
-        unit.physicsComponent.setPosition(coordinates.x - 20, coordinates.y - 20);
+    positionUnit(unit, physicsComponent){
+        let startPoint = {};
+        if (physicsComponent.type === "RectPhysicsComponent"){
+            startPoint.x = physicsComponent.rect.x + (physicsComponent.rect.width / 2);
+            startPoint.y = physicsComponent.rect.y + (physicsComponent.rect.height / 2);
+        } else if (physicsComponent.type === "CirclePhysicsComponent"){
+            startPoint.x = physicsComponent.circle.x;
+            startPoint.y = physicsComponent.circle.y;
+        }
+        
+        let xyDistance = {
+            x : startPoint.x - this.destination.x,
+            y : startPoint.y - this.destination.y
+        };
+        let distance = Math.sqrt(Math.pow(xyDistance.x, 2) + Math.pow(xyDistance.y, 2));
+        let theta = Math.asin(xyDistance.y / distance);
+        let percentage = 0;
+        
+        let point = startPoint;
+        while (Utility.checkUnknownObjectCollision(unit.physicsComponent, physicsComponent)){
+            percentage += 0.01;
+            point.x = startPoint.x + (Math.cos(theta) * distance * percentage);
+            point.y = startPoint.y + (Math.sin(theta) * distance * percentage);
+            unit.physicsComponent.setPosition(point.x, point.y);
+        }
     }
 }
 
 module.exports = UnitCreationComponent;
-},{"../Utility.js":17,"../gameObjects/Unit.js":25}],24:[function(require,module,exports){
+},{"../Utility.js":17}],24:[function(require,module,exports){
 var shortid = require('shortid');
 var RenderComponent = require('../component/RenderComponent.js');
 var RectPhysicsComponent = require('../component/RectPhysicsComponent.js');
@@ -1356,7 +1379,7 @@ class Building {
         this.renderComponent = new RenderComponent(url);
         this.physicsComponent = new RectPhysicsComponent(this.id, x, y, width, height, 0);
         this.unitCreationComponent = new UnitCreationComponent();
-        let unit = new Unit(200, 200, 8, 16, 29, 'images/character.png');
+        let unit = new Unit(30, 30, 8, 16, 29, 'images/character.png');
         this.unitCreationComponent.addUnit(unit);
         this.unitCreationComponent.updateDestination(100, 20);
     }

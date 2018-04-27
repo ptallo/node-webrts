@@ -14,7 +14,7 @@ class Game{
     }
     update(){
         this.map.drawMap();
-        this.gameObjects = this.mergeSortGameObjects(this.gameObjects);
+        // this.gameObjects = this.mergeSortGameObjects(this.gameObjects);
         for (let i = 0; i < this.gameObjects.length; i++) {
             this.gameObjects[i].update(this.gameObjects, this.map);
         }
